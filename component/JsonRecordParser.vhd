@@ -53,6 +53,7 @@ end entity;
 
 architecture behavioral of JsonRecordParser is
   signal state_vec : std_logic_vector(31 downto 0);
+  signal visited_vec : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
 begin
   clk_proc: process (clk) is
     constant IDXW : natural := log2ceil(ELEMENTS_PER_TRANSFER);
@@ -87,6 +88,12 @@ begin
     type out_array is array (natural range <>) of out_type;
     variable od : out_array(0 to ELEMENTS_PER_TRANSFER-1);
     variable ov : std_logic := '0';
+    variable out_r : std_logic := '0';
+
+    variable handshaked : boolean;
+
+    variable stai : natural;
+    variable endi : natural;
 
     -- Enumeration type for our state machine.
     type state_t is (STATE_DEFAULT,
@@ -97,6 +104,9 @@ begin
 
     -- State variable
     variable state : state_t;
+    variable state_backup : state_t;
+
+    variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
 
     variable state_int : integer;
 
@@ -106,6 +116,10 @@ begin
       -- Latch input holding register if we said we would.
       if to_x01(ir) = '1' then
         iv := in_valid;
+        out_r := out_ready;
+        processed := (others => '0');
+        stai               := 0;
+        endi               := ELEMENTS_PER_TRANSFER-1;
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
           id(idx).data := in_data(8*idx+7 downto 8*idx);
           --id(idx).last := in_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx);
@@ -125,6 +139,11 @@ begin
         ov := '0';
       end if;
       ir                 := '1';
+      handshaked         := false;
+
+      if out_valid = '1' and out_ready = '1' then
+        handshaked := true;
+      end if;
 
       -- Do processing when both registers are ready.
       if to_x01(iv) = '1' and to_x01(ov) /= '1' then
@@ -137,18 +156,24 @@ begin
           
 
           -- Element-wise processing only when the lane is valid.
-          if to_x01(id(idx).strb) = '1' then
+          if to_x01(id(idx).strb) = '1' and processed(idx) = '0' then
 
             -- Handle escape sequence state machine.
             case state is
               when STATE_BLOCK =>
-                --ir := '0';
-                state := STATE_BLOCK;
-                if out_valid = '1' and out_ready = '1' then
+                endi  := idx;
+                ir    := '0';
+                --state := STATE_BLOCK;
+                if handshaked then
+                  handshaked := false;
+                  ir         := '1';
+                  --state := state_backup;
                   case id(idx).data is
                     when X"22" => -- '"'
+                      stai := idx;
                       state := STATE_KEY;
                     when X"3A" => -- ':'
+                      stai := idx;
                       state := STATE_VALUE;
                     when X"7D" => -- '}'
                       state := STATE_DEFAULT;
@@ -158,6 +183,7 @@ begin
                 end if;
 
               when STATE_DEFAULT =>
+                processed(idx)     := '1';
                 case id(idx).data is
                   when X"7B" => -- '{'
                     state := STATE_RECORD;
@@ -166,10 +192,13 @@ begin
                 end case;
 
               when STATE_RECORD =>
+                processed(idx)     := '1';
                 case id(idx).data is
                   when X"22" => -- '"'
+                    stai := idx;
                     state := STATE_KEY;
                   when X"3A" => -- ':'
+                    stai := idx;
                     state := STATE_VALUE;
                   when X"7D" => -- '}'
                     state := STATE_DEFAULT;
@@ -178,34 +207,39 @@ begin
                 end case;
                 
               when STATE_KEY =>
+                processed(idx)     := '1';
                 case id(idx).data is
                   when X"22" => -- '"'
+                    handshaked := false;
                     state := STATE_BLOCK;
                     od(idx).last := '1';
                   when others =>
-                    -- Validate the current lane
                     od(idx).strb := '1';
                     ov := '1';
                     state := STATE_KEY;
                 end case;
 
               when STATE_VALUE =>
+              processed(idx)     := '1';
                 case id(idx).data is
                   when X"2C" => -- ','
+                    handshaked := false;
                     state := STATE_BLOCK;
+                    --state_backup := STATE_RECORD;
+                    od(idx).last := '1';
                   when X"7D" => -- '}'
-                    state := STATE_DEFAULT;
+                    handshaked := false;
+                    state := STATE_BLOCK;
+                    --state_backup := STATE_DEFAULT;
+                    od(idx).last := '1';
                   when others =>
                     -- Validate the current lane
                     od(idx).strb := '1';
                     ov := '1';
                     state := STATE_VALUE;
                 end case;
-
             end case;
-
           end if;
-
           -- Clear state upon any last, to prevent broken elements from messing
           -- up everything.
           if id(idx).last /= '0' then
@@ -228,8 +262,8 @@ begin
         out_data(8*idx+8-1 downto 8*idx) <= od(idx).data.value;
         --out_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx) <= od(idx).last;
         out_last(idx) <= od(idx).last;
-        --out_stai(IDXW*(idx+1)-1 downto IDXW*idx) <= std_logic_vector(to_unsigned(0, IDXW));
-        --out_endi(IDXW*(idx+1)-1 downto IDXW*idx) <= std_logic_vector(to_unsigned(ELEMENTS_PER_TRANSFER-1, IDXW));
+        out_stai <= std_logic_vector(to_unsigned(stai, out_stai'length));
+        out_endi <= std_logic_vector(to_unsigned(endi, out_stai'length));
         out_strb(idx) <= od(idx).strb;
       end loop;
 
@@ -238,7 +272,9 @@ begin
       in_ready <= ir;
 
       state_int := state_t'POS(state) ; 
-      state_vec <= std_logic_vector(to_unsigned(state_int, 32)) ; 
+      state_vec <= std_logic_vector(to_unsigned(state_int, 32));
+      
+      visited_vec <= processed;
 
     end if;
   end process;

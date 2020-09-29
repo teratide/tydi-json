@@ -6,4 +6,5 @@ steps:
     image: abstudelft/vhdeps:latest
     commands:
       - git submodule update --recursive --remote
+      - ls
       - /bin/bash sim.sh

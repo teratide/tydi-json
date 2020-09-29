@@ -5,6 +5,5 @@ steps:
   - name: test
     image: abstudelft/vhdeps:latest
     commands:
-      - git submodule update --recursive --remote
-      - ls vhlib
-      - python3 -m vhdeps -i vhlib -i component -i test ghdl JsonRecordParser_tc -w .
+      - git submodule update --init --recursive
+      - /bin/bash sim.sh

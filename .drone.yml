@@ -1,0 +1,8 @@
+kind: pipeline
+name: default
+
+steps:
+  - name: test
+    image: abstudelft/vhdeps:latest
+    commands:
+      - source sim.sh

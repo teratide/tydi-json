@@ -1,0 +1,2 @@
+[submodule "vhlib"]
+	url = https://github.com/abs-tudelft/vhlib.git

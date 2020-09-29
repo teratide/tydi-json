@@ -5,4 +5,4 @@ steps:
   - name: test
     image: abstudelft/vhdeps:latest
     commands:
-      - sim.sh
+      - /bin/bash sim.sh

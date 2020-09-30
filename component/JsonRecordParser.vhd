@@ -4,48 +4,49 @@ use ieee.numeric_std.all;
 
 library work;
 use work.UtilInt_pkg.all;
+use work.Json_pkg.all;
 
 
 entity JsonRecordParser is
   generic (
-    ELEMENTS_PER_TRANSFER : natural := 1;
-    NESTING_LEVEL         : natural := 1
-  );
+      ELEMENTS_PER_TRANSFER : natural := 1;
+      NESTING_LEVEL         : natural := 1
+      );
   port (
-    clk                   : in  std_logic;
-    reset                 : in  std_logic;
+      clk                   : in  std_logic;
+      reset                 : in  std_logic;
 
-    -- Stream(
-    --     Bits(9),
-    --     t=ELEMENTS_PER_TRANSFER,
-    --     d=NESTING_LEVEL,
-    --     c=8
-    -- )
-    in_valid              : in  std_logic;
-    in_ready              : out std_logic;
-    in_data               : in  std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
-    --in_last               : in  std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-    in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-    in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
-    in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-    in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+      -- Stream(
+      --     Bits(9),
+      --     t=ELEMENTS_PER_TRANSFER,
+      --     d=NESTING_LEVEL,
+      --     c=8
+      -- )
+      in_valid              : in  std_logic;
+      in_ready              : out std_logic;
+      in_data               : in  std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
+      --in_last               : in  std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
+      in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
+      in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
 
-    -- Stream(
-    --     Bits(9),
-    --     t=ELEMENTS_PER_TRANSFER,
-    --     d=NESTING_LEVEL,
-    --     c=8
-    -- )
-    --
-
-    out_valid             : out std_logic;
-    out_ready             : in  std_logic;
-    out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
-    --out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-    out_last              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-    out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
-    out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-    out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
+      -- Stream(
+      --     Bits(9),
+      --     t=ELEMENTS_PER_TRANSFER,
+      --     d=NESTING_LEVEL,
+      --     c=8
+      -- )
+      --
+      out_valid             : out std_logic;
+      out_ready             : in  std_logic;
+      --out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
+      out_data              : out JsonRecordParser_out_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
+      --out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      out_last              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
+      out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
+      out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
 
   );
 end entity;
@@ -70,17 +71,13 @@ begin
     variable iv : std_logic := '0';
     variable ir : std_logic := '0';
 
-    -- Output data compound type, where the "tag" field
-    -- represents if the output values are part of a 
-    -- key or a value.
-    type out_data_record is record
-      tag   : std_logic_vector(0 downto 0);
-      value : std_logic_vector(7 downto 0);
-    end record;
+
+
     -- Output holding register.
     type out_type is record
-      data  : out_data_record;
+      data  : std_logic_vector(7 downto 0);
       --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
+      tag   : kv_tag_t;
       last  : std_logic;
       strb  : std_logic;
     end record;
@@ -149,7 +146,7 @@ begin
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
 
           -- Default behavior.
-          od(idx).data.value := id(idx).data;
+          od(idx).data       := id(idx).data;
           od(idx).last       := id(idx).last;
           od(idx).strb       := '0';
           
@@ -262,7 +259,7 @@ begin
       out_valid <= to_x01(ov);
       for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
         --out_data(8*idx+8 downto 8*idx) <= od(idx).data.tag & od(idx).data.value;
-        out_data(8*idx+8-1 downto 8*idx) <= od(idx).data.value;
+        out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;
         --out_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx) <= od(idx).last;
         out_last(idx) <= od(idx).last;
         out_stai <= std_logic_vector(stai);

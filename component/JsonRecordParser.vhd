@@ -138,7 +138,8 @@ begin
       ir                 := '1';
       handshaked         := false;
 
-      if out_valid = '1' and out_ready = '1' then
+      --if out_valid = '1' and out_ready = '1' then
+      if out_ready = '1' then
         handshaked := true;
       end if;
 

@@ -37,8 +37,7 @@ entity JsonRecordParser is
     --     c=8
     -- )
     --
-    -- MSB of the data element is 0 for regular characters and 1 for decoded
-    -- escape sequences.
+
     out_valid             : out std_logic;
     out_ready             : in  std_logic;
     out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
@@ -85,6 +84,7 @@ begin
       last  : std_logic;
       strb  : std_logic;
     end record;
+
     type out_array is array (natural range <>) of out_type;
     variable od : out_array(0 to ELEMENTS_PER_TRANSFER-1);
     variable ov : std_logic := '0';
@@ -108,8 +108,6 @@ begin
     variable state_backup : state_t;
 
     variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
-
-    variable state_int : integer;
 
   begin
     if rising_edge(clk) then
@@ -165,11 +163,10 @@ begin
               when STATE_BLOCK =>
                 endi  := idx_int-1;
                 ir    := '0';
-                --state := STATE_BLOCK;
+                state := STATE_BLOCK;
                 if handshaked then
                   handshaked := false;
                   ir         := '1';
-                  --state := state_backup;
                   case id(idx).data is
                     when X"22" => -- '"'
                       stai := idx_int+1;
@@ -273,14 +270,7 @@ begin
         out_strb(idx) <= od(idx).strb;
       end loop;
 
-      -- Determine and forward input ready.
-      --ir := not iv and not reset;
-      in_ready <= ir;
-
-      state_int := state_t'POS(state) ; 
-      state_vec <= std_logic_vector(to_unsigned(state_int, 32));
-      
-      visited_vec <= processed;
+      in_ready <= ir and not reset;
 
     end if;
   end process;

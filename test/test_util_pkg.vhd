@@ -7,7 +7,7 @@ package test_util_pkg is
 
   -- Returns the count with implicit '1' MSB of a one-hot- or thermometer-coded
   -- value.
-  function left_align_stream(
+  function right_align_stream(
     data    : std_logic_vector;
     stai    : std_logic_vector;
     bits    : natural
@@ -17,7 +17,7 @@ end test_util_pkg;
 
 package body test_util_pkg is
 
-  function left_align_stream(
+  function right_align_stream(
     data    : std_logic_vector;
     stai    : std_logic_vector;
     bits    : natural

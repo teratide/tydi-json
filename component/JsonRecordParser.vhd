@@ -52,8 +52,6 @@ entity JsonRecordParser is
 end entity;
 
 architecture behavioral of JsonRecordParser is
-  signal state_vec : std_logic_vector(31 downto 0);
-  signal visited_vec : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
 begin
   clk_proc: process (clk) is
     constant IDXW : natural := log2ceil(ELEMENTS_PER_TRANSFER);
@@ -71,13 +69,10 @@ begin
     variable iv : std_logic := '0';
     variable ir : std_logic := '0';
 
-
-
     -- Output holding register.
     type out_type is record
       data  : std_logic_vector(7 downto 0);
       --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
-      tag   : kv_tag_t;
       last  : std_logic;
       strb  : std_logic;
     end record;
@@ -92,6 +87,8 @@ begin
     variable stai    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
     variable endi    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
     variable idx_int : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+
+    variable tag     : kv_tag_t;
 
     -- Enumeration type for our state machine.
     type state_t is (STATE_DEFAULT,
@@ -114,8 +111,9 @@ begin
         iv := in_valid;
         out_r := out_ready;
         processed := (others => '0');
-        stai               := to_unsigned(0, stai'length);
-        endi               := to_unsigned(ELEMENTS_PER_TRANSFER-1, endi'length);
+        stai      := to_unsigned(0, stai'length);
+        endi      := to_unsigned(ELEMENTS_PER_TRANSFER-1, endi'length);
+        tag       := KEY;
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
           id(idx).data := in_data(8*idx+7 downto 8*idx);
           --id(idx).last := in_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx);
@@ -207,7 +205,8 @@ begin
                 end case;
                 
               when STATE_KEY =>
-                processed(idx)     := '1';
+                processed(idx) := '1';
+                tag    := KEY;
                 case id(idx).data is
                   when X"22" => -- '"'
                     handshaked := false;
@@ -221,7 +220,8 @@ begin
                 end case;
 
               when STATE_VALUE =>
-              processed(idx)     := '1';
+                processed(idx) := '1';
+                tag    := VALUE;
                 case id(idx).data is
                   when X"2C" => -- ','
                     handshaked := false;
@@ -258,9 +258,8 @@ begin
       -- Forward output holding register.
       out_valid <= to_x01(ov);
       for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
-        --out_data(8*idx+8 downto 8*idx) <= od(idx).data.tag & od(idx).data.value;
         out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;
-        --out_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx) <= od(idx).last;
+        out_data.tag  <= tag;
         out_last(idx) <= od(idx).last;
         out_stai <= std_logic_vector(stai);
         out_endi <= std_logic_vector(endi);

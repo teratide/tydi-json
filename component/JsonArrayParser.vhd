@@ -7,7 +7,7 @@ use work.UtilInt_pkg.all;
 use work.Json_pkg.all;
 
 
-entity JsonRecordParser is
+entity JsonArrayParser is
   generic (
       ELEMENTS_PER_TRANSFER : natural := 1;
       NESTING_LEVEL         : natural := 1
@@ -51,7 +51,7 @@ entity JsonRecordParser is
   );
 end entity;
 
-architecture behavioral of JsonRecordParser is
+architecture behavioral of JsonArrayParser is
 begin
   clk_proc: process (clk) is
     constant IDXW : natural := log2ceil(ELEMENTS_PER_TRANSFER);
@@ -93,10 +93,8 @@ begin
     variable tag     : kv_tag_t;
 
     -- Enumeration type for our state machine.
-    type state_t is (STATE_DEFAULT,
-                     STATE_RECORD,
-                     STATE_KEY, 
-                     STATE_VALUE, 
+    type state_t is (STATE_IDLE,
+                     STATE_ARRAY, 
                      STATE_BLOCK);
 
     -- State variable
@@ -164,87 +162,54 @@ begin
                   handshaked := false;
                   ir         := '1';
                   case id(idx).data is
-                    when X"22" => -- '"'
+                    when X"5B" => -- '['
                       stai := idx_int+1;
-                      state := STATE_KEY;
-                    when X"3A" => -- ':'
-                      stai := idx_int+1;
-                      state := STATE_VALUE;
-                    when X"7D" => -- '}'
+                      state := STATE_ARRAY;
+                    when X"5D" => -- ']'
                       endi := idx_int-1;
-                      state := STATE_DEFAULT;
-                    when X"7B" => -- '{'
-                      state := STATE_RECORD;
+                      state := STATE_IDLE;
                     when others =>
-                      state := STATE_RECORD; -- ?????
+                      stai := idx_int+1;
+                      state := STATE_ARRAY; ---- ??????
                   end case;
                 end if;
 
-              when STATE_DEFAULT =>
-                processed(idx)     := '1';
+              when STATE_IDLE =>
+                processed(idx) := '1';
                 case id(idx).data is
-                  when X"7B" => -- '{'
-                    state := STATE_RECORD;
+                  when X"5B" => -- '['
+                    stai := idx_int+1;
+                    state := STATE_ARRAY;
                   when others =>
-                    state := STATE_DEFAULT;
+                    stai := idx_int+1;
+                    state := STATE_IDLE;
                 end case;
 
-              when STATE_RECORD =>
-                processed(idx)     := '1';
-                case id(idx).data is
-                  when X"22" => -- '"'
-                    stai := idx_int+1;
-                    state := STATE_KEY;
-                  when X"3A" => -- ':'
-                    stai := idx_int+1;
-                    state := STATE_VALUE;
-                  when X"7D" => -- '}'
-                    state := STATE_DEFAULT;
-                    endi := idx_int-1;
-                  when others =>
-                    state := STATE_RECORD;
-                end case;
-                
-              when STATE_KEY =>
+              when STATE_ARRAY =>
                 processed(idx) := '1';
-                tag    := KEY;
                 case id(idx).data is
-                  when X"22" => -- '"'
+                  when X"5B" => -- ']'
                     handshaked := false;
                     state := STATE_BLOCK;
-                    od(idx).last := '1';
                     endi := idx_int-1;
-                  when others =>
-                    od(idx).strb := '1';
-                    ov := '1';
-                    state := STATE_KEY;
-                end case;
-
-              when STATE_VALUE =>
-                processed(idx) := '1';
-                tag    := VALUE;
-                case id(idx).data is
+                    od(idx).last := '1';
+                    state := STATE_IDLE;
                   when X"2C" => -- ','
                     handshaked := false;
                     state := STATE_BLOCK;
                     endi := idx_int-1;
                     od(idx).last := '1';
-                  when X"7D" => -- '}'
-                    handshaked := false;
-                    state := STATE_BLOCK;
-                    endi := idx_int-1;
-                    od(idx).last := '1';
                   when others =>
                     od(idx).strb := '1';
                     ov := '1';
-                    state := STATE_VALUE;
+                    state := STATE_ARRAY;
                 end case;
             end case;
           end if;
           -- Clear state upon any last, to prevent broken elements from messing
           -- up everything.
           if id(idx).last /= '0' then
-            state := STATE_DEFAULT;
+            state := STATE_IDLE;
           end if;
         end loop;
       end if;
@@ -253,7 +218,7 @@ begin
       if to_x01(reset) /= '0' then
         ir    := '0';
         ov    := '0';
-        state := STATE_DEFAULT;
+        state := STATE_IDLE;
       end if;
 
       -- Forward output holding register.

@@ -12,10 +12,10 @@ use work.Json_pkg.all;
 use work.test_util_pkg.all;
 use work.TestCase_pkg.all;
 
-entity JsonRecordParser_tc is
-end JsonRecordParser_tc;
+entity BooleanParser_tc is
+end BooleanParser_tc;
 
-architecture test_case of JsonRecordParser_tc is
+architecture test_case of BooleanParser_tc is
 
   signal clk              : std_logic;
   signal reset            : std_logic;
@@ -32,14 +32,7 @@ architecture test_case of JsonRecordParser_tc is
 
   signal out_ready        : std_logic;
   signal out_valid        : std_logic;
-  signal out_data         : std_logic_vector(63 downto 0);
-  signal out_tag          : kv_tag_t;
-  signal out_stai         : std_logic_vector(2 downto 0);
-  signal out_endi         : std_logic_vector(2 downto 0);
-  signal aligned_data     : std_logic_vector(63 downto 0);
-  signal out_count        : std_logic_vector(3 downto 0);
-
-  signal out_tag_int      : integer;
+  signal out_data         : std_logic;
 
 begin
 
@@ -70,7 +63,7 @@ begin
     in_strb <= element_mask(in_count, in_dvalid, 8); 
     in_endi <= std_logic_vector(unsigned(in_count) - 1);
     
-    dut: JsonRecordParser
+    dut: BooleanParser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8
     )
@@ -80,17 +73,14 @@ begin
       in_valid                  => in_valid,
       in_ready                  => in_ready,
       in_data                   => in_data,
+      in_last(0)                => in_last,
       in_strb                   => in_strb,
-      out_data.data             => out_data,
-      out_data.tag              => out_tag,
-      out_stai                  => out_stai,
-      out_endi                  => out_endi,
+      out_data                  => out_data,
+      out_valid                 => out_valid,
       out_ready                 => out_ready
     );
 
     out_ready <= '1';
-    out_tag_int <= kv_tag_t'POS(out_tag);
-
     -- out_count <= std_logic_vector(unsigned('0' & out_endi) - unsigned('0' & out_stai) + 1);
     -- aligned_data <= left_align_stream(out_data, out_stai, 64);
 
@@ -118,15 +108,18 @@ begin
     --variable b        : streamsink_type;
 
   begin
-    tc_open("JsonRecordParser", "test");
+    tc_open("BooleanParser", "test");
     a.initialize("a");
     --b.initialize("b");
 
-    a.push_str("{""voltage"": 123456,}");
+    a.push_str("false");
     a.transmit;
     --b.unblock;
 
-    tc_wait_for(2 us);
+    a.push_str("true");
+    a.transmit;
+
+    tc_wait_for(10 us);
 
     --tc_note(b.cq_get_d_str);
 

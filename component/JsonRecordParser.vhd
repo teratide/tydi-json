@@ -152,8 +152,6 @@ begin
 
           -- Element-wise processing only when the lane is valid.
           if to_x01(id(idx).strb) = '1' and processed(idx) = '0' then
-
-            -- Handle escape sequence state machine.
             case state is
               when STATE_BLOCK =>
                 endi  := idx_int-1;
@@ -172,7 +170,7 @@ begin
                     when X"7D" => -- '}'
                       endi := idx_int-1;
                       state := STATE_DEFAULT;
-                      when X"7B" => -- '{'
+                    when X"7B" => -- '{'
                       state := STATE_RECORD;
                     when others =>
                       state := STATE_RECORD; -- ?????
@@ -257,6 +255,7 @@ begin
 
       -- Forward output holding register.
       out_valid <= to_x01(ov);
+      in_ready <= ir and not reset;
       for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
         out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;
         out_data.tag  <= tag;
@@ -265,9 +264,6 @@ begin
         out_endi <= std_logic_vector(endi);
         out_strb(idx) <= od(idx).strb;
       end loop;
-
-      in_ready <= ir and not reset;
-
     end if;
   end process;
 end architecture;

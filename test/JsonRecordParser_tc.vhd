@@ -83,45 +83,46 @@ begin
       out_ready                 => out_ready
     );
 
-    out_count <= std_logic_vector(unsigned('0' & out_endi) - unsigned('0' & out_stai) + 1);
-    aligned_data <= left_align_stream(out_data, out_stai, 64);
+    out_ready <= '1';
+
+    -- out_count <= std_logic_vector(unsigned('0' & out_endi) - unsigned('0' & out_stai) + 1);
+    -- aligned_data <= left_align_stream(out_data, out_stai, 64);
 
 
-    out_sink: StreamSink_mdl
-    generic map (
-      NAME                      => "b",
-      ELEMENT_WIDTH             => 8,
-      COUNT_MAX                 => 8,
-      COUNT_WIDTH               => 4
-    )
-    port map (
-      clk                       => clk,
-      reset                     => reset,
-      valid                     => out_valid,
-      ready                     => out_ready,
-      data                      => aligned_data,
-      count                     => out_count
-    );
+    -- out_sink: StreamSink_mdl
+    -- generic map (
+    --   NAME                      => "b",
+    --   ELEMENT_WIDTH             => 8,
+    --   COUNT_MAX                 => 8,
+    --   COUNT_WIDTH               => 4
+    -- )
+    -- port map (
+    --   clk                       => clk,
+    --   reset                     => reset,
+    --   valid                     => out_valid,
+    --   ready                     => out_ready,
+    --   data                      => aligned_data,
+    --   count                     => out_count
+    -- );
 
     
 
   random_tc: process is
     variable a        : streamsource_type;
-    variable b        : streamsink_type;
+    --variable b        : streamsink_type;
 
   begin
     tc_open("JsonRecordParser", "test");
     a.initialize("a");
-    b.initialize("b");
+    --b.initialize("b");
 
     a.push_str("{""voltage"": 123456,}");
     a.transmit;
-    b.unblock;
+    --b.unblock;
 
     tc_wait_for(2 us);
 
-    tc_note(b.cq_get_d_str);
-    tc_note("fasz");
+    --tc_note(b.cq_get_d_str);
 
 
     tc_pass;

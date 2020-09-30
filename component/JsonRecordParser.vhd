@@ -92,8 +92,9 @@ begin
 
     variable handshaked : boolean;
 
-    variable stai : natural;
-    variable endi : natural;
+    variable stai    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+    variable endi    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+    variable idx_int : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
 
     -- Enumeration type for our state machine.
     type state_t is (STATE_DEFAULT,
@@ -118,8 +119,8 @@ begin
         iv := in_valid;
         out_r := out_ready;
         processed := (others => '0');
-        stai               := 0;
-        endi               := ELEMENTS_PER_TRANSFER-1;
+        stai               := to_unsigned(0, stai'length);
+        endi               := to_unsigned(ELEMENTS_PER_TRANSFER-1, endi'length);
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
           id(idx).data := in_data(8*idx+7 downto 8*idx);
           --id(idx).last := in_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx);
@@ -154,6 +155,7 @@ begin
           od(idx).last       := id(idx).last;
           od(idx).strb       := '0';
           
+          idx_int := to_unsigned(idx, idx_int'length);
 
           -- Element-wise processing only when the lane is valid.
           if to_x01(id(idx).strb) = '1' and processed(idx) = '0' then
@@ -161,7 +163,7 @@ begin
             -- Handle escape sequence state machine.
             case state is
               when STATE_BLOCK =>
-                endi  := idx;
+                endi  := idx_int-1;
                 ir    := '0';
                 --state := STATE_BLOCK;
                 if handshaked then
@@ -170,15 +172,18 @@ begin
                   --state := state_backup;
                   case id(idx).data is
                     when X"22" => -- '"'
-                      stai := idx;
+                      stai := idx_int+1;
                       state := STATE_KEY;
                     when X"3A" => -- ':'
-                      stai := idx;
+                      stai := idx_int+1;
                       state := STATE_VALUE;
                     when X"7D" => -- '}'
+                      endi := idx_int-1;
                       state := STATE_DEFAULT;
-                    when others =>
+                      when X"7B" => -- '{'
                       state := STATE_RECORD;
+                    when others =>
+                      state := STATE_RECORD; -- ?????
                   end case;
                 end if;
 
@@ -195,13 +200,14 @@ begin
                 processed(idx)     := '1';
                 case id(idx).data is
                   when X"22" => -- '"'
-                    stai := idx;
+                    stai := idx_int+1;
                     state := STATE_KEY;
                   when X"3A" => -- ':'
-                    stai := idx;
+                    stai := idx_int+1;
                     state := STATE_VALUE;
                   when X"7D" => -- '}'
                     state := STATE_DEFAULT;
+                    endi := idx_int-1;
                   when others =>
                     state := STATE_RECORD;
                 end case;
@@ -213,6 +219,7 @@ begin
                     handshaked := false;
                     state := STATE_BLOCK;
                     od(idx).last := '1';
+                    endi := idx_int-1;
                   when others =>
                     od(idx).strb := '1';
                     ov := '1';
@@ -225,15 +232,14 @@ begin
                   when X"2C" => -- ','
                     handshaked := false;
                     state := STATE_BLOCK;
-                    --state_backup := STATE_RECORD;
+                    endi := idx_int-1;
                     od(idx).last := '1';
                   when X"7D" => -- '}'
                     handshaked := false;
                     state := STATE_BLOCK;
-                    --state_backup := STATE_DEFAULT;
+                    endi := idx_int-1;
                     od(idx).last := '1';
                   when others =>
-                    -- Validate the current lane
                     od(idx).strb := '1';
                     ov := '1';
                     state := STATE_VALUE;
@@ -262,8 +268,8 @@ begin
         out_data(8*idx+8-1 downto 8*idx) <= od(idx).data.value;
         --out_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx) <= od(idx).last;
         out_last(idx) <= od(idx).last;
-        out_stai <= std_logic_vector(to_unsigned(stai, out_stai'length));
-        out_endi <= std_logic_vector(to_unsigned(endi, out_stai'length));
+        out_stai <= std_logic_vector(stai);
+        out_endi <= std_logic_vector(endi);
         out_strb(idx) <= od(idx).strb;
       end loop;
 

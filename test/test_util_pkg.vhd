@@ -25,7 +25,7 @@ package body test_util_pkg is
     variable var : unsigned(bits-1 downto 0);
     variable ret : std_logic_vector(bits-1 downto 0);
   begin
-    var := shift_left(unsigned(data), to_integer(unsigned(stai)));
+    var := shift_right(unsigned(data), to_integer(unsigned(stai)));
     ret := std_logic_vector(var);
     return ret;
   end function;

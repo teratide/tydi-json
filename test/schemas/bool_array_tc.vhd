@@ -133,7 +133,7 @@ begin
     a.initialize("a");
     --b.initialize("b");
 
-    a.push_str("{""value1"": false, ""value2"": true}");
+    a.push_str("{""value1"": false, ""value2"": true} {""value1"": false, ""value2"": true}");
     a.transmit;
     --b.unblock;
 

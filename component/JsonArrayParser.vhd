@@ -100,8 +100,9 @@ begin
     -- State variable
     variable state : state_t;
     variable state_backup : state_t;
-
     variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+
+    variable nesting_level_cntr := unsigned(log2ceil(NESTING_LEVEL)-1 downto 0) := 0;
 
   begin
     if rising_edge(clk) then

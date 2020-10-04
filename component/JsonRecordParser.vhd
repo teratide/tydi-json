@@ -105,6 +105,8 @@ begin
 
     variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
 
+    variable nesting_level_th : std_logic_vector(NESTING_LEVEL-1 downto 0) := (others => 0);
+
   begin
     if rising_edge(clk) then
 
@@ -246,7 +248,24 @@ begin
           -- up everything.
           if id(idx).last /= '0' then
             state := STATE_DEFAULT;
+            nesting_level_th := to_unsigned(0, nesting_level_cntr'length);
           end if;
+
+          --Maintain nesting level counter
+        case id(idx).data is
+          when X"22" => -- '"'
+            stai := idx_int+1;
+            state := STATE_KEY;
+          when X"3A" => -- ':'
+            stai := idx_int+1;
+            state := STATE_VALUE;
+          when X"7D" => -- '}'
+            state := STATE_DEFAULT;
+            endi := idx_int-1;
+          when others =>
+            state := STATE_RECORD;
+        end case;
+
         end loop;
       end if;
 
@@ -255,6 +274,7 @@ begin
         ir    := '0';
         ov    := '0';
         state := STATE_DEFAULT;
+        nesting_level_th := (others => 0);;
       end if;
 
       -- Forward output holding register.

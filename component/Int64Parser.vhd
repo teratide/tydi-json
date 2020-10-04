@@ -81,6 +81,7 @@ architecture behavioral of Int64Parser is
         variable val   : boolean;
 
         variable in_shr  : std_logic_vector(20*4-1 downto 0) := (others => '0');
+        variable bcd_shr : std_logic_vector(20*4-1 downto 0) := (others => '0');
         variable bin_shr : std_logic_vector(63 downto 0) := (others => '0');
     
       begin
@@ -103,8 +104,8 @@ architecture behavioral of Int64Parser is
                 id(idx).strb := '0';
               elsif idx > unsigned(in_endi) then
                 id(idx).strb := '0';
-              --elsif in_data.data(8*idx+3 downto 8*idx+4) = X"3" then -- Make sure the lane constains a number
-              else
+              elsif in_data.data(8*idx+7 downto 8*idx+4) = X"3" then -- Make sure the lane constains a number
+              --else
                 id(idx).strb := in_strb(idx);
               end if;
             end loop;
@@ -122,21 +123,32 @@ architecture behavioral of Int64Parser is
             for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
               if to_x01(id(idx).strb) = '1' and comm = ENABLE then
                 in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
-
                 if id(idx).last /= '0' then
-                  for i in bin_shr'range loop
-                    bin_shr := in_shr(0) & bin_shr(bin_shr'left downto 1);
-                    in_shr := '0' & in_shr(in_shr'high downto 1);
-                    for idx in 0 to 19 loop
-                      if unsigned(in_shr(idx*4+3 downto idx*4)) >= 8 then
-                        in_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(in_shr(idx*4+3 downto idx*4)) - 3));
-                      end if;
-                    end loop;
-                  end loop;
+                  bcd_shr := in_shr;
+                  in_shr  := (others => '0');
                   ov := '1';
                 end if;
               end if;
             end loop;
+
+            -- for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+            --   if id(idx).last /= '0' then
+            --     bcd_shr := in_shr;
+            --     in_shr  := (others => '0');
+            --     ov := '1';
+            --   end if;
+            -- end loop;
+
+            for i in bin_shr'range loop
+              bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
+              bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
+              for idx in 0 to 19 loop
+                if unsigned(bcd_shr(idx*4+3 downto idx*4)) >= 8 then
+                  bcd_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(bcd_shr(idx*4+3 downto idx*4)) - 3));
+                end if;
+              end loop;
+            end loop;
+
           end if;
     
           -- Handle reset.

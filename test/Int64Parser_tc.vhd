@@ -34,6 +34,8 @@ architecture test_case of Int64Parser_tc is
   signal out_valid        : std_logic;
   signal out_data         : std_logic_vector(63 downto 0);
 
+  signal adv_last         : std_logic_vector(7 downto 0);
+
 begin
 
   clkgen: ClockGen_mdl
@@ -62,6 +64,8 @@ begin
 
     in_strb <= element_mask(in_count, in_dvalid, 8); 
     in_endi <= std_logic_vector(unsigned(in_count) - 1);
+
+    adv_last <= std_logic_vector(shift_left(unsigned'("0000000" & in_last), to_integer(unsigned(in_endi))));
     
     dut: Int64Parser
     generic map (
@@ -74,7 +78,7 @@ begin
       in_ready                  => in_ready,
       in_data.data              => in_data,
       in_data.comm              => ENABLE,
-      in_last(0)                => in_last,
+      in_last                   => adv_last,
       in_strb                   => in_strb,
       out_data                  => out_data,
       out_valid                 => out_valid,
@@ -113,7 +117,7 @@ begin
     a.initialize("a");
     --b.initialize("b");
 
-    a.push_str("123456780");
+    a.push_str("1234567891234567891");
     a.transmit;
     --b.unblock;
 

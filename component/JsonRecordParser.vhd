@@ -1,6 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_misc.or_reduce;
+
 
 library work;
 use work.UtilInt_pkg.all;
@@ -104,8 +106,10 @@ begin
     variable state_backup : state_t;
 
     variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+    variable has_valid : boolean; --this needs to be tidied up
 
-    variable nesting_level_th : std_logic_vector(NESTING_LEVEL-1 downto 0) := (others => 0);
+    variable nesting_level_th : std_logic_vector(NESTING_LEVEL-1 downto 0) := (others => '0');
+    variable nesting_extra    : std_logic_vector(NESTING_LEVEL-2 downto 0) := (others => '0');
 
   begin
     if rising_edge(clk) then
@@ -139,9 +143,9 @@ begin
       end if;
       ir                 := '1';
       handshaked         := false;
+      has_valid          := false;
 
-      --if out_valid = '1' and out_ready = '1' then
-      if out_ready = '1' then
+      if out_valid = '1' and out_ready = '1' then
         handshaked := true;
       end if;
 
@@ -158,12 +162,30 @@ begin
 
           -- Element-wise processing only when the lane is valid.
           if to_x01(id(idx).strb) = '1' and processed(idx) = '0' and comm = ENABLE then
+
+
+            -- Keep track of nesting.
+            case id(idx).data is
+              when X"7B" => -- '{'
+                nesting_level_th := nesting_level_th(nesting_level_th'high-1 downto 0) & '1';
+              when X"5B" => -- '['
+                nesting_level_th := nesting_level_th(nesting_level_th'high-1 downto 0) & '1';
+              when X"7D" => -- '}'
+                nesting_level_th := '0' &nesting_level_th(nesting_level_th'high downto 1);
+              when X"5D" => -- ']'
+                nesting_level_th := '0' &nesting_level_th(nesting_level_th'high downto 1);
+              when others =>
+                nesting_level_th := nesting_level_th;
+            end case;
+
+            nesting_extra := nesting_level_th(nesting_level_th'high downto 1);
+
             case state is
               when STATE_BLOCK =>
                 endi  := idx_int-1;
                 ir    := '0';
                 state := STATE_BLOCK;
-                if handshaked then
+                if handshaked  or not has_valid then
                   handshaked := false;
                   ir         := '1';
                   case id(idx).data is
@@ -174,8 +196,10 @@ begin
                       stai := idx_int+1;
                       state := STATE_VALUE;
                     when X"7D" => -- '}'
-                      endi := idx_int-1;
-                      state := STATE_DEFAULT;
+                      if or_reduce(nesting_extra) = '0' then
+                        endi := idx_int-1;
+                        state := STATE_DEFAULT;
+                      end if;
                     when X"7B" => -- '{'
                       state := STATE_RECORD;
                     when others =>
@@ -211,6 +235,7 @@ begin
               when STATE_KEY =>
                 processed(idx) := '1';
                 tag    := KEY;
+                has_valid := true;
                 case id(idx).data is
                   when X"22" => -- '"'
                     handshaked := false;
@@ -226,17 +251,22 @@ begin
               when STATE_VALUE =>
                 processed(idx) := '1';
                 tag    := VALUE;
+                has_valid := true;
                 case id(idx).data is
                   when X"2C" => -- ','
-                    handshaked := false;
-                    state := STATE_BLOCK;
-                    endi := idx_int-1;
-                    od(idx).last := '1';
+                    if or_reduce(nesting_extra) = '0' then
+                      handshaked := false;
+                      state := STATE_BLOCK;
+                      endi := idx_int-1;
+                      od(idx).last := '1';
+                    end if;
                   when X"7D" => -- '}'
-                    handshaked := false;
-                    state := STATE_BLOCK;
-                    endi := idx_int-1;
-                    od(idx).last := '1';
+                    if or_reduce(nesting_extra) = '0' then
+                      handshaked := false;
+                      state := STATE_BLOCK;
+                      endi := idx_int-1;
+                      od(idx).last := '1';
+                    end if;
                   when others =>
                     od(idx).strb := '1';
                     ov := '1';
@@ -248,24 +278,8 @@ begin
           -- up everything.
           if id(idx).last /= '0' then
             state := STATE_DEFAULT;
-            nesting_level_th := to_unsigned(0, nesting_level_cntr'length);
+            nesting_level_th := (others => '0');
           end if;
-
-          --Maintain nesting level counter
-        case id(idx).data is
-          when X"22" => -- '"'
-            stai := idx_int+1;
-            state := STATE_KEY;
-          when X"3A" => -- ':'
-            stai := idx_int+1;
-            state := STATE_VALUE;
-          when X"7D" => -- '}'
-            state := STATE_DEFAULT;
-            endi := idx_int-1;
-          when others =>
-            state := STATE_RECORD;
-        end case;
-
         end loop;
       end if;
 
@@ -274,7 +288,7 @@ begin
         ir    := '0';
         ov    := '0';
         state := STATE_DEFAULT;
-        nesting_level_th := (others => 0);;
+        nesting_level_th := (others => '0');
       end if;
 
       -- Forward output holding register.

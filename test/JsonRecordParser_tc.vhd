@@ -72,7 +72,8 @@ begin
     
     dut: JsonRecordParser
     generic map (
-      ELEMENTS_PER_TRANSFER     => 8
+      ELEMENTS_PER_TRANSFER     => 8,
+      NESTING_LEVEL             => 2
     )
     port map (
       clk                       => clk,
@@ -124,7 +125,7 @@ begin
     --b.initialize("b");
 
     --a.push_str("{""voltage"": 123456,}");
-    a.push_str("{""values"": falsen}");
+    a.push_str("{""values"" : [true, false]}");
     a.transmit;
     --b.unblock;
 

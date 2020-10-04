@@ -25,6 +25,7 @@ entity BooleanParser is
       in_ready              : out std_logic;
       in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
       in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
       in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
       in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
@@ -51,6 +52,7 @@ architecture behavioral of BooleanParser is
           data  : std_logic_vector(7 downto 0);
           --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
           last  : std_logic;
+          empty : std_logic;
           strb  : std_logic;
         end record;
     
@@ -93,6 +95,7 @@ architecture behavioral of BooleanParser is
               --id(idx).last := in_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx);
               comm := in_data.comm;
               id(idx).last := in_last(idx);
+              id(idx).empty := in_empty(idx);
               if idx < unsigned(in_stai) then
                 id(idx).strb := '0';
               elsif idx > unsigned(in_endi) then
@@ -113,7 +116,7 @@ architecture behavioral of BooleanParser is
           if to_x01(iv) = '1' and to_x01(ov) /= '1' then
             for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
               -- Element-wise processing only when the lane is valid.
-              if to_x01(id(idx).strb) = '1' and comm = ENABLE then
+              if to_x01(id(idx).strb) = '1' and comm = ENABLE and to_x01(id(idx).empty) = '0' then
                 case id(idx).data is
                   when X"66" => -- 'f'
                       ov := '1';

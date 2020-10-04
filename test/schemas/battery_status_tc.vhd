@@ -12,10 +12,10 @@ use work.Json_pkg.all;
 use work.test_util_pkg.all;
 use work.TestCase_pkg.all;
 
-entity bool_array_tc is
-end bool_array_tc;
+entity battery_status_tc is
+end battery_status_tc;
 
-architecture test_case of bool_array_tc is
+architecture test_case of battery_status_tc is
 
   signal clk              : std_logic;
   signal reset            : std_logic;
@@ -50,7 +50,7 @@ architecture test_case of bool_array_tc is
 
   signal out_ready       : std_logic;
   signal out_valid       : std_logic;
-  signal out_data        : std_logic;
+  signal out_data        : std_logic_vector(63 downto 0);
   
   signal aligned_data    : std_logic_vector(63 downto 0);
   signal out_count       : std_logic_vector(3 downto 0);
@@ -134,7 +134,7 @@ begin
     );
 
 
-    bool_parser_i: BooleanParser
+    intparser_i: Int64Parser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8
     )
@@ -152,27 +152,44 @@ begin
       out_ready                 => out_ready
     );
 
-    out_ready <= '1';
+    --out_ready <= '1';
     --out_tag_int <= kv_tag_t'POS(out_tag);
+
+    out_sink: StreamSink_mdl
+    generic map (
+      NAME                      => "b",
+      ELEMENT_WIDTH             => 64,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => out_valid,
+      ready                     => out_ready,
+      data                      => out_data
+    );
     
 
   random_tc: process is
     variable a        : streamsource_type;
-    --variable b        : streamsink_type;
+    variable b        : streamsink_type;
 
   begin
     tc_open("JsonRecordParser", "test");
     a.initialize("a");
-    --b.initialize("b");
+    b.initialize("b");
 
-    a.push_str("{""values"" : [true, false]}");
+    a.push_str("{""values"" : [55 , 66]}");
     a.transmit;
-    --b.unblock;
+    b.unblock;
 
     tc_wait_for(2 us);
 
-    --tc_note(b.cq_get_d_str);
-
+    tc_check(b.pq_ready, true);
+    tc_check(b.cq_get_d_nat, 55, "55");
+    b.cq_next;
+    tc_check(b.cq_get_d_nat, 66, "66");
 
     tc_pass;
     wait;

@@ -1,8 +1,4 @@
 
 gtkwave.gtkw
 
-work.jsonrecordparser_tc.vcd
-
-work.booleanparser_tc.vcd
-
-work.jsonarrayparser_tc.vcd
+*.vcd

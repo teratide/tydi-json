@@ -12,10 +12,10 @@ use work.Json_pkg.all;
 use work.test_util_pkg.all;
 use work.TestCase_pkg.all;
 
-entity BooleanParser_tc is
-end BooleanParser_tc;
+entity Int64Parser_tc is
+end Int64Parser_tc;
 
-architecture test_case of BooleanParser_tc is
+architecture test_case of Int64Parser_tc is
 
   signal clk              : std_logic;
   signal reset            : std_logic;
@@ -32,7 +32,9 @@ architecture test_case of BooleanParser_tc is
 
   signal out_ready        : std_logic;
   signal out_valid        : std_logic;
-  signal out_data         : std_logic;
+  signal out_data         : std_logic_vector(63 downto 0);
+
+  signal adv_last         : std_logic_vector(7 downto 0);
 
 begin
 
@@ -62,8 +64,10 @@ begin
 
     in_strb <= element_mask(in_count, in_dvalid, 8); 
     in_endi <= std_logic_vector(unsigned(in_count) - 1);
+
+    adv_last <= std_logic_vector(shift_left(unsigned'("0000000" & in_last), to_integer(unsigned(in_endi))));
     
-    dut: BooleanParser
+    dut: Int64Parser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8
     )
@@ -74,7 +78,7 @@ begin
       in_ready                  => in_ready,
       in_data.data              => in_data,
       in_data.comm              => ENABLE,
-      in_last(0)                => in_last,
+      in_last                   => adv_last,
       in_strb                   => in_strb,
       out_data                  => out_data,
       out_valid                 => out_valid,
@@ -89,7 +93,7 @@ begin
     out_sink: StreamSink_mdl
     generic map (
       NAME                      => "b",
-      ELEMENT_WIDTH             => 1,
+      ELEMENT_WIDTH             => 64,
       COUNT_MAX                 => 1,
       COUNT_WIDTH               => 1
     )
@@ -98,7 +102,7 @@ begin
       reset                     => reset,
       valid                     => out_valid,
       ready                     => out_ready,
-      data(0)                   => out_data
+      data                      => out_data
     );
 
     
@@ -108,37 +112,41 @@ begin
     variable b        : streamsink_type;
 
   begin
-    tc_open("BooleanParser", "test");
+    tc_open("Int64Parser", "test");
     a.initialize("a");
     b.initialize("b");
 
-    a.push_str("false");
+    a.push_str("1234");
+    a.transmit;
+    
+    a.push_str("12345");
     a.transmit;
 
-    a.push_str("true");
-    a.transmit;
 
-    a.push_str("  false");
+    a.push_str("   1234");
     a.transmit;
-
-    a.push_str("  true");
+    
+    a.push_str("   12345");
     a.transmit;
 
     b.unblock;
 
     tc_wait_for(10 us);
 
+    --tc_note(b.cq_get_d_str);
+
     tc_check(b.pq_ready, true);
-    tc_check(b.cq_get_d_nat, 0, "false");
+    tc_check(b.cq_get_d_nat, 1234, "1234");
     b.cq_next;
-    tc_check(b.cq_get_d_nat, 1, "true");
+    tc_check(b.cq_get_d_nat, 12345, "12345");
     b.cq_next;
-    tc_check(b.cq_get_d_nat, 0, "false with spaces");
+    tc_check(b.cq_get_d_nat, 1234, "1234 with spaces");
     b.cq_next;
-    tc_check(b.cq_get_d_nat, 1, "true with spaces");
+    tc_check(b.cq_get_d_nat, 12345, "12345 with spaces");
+    b.cq_next;
+
 
     tc_pass;
-
     wait;
   end process;
 

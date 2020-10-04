@@ -27,6 +27,7 @@ entity JsonArrayParser is
       in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
       --in_last               : in  std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
       in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
       in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
@@ -41,9 +42,10 @@ entity JsonArrayParser is
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
       --out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
-      out_data              : out JsonRecordParser_out_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
+      out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
       --out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_last              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      out_empty             : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
       out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
       out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
@@ -76,6 +78,7 @@ begin
       data  : std_logic_vector(7 downto 0);
       --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
       last  : std_logic;
+      empty : std_logic;
       strb  : std_logic;
     end record;
 
@@ -99,9 +102,11 @@ begin
 
     -- State variable
     variable state : state_t;
-    variable state_backup : state_t;
-
+    variable state_ab : state_t;
     variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+
+    variable has_valid : boolean; --this needs to be tidied up
+
 
   begin
     if rising_edge(clk) then
@@ -135,6 +140,7 @@ begin
       end if;
       ir                 := '1';
       handshaked         := false;
+      has_valid          := false;
 
       if out_valid = '1' and out_ready = '1' then
         handshaked := true;
@@ -146,7 +152,8 @@ begin
 
           -- Default behavior.
           od(idx).data       := id(idx).data;
-          od(idx).last       := id(idx).last;
+          od(idx).last       := '0';--id(idx).last;
+          od(idx).empty      := '0';--id(idx).last;
           od(idx).strb       := '0';
           
           idx_int := to_unsigned(idx, idx_int'length);
@@ -158,7 +165,7 @@ begin
                 endi  := idx_int-1;
                 ir    := '0';
                 state := STATE_BLOCK;
-                if handshaked then
+                if handshaked or not has_valid then
                   handshaked := false;
                   ir         := '1';
                   case id(idx).data is
@@ -167,10 +174,13 @@ begin
                       state := STATE_ARRAY;
                     when X"5D" => -- ']'
                       endi := idx_int-1;
+                      od(idx).last := '1';
                       state := STATE_IDLE;
                     when others =>
-                      stai := idx_int+1;
-                      state := STATE_ARRAY; ---- ??????
+                      stai := idx_int;
+                      od(idx).strb := '1';
+                      ov := '1';
+                      state := state_ab;
                   end case;
                 end if;
 
@@ -187,18 +197,30 @@ begin
 
               when STATE_ARRAY =>
                 processed(idx) := '1';
+                has_valid := true;
                 case id(idx).data is
-                  when X"5B" => -- ']'
+                  when X"5D" => -- ']'
                     handshaked := false;
-                    state := STATE_BLOCK;
                     endi := idx_int-1;
                     od(idx).last := '1';
-                    state := STATE_IDLE;
+                    state_ab := STATE_IDLE;
+                    state := STATE_BLOCK;
                   when X"2C" => -- ','
                     handshaked := false;
                     state := STATE_BLOCK;
-                    endi := idx_int-1;
-                    od(idx).last := '1';
+                    state_ab := STATE_ARRAY;
+                    if idx = 0 then
+                      od(idx).empty := '1';
+                      od(idx).strb := '1';
+                      endi := idx_int;
+                      od(idx).last := '1';
+                      ov := '1';
+                    else
+                      endi := idx_int-1;
+                      od(idx-1).last := '1';
+                      ov := '1';
+                      --state := STATE_ARRAY;
+                    end if;
                   when others =>
                     od(idx).strb := '1';
                     ov := '1';
@@ -209,7 +231,7 @@ begin
           -- Clear state upon any last, to prevent broken elements from messing
           -- up everything.
           if id(idx).last /= '0' then
-            state := STATE_IDLE;
+            --state := STATE_IDLE;
           end if;
         end loop;
       end if;
@@ -225,9 +247,9 @@ begin
       out_valid <= to_x01(ov);
       in_ready <= ir and not reset;
       for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
-        out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;
-        out_data.tag  <= tag;
+        out_data(8*idx+7 downto 8*idx) <= od(idx).data;
         out_last(idx) <= od(idx).last;
+        out_empty(idx) <= od(idx).empty;
         out_stai <= std_logic_vector(stai);
         out_endi <= std_logic_vector(endi);
         out_strb(idx) <= od(idx).strb;

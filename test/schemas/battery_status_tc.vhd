@@ -136,7 +136,8 @@ begin
 
     intparser_i: Int64Parser
     generic map (
-      ELEMENTS_PER_TRANSFER     => 8
+      ELEMENTS_PER_TRANSFER     => 8,
+      NESTING_LEVEL             => 0
     )
     port map (
       clk                       => clk,
@@ -145,7 +146,7 @@ begin
       in_ready                  => array_ready,
       in_data.data              => array_data,
       in_data.comm              => ENABLE,
-      in_last                   => array_last,
+      in_last(7 downto 0)       => array_last,
       in_strb                   => array_strb,
       out_data                  => out_data,
       out_valid                 => out_valid,
@@ -180,7 +181,7 @@ begin
     a.initialize("a");
     b.initialize("b");
 
-    a.push_str("{""values"" : [55 , 66]}");
+    a.push_str("{""values"" : [55 , 66]} {""valuessss"": [77 , 88]}");
     a.transmit;
     b.unblock;
 
@@ -190,6 +191,10 @@ begin
     tc_check(b.cq_get_d_nat, 55, "55");
     b.cq_next;
     tc_check(b.cq_get_d_nat, 66, "66");
+    b.cq_next;
+    tc_check(b.cq_get_d_nat, 77, "77");
+    b.cq_next;
+    tc_check(b.cq_get_d_nat, 88, "88");
 
     tc_pass;
     wait;

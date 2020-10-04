@@ -45,7 +45,7 @@ entity JsonArrayParser is
       out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
       --out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_last              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      out_empty             : out  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      out_empty             : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
       out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
       out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
@@ -102,7 +102,7 @@ begin
 
     -- State variable
     variable state : state_t;
-    variable state_backup : state_t;
+    variable state_ab : state_t;
     variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
 
     variable has_valid : boolean; --this needs to be tidied up
@@ -153,6 +153,7 @@ begin
           -- Default behavior.
           od(idx).data       := id(idx).data;
           od(idx).last       := '0';--id(idx).last;
+          od(idx).empty      := '0';--id(idx).last;
           od(idx).strb       := '0';
           
           idx_int := to_unsigned(idx, idx_int'length);
@@ -179,12 +180,11 @@ begin
                       stai := idx_int;
                       od(idx).strb := '1';
                       ov := '1';
-                      state := STATE_ARRAY;
+                      state := state_ab;
                   end case;
                 end if;
 
               when STATE_IDLE =>
-              od(idx).strb := '1';
                 processed(idx) := '1';
                 case id(idx).data is
                   when X"5B" => -- '['
@@ -203,10 +203,12 @@ begin
                     handshaked := false;
                     endi := idx_int-1;
                     od(idx).last := '1';
+                    state_ab := STATE_IDLE;
                     state := STATE_BLOCK;
                   when X"2C" => -- ','
                     handshaked := false;
                     state := STATE_BLOCK;
+                    state_ab := STATE_ARRAY;
                     if idx = 0 then
                       od(idx).empty := '1';
                       od(idx).strb := '1';
@@ -216,7 +218,8 @@ begin
                     else
                       endi := idx_int-1;
                       od(idx-1).last := '1';
-                      state := STATE_ARRAY;
+                      ov := '1';
+                      --state := STATE_ARRAY;
                     end if;
                   when others =>
                     od(idx).strb := '1';

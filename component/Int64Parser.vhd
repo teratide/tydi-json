@@ -1,6 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_misc.or_reduce;
+
 
 library work;
 use work.UtilInt_pkg.all;
@@ -24,7 +26,7 @@ entity Int64Parser is
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
       in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-      in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      in_last               : in  std_logic_vector((NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
       in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
@@ -37,7 +39,8 @@ entity Int64Parser is
       -- )
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
-      out_data              : out std_logic_vector(63 downto 0)
+      out_data              : out std_logic_vector(63 downto 0);
+      out_last              : out std_logic_vector((NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0)
 
   );
 end entity;
@@ -50,8 +53,8 @@ architecture behavioral of Int64Parser is
         -- Input holding register.
         type in_type is record
           data  : std_logic_vector(7 downto 0);
-          --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
-          last  : std_logic;
+          last  : std_logic_vector(NESTING_LEVEL downto 0);
+          --last  : std_logic;
           empty : std_logic;
           strb  : std_logic;
         end record;
@@ -98,10 +101,10 @@ architecture behavioral of Int64Parser is
 
             for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
               id(idx).data := in_data.data(8*idx+7 downto 8*idx);
-              --id(idx).last := in_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx);
+              id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
               comm := in_data.comm;
               stai := unsigned(in_stai);
-              id(idx).last := in_last(idx);
+              --id(idx).last := in_last(idx);
               id(idx).empty := in_empty(idx);
               if idx < unsigned(in_stai) then
                 id(idx).strb := '0';
@@ -127,7 +130,7 @@ architecture behavioral of Int64Parser is
                   and in_data.data(8*idx+7 downto 8*idx+4) = X"3" then
                 in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
               end if;
-              if id(idx).last /= '0' then
+              if or_reduce(id(idx).last) /= '0' then
                 bcd_shr := in_shr;
                 in_shr  := (others => '0');
                 ov := '1';

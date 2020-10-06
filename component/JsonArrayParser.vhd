@@ -120,7 +120,7 @@ begin
 
     variable element_counter  : unsigned(ELEMENT_COUNTER_BW-1 downto 0);
     variable counter_valid    : std_logic;
-    variable counter_taken    : boolean;
+    variable counter_taken    : std_logic;
 
 
   begin
@@ -154,7 +154,7 @@ begin
       if to_x01(out_ready) = '1' then
         ov := '0';
       end if;
-      ir                 := '1';
+      ir                 := counter_taken;
       handshaked         := false;
       has_valid          := false;
 
@@ -163,7 +163,7 @@ begin
       end if;
 
       if counter_valid = '1' and out_count_ready = '1' then
-        counter_taken := true;
+        counter_taken := '1';
         counter_valid := '0';
       end if;
 
@@ -255,7 +255,7 @@ begin
                       state := STATE_BLOCK;
                       state_ab := STATE_IDLE;
                       element_counter := element_counter+1;
-                      counter_taken := false;
+                      counter_taken := '0';
                       counter_valid := '1';
                       if idx = 0 then
                         od(idx).empty := '1';
@@ -289,7 +289,6 @@ begin
                         endi := idx_int-1;
                         od(idx-1).last(0) := '1';
                         ov := '1';
-                        --state := STATE_ARRAY;
                       end if;
                     end if;
                   when others =>
@@ -313,7 +312,7 @@ begin
         ov    := '0';
         state := STATE_IDLE;
         element_counter := (others => '0');
-        counter_taken := true;
+        counter_taken := '1';
         counter_valid := '0';
       end if;
 

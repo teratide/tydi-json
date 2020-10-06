@@ -131,7 +131,7 @@ begin
         tag       := KEY;
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
           id(idx).data := in_data.data(8*idx+7 downto 8*idx);
-          id(idx).last := in_last((OUTER_NESTING_LEVEL)*(idx+1)-1 downto (OUTER_NESTING_LEVEL)*(idx));
+          id(idx).last := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*(idx)+1);
           comm := in_data.comm;
           --id(idx).last := in_last(idx);
           id(idx).empty := in_empty(idx);
@@ -297,6 +297,7 @@ begin
                         ov := '1';
                       else
                         endi := idx_int-1;
+                        od(idx-1).last := od(idx).last;
                         od(idx-1).last(0) := '1';
                         od(idx-1).last(1) := '1';
                       end if;

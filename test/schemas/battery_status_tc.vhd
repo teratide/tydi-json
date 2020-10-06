@@ -30,7 +30,7 @@ architecture test_case of battery_status_tc is
   signal in_strb          : std_logic_vector(7 downto 0);
   signal in_endi          : std_logic_vector(3 downto 0);
 
-  signal adv_last         : std_logic_vector(7 downto 0);
+  signal adv_last         : std_logic_vector(15 downto 0);
 
 
   signal kv_ready        : std_logic;
@@ -41,7 +41,7 @@ architecture test_case of battery_status_tc is
   signal kv_endi         : std_logic_vector(2 downto 0);
   signal kv_strb         : std_logic_vector(7 downto 0);
   signal kv_empty        : std_logic_vector(7 downto 0);
-  signal kv_last         : std_logic_vector(15 downto 0);
+  signal kv_last         : std_logic_vector(23 downto 0);
 
   signal array_ready        : std_logic;
   signal array_valid        : std_logic;
@@ -50,19 +50,25 @@ architecture test_case of battery_status_tc is
   signal array_endi         : std_logic_vector(2 downto 0);
   signal array_strb         : std_logic_vector(7 downto 0);
   signal array_empty        : std_logic_vector(7 downto 0);
-  signal array_last         : std_logic_vector(23 downto 0);
+  signal array_last         : std_logic_vector(31 downto 0);
   
 
   signal out_ready       : std_logic;
   signal out_valid       : std_logic;
   signal out_data        : std_logic_vector(63 downto 0);
-  signal out_last        : std_logic_vector(1 downto 0);
+  signal out_last        : std_logic_vector(2 downto 0);
 
   
   signal aligned_data    : std_logic_vector(63 downto 0);
   signal out_count       : std_logic_vector(3 downto 0);
 
   signal out_tag_int     : integer;
+
+  signal count_ready     : std_logic;
+  signal count_valid     : std_logic;
+  signal count           : std_logic_vector(7 downto 0);
+
+
 
 begin
 
@@ -93,13 +99,13 @@ begin
     in_strb <= element_mask(in_count, in_dvalid, 8); 
     in_endi <= std_logic_vector(unsigned(in_count) - 1);
 
-    adv_last <= std_logic_vector(shift_left(unsigned'("0000000" & in_last), to_integer(unsigned(in_endi))));
+    adv_last <= std_logic_vector(shift_left(unsigned'("0000000" & in_last), to_integer(unsigned(in_endi))))  & "00000000";
 
     
     record_parser_i: JsonRecordParser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8,
-      OUTER_NESTING_LEVEL       => 0,
+      OUTER_NESTING_LEVEL       => 1,
       INNER_NESTING_LEVEL       => 1
     )
     port map (
@@ -127,8 +133,9 @@ begin
     array_parser_i: JsonArrayParser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8,
-      OUTER_NESTING_LEVEL       => 1,
-      INNER_NESTING_LEVEL       => 0
+      OUTER_NESTING_LEVEL       => 2,
+      INNER_NESTING_LEVEL       => 0,
+      ELEMENT_COUNTER_BW        => 8
     )
     port map (
       clk                       => clk,
@@ -147,14 +154,17 @@ begin
       out_stai                  => array_stai,
       out_endi                  => array_endi,
       out_strb                  => array_strb,
-      out_empty                 => array_empty
+      out_empty                 => array_empty,
+      out_count_ready           => count_ready,
+      out_count_valid           => count_valid,
+      out_count_data            => count
     );
 
 
     intparser_i: IntParser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8,
-      NESTING_LEVEL             => 2
+      NESTING_LEVEL             => 3
     )
     port map (
       clk                       => clk,
@@ -189,20 +199,38 @@ begin
       ready                     => out_ready,
       data                      => out_data
     );
+
+    count_sink: StreamSink_mdl
+    generic map (
+      NAME                      => "c",
+      ELEMENT_WIDTH             => 8,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      ready                     => count_ready,
+      valid                     => count_valid,
+      data                      => count
+    );
     
 
   random_tc: process is
     variable a        : streamsource_type;
     variable b        : streamsink_type;
+    variable c        : streamsink_type;
 
   begin
     tc_open("JsonRecordParser", "test");
     a.initialize("a");
     b.initialize("b");
+    c.initialize("c");
 
-    a.push_str("{""values"" : [11 , 22]} {""valuessss"": [33 , 44]}{""values"" : [55 , 66]}{""values"" : [77 , 88]}");
+    a.push_str("{""values"" : [11 , 22]} {""valuessss"": [33 , 44]}{""values"" : [55 , 66]}{""values"" : [77 , 88, 99 ]}");
     a.transmit;
     b.unblock;
+    c.unblock;
 
     tc_wait_for(2 us);
 
@@ -210,18 +238,27 @@ begin
     tc_check(b.cq_get_d_nat, 11, "11");
     b.cq_next;
     tc_check(b.cq_get_d_nat, 22, "22");
+    tc_check(c.cq_get_d_nat, 2, "count: 2");
     b.cq_next;
+    c.cq_next;
     tc_check(b.cq_get_d_nat, 33, "33");
     b.cq_next;
     tc_check(b.cq_get_d_nat, 44, "44");
+    tc_check(c.cq_get_d_nat, 2, "count: 2");
     b.cq_next;
+    c.cq_next;
     tc_check(b.cq_get_d_nat, 55, "55");
     b.cq_next;
     tc_check(b.cq_get_d_nat, 66, "66");
+    tc_check(c.cq_get_d_nat, 2, "count: 2");
     b.cq_next;
+    c.cq_next;
     tc_check(b.cq_get_d_nat, 77, "77");
     b.cq_next;
     tc_check(b.cq_get_d_nat, 88, "88");
+    b.cq_next;
+    tc_check(b.cq_get_d_nat, 99, "99");
+    tc_check(c.cq_get_d_nat, 3, "count: 3");
 
     tc_pass;
     wait;

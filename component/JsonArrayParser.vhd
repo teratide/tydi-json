@@ -13,7 +13,8 @@ entity JsonArrayParser is
   generic (
       ELEMENTS_PER_TRANSFER : natural := 1;
       OUTER_NESTING_LEVEL   : natural := 1;
-      INNER_NESTING_LEVEL   : natural := 0
+      INNER_NESTING_LEVEL   : natural := 0;
+      ELEMENT_COUNTER_BW    : natural := 4
       );
   port (
       clk                   : in  std_logic;
@@ -28,7 +29,6 @@ entity JsonArrayParser is
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
       in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-      --in_last               : in  std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
@@ -44,14 +44,17 @@ entity JsonArrayParser is
       --
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
-      --out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
       out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
-      --out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_empty             : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
       out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-      out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
+      out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+
+
+      out_count_valid       : out std_logic;
+      out_count_ready       : in  std_logic := '1';
+      out_count_data        : out std_logic_vector(ELEMENT_COUNTER_BW-1 downto 0)
 
   );
 end entity;
@@ -115,6 +118,10 @@ begin
     variable nesting_level_th : std_logic_vector(INNER_NESTING_LEVEL downto 0) := (others => '0');
     variable nesting_extra    : std_logic_vector(INNER_NESTING_LEVEL downto 1) := (others => '0');
 
+    variable element_counter  : unsigned(ELEMENT_COUNTER_BW-1 downto 0);
+    variable counter_valid    : std_logic;
+    variable counter_taken    : boolean;
+
 
   begin
     if rising_edge(clk) then
@@ -155,13 +162,18 @@ begin
         handshaked := true;
       end if;
 
+      if counter_valid = '1' and out_count_ready = '1' then
+        counter_taken := true;
+        counter_valid := '0';
+      end if;
+
       -- Do processing when both registers are ready.
       if to_x01(iv) = '1' and to_x01(ov) /= '1' then
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
 
           -- Default behavior.
           od(idx).data       := id(idx).data;
-          od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)       := id(idx).last & "00";
+          od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)   := id(idx).last & "00";
           od(idx).empty      := id(idx).empty;
           od(idx).strb       := '0';
           
@@ -219,10 +231,15 @@ begin
 
               when STATE_IDLE =>
                 processed(idx) := '1';
+                --element_counter := (others => '0');
+                --counter_valid := '0';
                 case id(idx).data is
                   when X"5B" => -- '['
-                    stai := idx_int+1;
-                    state := STATE_ARRAY;
+                    if counter_taken then  
+                      stai := idx_int+1;
+                      state := STATE_ARRAY;
+                      element_counter := (others => '0');
+                    end if;
                   when others =>
                     stai := idx_int+1;
                     state := STATE_IDLE;
@@ -237,6 +254,9 @@ begin
                       handshaked := false;
                       state := STATE_BLOCK;
                       state_ab := STATE_IDLE;
+                      element_counter := element_counter+1;
+                      counter_taken := false;
+                      counter_valid := '1';
                       if idx = 0 then
                         od(idx).empty := '1';
                         od(idx).strb := '1';
@@ -258,6 +278,7 @@ begin
                       handshaked := false;
                       state := STATE_BLOCK;
                       state_ab := STATE_ARRAY;
+                      element_counter := element_counter+1;
                       if idx = 0 then
                         od(idx).empty := '1';
                         od(idx).strb := '1';
@@ -291,6 +312,9 @@ begin
         ir    := '0';
         ov    := '0';
         state := STATE_IDLE;
+        element_counter := (others => '0');
+        counter_taken := true;
+        counter_valid := '0';
       end if;
 
       -- Forward output holding register.
@@ -304,6 +328,8 @@ begin
         out_endi <= std_logic_vector(endi);
         out_strb(idx) <= od(idx).strb;
       end loop;
+      out_count_valid <= counter_valid;
+      out_count_data <= std_logic_vector(element_counter);
     end if;
   end process;
 end architecture;

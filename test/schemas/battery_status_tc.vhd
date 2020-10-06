@@ -200,13 +200,21 @@ begin
     a.initialize("a");
     b.initialize("b");
 
-    a.push_str("{""values"" : [55 , 66]} {""valuessss"": [77 , 88]}");
+    a.push_str("{""values"" : [11 , 22]} {""valuessss"": [33 , 44]}{""values"" : [55 , 66]}{""values"" : [77 , 88]}");
     a.transmit;
     b.unblock;
 
     tc_wait_for(2 us);
 
     tc_check(b.pq_ready, true);
+    tc_check(b.cq_get_d_nat, 11, "11");
+    b.cq_next;
+    tc_check(b.cq_get_d_nat, 22, "22");
+    b.cq_next;
+    tc_check(b.cq_get_d_nat, 33, "33");
+    b.cq_next;
+    tc_check(b.cq_get_d_nat, 44, "44");
+    b.cq_next;
     tc_check(b.cq_get_d_nat, 55, "55");
     b.cq_next;
     tc_check(b.cq_get_d_nat, 66, "66");

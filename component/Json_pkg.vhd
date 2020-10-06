@@ -74,7 +74,8 @@ package Json_pkg is
         generic (
             ELEMENTS_PER_TRANSFER : natural := 1;
             OUTER_NESTING_LEVEL   : natural := 1;
-            INNER_NESTING_LEVEL   : natural := 0
+            INNER_NESTING_LEVEL   : natural := 0;
+            ELEMENT_COUNTER_BW    : natural := 4
             );
         port (
             clk                   : in  std_logic;
@@ -112,7 +113,12 @@ package Json_pkg is
             out_empty             : out  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
             out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-            out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
+            out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+
+
+            out_count_valid       : out std_logic;
+            out_count_ready       : in  std_logic := '1';
+            out_count_data        : out std_logic_vector(ELEMENT_COUNTER_BW-1 downto 0)
       
         );
       end component;

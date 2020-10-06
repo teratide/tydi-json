@@ -12,10 +12,10 @@ use work.Json_pkg.all;
 use work.test_util_pkg.all;
 use work.TestCase_pkg.all;
 
-entity Int64Parser_tc is
-end Int64Parser_tc;
+entity IntParser_tc is
+end IntParser_tc;
 
-architecture test_case of Int64Parser_tc is
+architecture test_case of IntParser_tc is
 
   signal clk              : std_logic;
   signal reset            : std_logic;
@@ -67,9 +67,10 @@ begin
 
     adv_last <= std_logic_vector(shift_left(unsigned'("0000000" & in_last), to_integer(unsigned(in_endi))));
     
-    dut: Int64Parser
+    dut: IntParser
     generic map (
-      ELEMENTS_PER_TRANSFER     => 8
+      ELEMENTS_PER_TRANSFER     => 8,
+      NESTING_LEVEL             => 0
     )
     port map (
       clk                       => clk,

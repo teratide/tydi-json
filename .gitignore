@@ -2,3 +2,5 @@
 gtkwave.gtkw
 
 *.vcd
+
+battery.gtkw

@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+
 library work;
 use work.TestCase_pkg.all;
 use work.Stream_pkg.all;
@@ -73,7 +74,8 @@ begin
     dut: JsonRecordParser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8,
-      NESTING_LEVEL             => 2
+      OUTER_NESTING_LEVEL       => 1,
+      INNER_NESTING_LEVEL       => 1
     )
     port map (
       clk                       => clk,

@@ -4,6 +4,7 @@ use ieee.numeric_std.all;
 use ieee.std_logic_misc.or_reduce;
 
 
+
 library work;
 use work.UtilInt_pkg.all;
 use work.Json_pkg.all;
@@ -12,7 +13,8 @@ use work.Json_pkg.all;
 entity JsonRecordParser is
   generic (
       ELEMENTS_PER_TRANSFER : natural := 1;
-      NESTING_LEVEL         : natural := 1
+      OUTER_NESTING_LEVEL   : natural := 1;
+      INNER_NESTING_LEVEL   : natural := 0
       );
   port (
       clk                   : in  std_logic;
@@ -28,7 +30,7 @@ entity JsonRecordParser is
       in_ready              : out std_logic;
       in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
       --in_last               : in  std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
       in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
@@ -46,7 +48,7 @@ entity JsonRecordParser is
       --out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
       out_data              : out JsonRecordParser_out_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
       --out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      out_last              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+      out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_empty             : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
       out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
@@ -64,8 +66,9 @@ begin
     type in_type is record
       data  : std_logic_vector(7 downto 0);
       --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
-      last  : std_logic;
-      empty  : std_logic;
+      --last  : std_logic;
+      last  : std_logic_vector(OUTER_NESTING_LEVEL-1 downto 0);
+      empty : std_logic;
       strb  : std_logic;
     end record;
 
@@ -79,9 +82,9 @@ begin
     -- Output holding register.
     type out_type is record
       data  : std_logic_vector(7 downto 0);
-      --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
+      last  : std_logic_vector(OUTER_NESTING_LEVEL+1 downto 0);
       empty : std_logic;
-      last  : std_logic;
+      --last  : std_logic;
       strb  : std_logic;
     end record;
 
@@ -107,13 +110,13 @@ begin
 
     -- State variable
     variable state : state_t;
-    variable state_backup : state_t;
+    variable state_ab : state_t;
 
     variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
     variable has_valid : boolean; --this needs to be tidied up
 
-    variable nesting_level_th : std_logic_vector(NESTING_LEVEL-1 downto 0) := (others => '0');
-    variable nesting_extra    : std_logic_vector(NESTING_LEVEL-2 downto 0) := (others => '0');
+    variable nesting_level_th : std_logic_vector(INNER_NESTING_LEVEL downto 0) := (others => '0');
+    variable nesting_extra    : std_logic_vector(INNER_NESTING_LEVEL downto 1) := (others => '0');
 
   begin
     if rising_edge(clk) then
@@ -128,9 +131,9 @@ begin
         tag       := KEY;
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
           id(idx).data := in_data.data(8*idx+7 downto 8*idx);
-          --id(idx).last := in_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx);
+          id(idx).last := in_last((OUTER_NESTING_LEVEL)*(idx+1)-1 downto (OUTER_NESTING_LEVEL)*(idx));
           comm := in_data.comm;
-          id(idx).last := in_last(idx);
+          --id(idx).last := in_last(idx);
           id(idx).empty := in_empty(idx);
           if idx < unsigned(in_stai) then
             id(idx).strb := '0';
@@ -160,7 +163,7 @@ begin
 
           -- Default behavior.
           od(idx).data       := id(idx).data;
-          od(idx).last       := '0';--id(idx).last;
+          od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)      := id(idx).last & "00";
           od(idx).empty      := id(idx).empty;
           od(idx).strb       := '0';
           
@@ -203,6 +206,8 @@ begin
                     when X"7D" => -- '}'
                       if or_reduce(nesting_extra) = '0' then
                         endi := idx_int-1;
+                        od(idx).last(1) := '1';
+                        od(idx).last(0) := '1';
                         state := STATE_DEFAULT;
                       end if;
                     when X"7B" => -- '{'
@@ -245,7 +250,7 @@ begin
                   when X"22" => -- '"'
                     handshaked := false;
                     state := STATE_BLOCK;
-                    od(idx).last := '1';
+                    od(idx).last(0) := '1';
                     endi := idx_int-1;
                   when others =>
                     od(idx).strb := '1';
@@ -262,8 +267,17 @@ begin
                     if or_reduce(nesting_extra) = '0' then
                       handshaked := false;
                       state := STATE_BLOCK;
-                      endi := idx_int-1;
-                      od(idx).last := '1';
+                      state_ab := STATE_RECORD;
+                      if idx = 0 then
+                        od(idx).empty := '1';
+                        endi := d"0";
+                        od(idx).last(0) := '1';
+                        od(idx).strb := '1';
+                        ov := '1';
+                      else
+                        endi := idx_int-1;
+                        od(idx-1).last(0) := '1';
+                      end if;
                     else
                       od(idx).strb := '1';
                       ov := '1';
@@ -273,15 +287,18 @@ begin
                     if or_reduce(nesting_extra) = '0' then
                       handshaked := false;
                       state := STATE_BLOCK;
+                      state_ab := STATE_DEFAULT;
                       if idx = 0 then
                         od(idx).empty := '1';
                         endi := d"0";
-                        od(idx).last := '1';
+                        od(idx).last(1) := '1';
+                        od(idx).last(0) := '1';
                         od(idx).strb := '1';
                         ov := '1';
                       else
                         endi := idx_int-1;
-                        od(idx-1).last := '1';
+                        od(idx-1).last(0) := '1';
+                        od(idx-1).last(1) := '1';
                       end if;
                     else
                       od(idx).strb := '1';
@@ -297,7 +314,7 @@ begin
           end if;
           -- Clear state upon any last, to prevent broken elements from messing
           -- up everything.
-          if id(idx).last /= '0' then
+          if or_reduce(id(idx).last) /= '0' then
             state := STATE_DEFAULT;
             nesting_level_th := (others => '0');
           end if;
@@ -318,7 +335,7 @@ begin
       for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
         out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;
         out_data.tag  <= tag;
-        out_last(idx) <= od(idx).last;
+        out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= od(idx).last;
         out_empty(idx) <= od(idx).empty;
         out_stai <= std_logic_vector(stai);
         out_endi <= std_logic_vector(endi);

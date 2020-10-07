@@ -1,0 +1,31 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Wed Oct  7 22:25:44 2020
+[*]
+[dumpfile] "/home/akos/work/Teratide/JSON_parser/repo/JSON-parser-components/work.jsonarrayparser_tc.vcd"
+[dumpfile_mtime] "Wed Oct  7 22:23:32 2020"
+[dumpfile_size] 19150
+[savefile] "/home/akos/work/Teratide/JSON_parser/repo/JSON-parser-components/test/gtkw/jsoarrayparser_tc.gtkw"
+[timestart] 2031710000
+[size] 2560 1380
+[pos] -1553 -1
+*-23.903860 2110000000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] jsonarrayparser_tc.
+[sst_width] 211
+[signals_width] 304
+[sst_expanded] 1
+[sst_vpaned_height] 415
+@820
+jsonarrayparser_tc.in_data[63:0]
+@22
+jsonarrayparser_tc.in_strb[7:0]
+@820
+jsonarrayparser_tc.out_data[63:0]
+@28
+jsonarrayparser_tc.out_empty[7:0]
+@29
+jsonarrayparser_tc.dut.out_strb[7:0]
+@28
+jsonarrayparser_tc.dut.out_valid
+[pattern_trace] 1
+[pattern_trace] 0

@@ -92,9 +92,6 @@ begin
     type out_array is array (natural range <>) of out_type;
     variable od : out_array(0 to ELEMENTS_PER_TRANSFER-1);
     variable ov : std_logic := '0';
-    variable out_r : std_logic := '0';
-
-    variable handshaked : boolean;
 
     variable stai    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
     variable endi    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
@@ -104,19 +101,13 @@ begin
 
     -- Enumeration type for our state machine.
     type state_t is (STATE_IDLE,
-                     STATE_ARRAY, 
-                     STATE_BLOCK);
+                     STATE_ARRAY);
 
     -- State variable
     variable state : state_t;
-    variable state_ab : state_t;
-    variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
-
-    variable has_valid : boolean; --this needs to be tidied up
-
 
     variable nesting_level_th : std_logic_vector(INNER_NESTING_LEVEL downto 0) := (others => '0');
-    variable nesting_extra    : std_logic_vector(INNER_NESTING_LEVEL downto 1) := (others => '0');
+    variable nesting_inner    : std_logic_vector(INNER_NESTING_LEVEL downto 1) := (others => '0');
 
     variable element_counter  : unsigned(ELEMENT_COUNTER_BW-1 downto 0);
     variable counter_valid    : std_logic;
@@ -129,8 +120,6 @@ begin
       -- Latch input holding register if we said we would.
       if to_x01(ir) = '1' then
         iv := in_valid;
-        out_r := out_ready;
-        processed := (others => '0');
         stai      := to_unsigned(0, stai'length);
         endi      := to_unsigned(ELEMENTS_PER_TRANSFER-1, endi'length);
         tag       := KEY;
@@ -155,12 +144,6 @@ begin
         ov := '0';
       end if;
       ir                 := counter_taken;
-      handshaked         := false;
-      has_valid          := false;
-
-      if out_valid = '1' and out_ready = '1' then
-        handshaked := true;
-      end if;
 
       if counter_valid = '1' and out_count_ready = '1' then
         counter_taken := '1';
@@ -180,7 +163,7 @@ begin
           idx_int := to_unsigned(idx, idx_int'length);
 
           -- Element-wise processing only when the lane is valid.
-          if to_x01(id(idx).strb) = '1' and processed(idx) = '0' and comm = ENABLE then
+          if to_x01(id(idx).strb) = '1' and comm = ENABLE then
 
             if (id(idx).empty) = '1' then
               od(idx).strb := '1';
@@ -201,99 +184,40 @@ begin
                 nesting_level_th := nesting_level_th;
             end case;
 
-            nesting_extra := nesting_level_th(nesting_level_th'high downto 1);
-
+            nesting_inner := nesting_level_th(nesting_level_th'high downto 1);
 
             case state is
-              when STATE_BLOCK =>
-                endi  := idx_int-1;
-                ir    := '0';
-                state := STATE_BLOCK;
-                if handshaked or not has_valid then
-                  handshaked := false;
-                  ir         := '1';
-                  case id(idx).data is
-                    when X"5B" => -- '['
-                      stai := idx_int+1;
-                      state := STATE_ARRAY;
-                    when X"5D" => -- ']'
-                      endi := idx_int-1;
-                      od(idx-1).last(0) := '1';
-                      od(idx-1).last(1) := '1';
-                      state := STATE_IDLE;
-                    when others =>
-                      stai := idx_int;
-                      od(idx).strb := '1';
-                      ov := '1';
-                      state := state_ab;
-                  end case;
-                end if;
-
               when STATE_IDLE =>
-                processed(idx) := '1';
-                --element_counter := (others => '0');
-                --counter_valid := '0';
                 case id(idx).data is
                   when X"5B" => -- '['
                     if counter_taken then  
-                      stai := idx_int+1;
                       state := STATE_ARRAY;
                       element_counter := (others => '0');
                     end if;
                   when others =>
-                    stai := idx_int+1;
                     state := STATE_IDLE;
                 end case;
 
               when STATE_ARRAY =>
-                processed(idx) := '1';
-                has_valid := true;
+                od(idx).strb := '1';
+                ov := '1';
                 case id(idx).data is
                   when X"5D" => -- ']'
-                    if or_reduce(nesting_extra) = '0' then
-                      handshaked := false;
-                      state := STATE_BLOCK;
-                      state_ab := STATE_IDLE;
+                    if or_reduce(nesting_inner) = '0' then
+                      state := STATE_IDLE;
                       element_counter := element_counter+1;
-                      counter_taken := '0';
-                      counter_valid := '1';
-                      if idx = 0 then
-                        od(idx).empty := '1';
-                        od(idx).strb := '1';
-                        endi := idx_int;
-                        od(idx).last(0) := '1';
-                        od(idx).last(1) := '1';
-                        ov := '1';
-                      else
-                        endi := idx_int-1;
-                        od(idx-1).last := od(idx).last;
-                        od(idx-1).last(0) := '1';
-                        od(idx-1).last(1) := '1';
-                        ov := '1';
-                        --state := STATE_ARRAY;
-                      end if;
+                      od(idx).last(0) := '1';
+                      od(idx).last(1) := '1';
+                      od(idx).empty   := '1';
                     end if;
                   when X"2C" => -- ','
-                    if or_reduce(nesting_extra) = '0' then
-                      handshaked := false;
-                      state := STATE_BLOCK;
-                      state_ab := STATE_ARRAY;
+                    if or_reduce(nesting_inner) = '0' then
+                      state := STATE_ARRAY;
                       element_counter := element_counter+1;
-                      if idx = 0 then
-                        od(idx).empty := '1';
-                        od(idx).strb := '1';
-                        endi := idx_int-1;
-                        od(idx).last(0) := '1';
-                        ov := '1';
-                      else
-                        endi := idx_int-1;
-                        od(idx-1).last(0) := '1';
-                        ov := '1';
-                      end if;
+                      od(idx).last(0) := '1';
+                      od(idx).empty   := '1';
                     end if;
                   when others =>
-                    od(idx).strb := '1';
-                    ov := '1';
                     state := STATE_ARRAY;
                 end case;
             end case;

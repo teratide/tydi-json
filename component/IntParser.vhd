@@ -42,6 +42,7 @@ entity IntParser is
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
       out_data              : out std_logic_vector(BITWIDTH-1 downto 0);
+      out_empty             : out std_logic;
       out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
 
   );
@@ -75,6 +76,7 @@ architecture behavioral of IntParser is
         variable od : out_array(0 to ELEMENTS_PER_TRANSFER-1);
         variable ol : std_logic_vector(NESTING_LEVEL-1 downto 0);
         variable ov : std_logic := '0';
+        variable oe : std_logic := '0';
         variable out_r : std_logic := '0';
         
         -- Enumeration type for our state machine.
@@ -126,12 +128,18 @@ architecture behavioral of IntParser is
 
           -- Do processing when both registers are ready.
           if to_x01(iv) = '1' and to_x01(ov) /= '1' then
+
             bin_shr := (others => '0');
             for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
               if to_x01(id(idx).strb) = '1' then
+                if (id(idx).empty) = '1' then
+                  oe := '1';
+                  ov := '1';
+                end if;
                 ol := ol or id(idx).last(NESTING_LEVEL downto 1);
                 if comm = ENABLE and in_data.data(8*idx+7 downto 8*idx+4) = X"3"
                     and to_x01(id(idx).empty) = '0' then
+                  oe := '0';
                   in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
                 end if;
               end if;
@@ -167,7 +175,7 @@ architecture behavioral of IntParser is
           --out_data <= std_logic_vector(in_shr(63 downto 0));
           out_data <= bin_shr;
           out_last <= ol;
-          --out_empty(idx) <= od(idx).empty;
+          out_empty <= oe;
           in_ready <= ir and not reset;
 
         end if;

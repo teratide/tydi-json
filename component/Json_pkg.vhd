@@ -14,13 +14,19 @@ package Json_pkg is
     type comm_t is (ENABLE,
                     DISABLE);
 
+    type kv_tag_array is array (natural range <>) of kv_tag_t;
+    -- type JsonRecordParser_out_t is record
+    --     tag   : kv_tag_array; 
+    --     data  : std_logic_vector ;
+    -- end record ;
+
     type JsonRecordParser_out_t is record
-        tag   : kv_tag_t ;  -- Note that this is unconstrained
-        data  : std_logic_vector ;
+        tag   : std_logic_vector; 
+        data  : std_logic_vector;
     end record ;
 
     type comp_in_t is record
-        comm  : comm_t ;  -- Note that this is unconstrained
+        comm  : comm_t ; 
         data  : std_logic_vector ;
     end record ;
 
@@ -59,7 +65,7 @@ package Json_pkg is
             out_valid             : out std_logic;
             out_ready             : in  std_logic;
             --out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
-            out_data              : out JsonRecordParser_out_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
+            out_data              : out JsonRecordParser_out_t(tag(ELEMENTS_PER_TRANSFER-1 downto 0), data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
             --out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             out_empty             : out  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
@@ -192,6 +198,7 @@ package Json_pkg is
           out_valid             : out std_logic;
           out_ready             : in  std_logic;
           out_data              : out std_logic_vector(63 downto 0);
+          out_empty             : out std_logic;
           out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
       );
     end component;

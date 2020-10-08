@@ -6,6 +6,8 @@ library work;
 use work.UtilInt_pkg.all;
 use work.Json_pkg.all;
 
+-- TODO
+
 entity BooleanParser is
   generic (
       ELEMENTS_PER_TRANSFER : natural := 1;

@@ -35,7 +35,7 @@ entity JsonRecordParser is
       in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
       in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
 
-      end_req               : in  std_logic := 0;
+      end_req               : in  std_logic := '0';
       end_ack               : out std_logic;
 
       -- Stream(
@@ -96,6 +96,9 @@ begin
     variable endi    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
     variable idx_int : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
 
+    variable end_req_i : std_logic;
+    variable end_ack_i : std_logic;
+
     variable tag     : kv_tag_t;
 
     -- Enumeration type for our state machine.
@@ -118,6 +121,7 @@ begin
         iv := in_valid;
         stai      := to_unsigned(0, stai'length);
         endi      := to_unsigned(ELEMENTS_PER_TRANSFER-1, endi'length);
+        end_req_i := end_req;
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
           id(idx).data := in_data.data(8*idx+7 downto 8*idx);
           id(idx).last := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*(idx)+1);
@@ -150,7 +154,7 @@ begin
           od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)      := id(idx).last & "00";
           od(idx).empty      := id(idx).empty;
           od(idx).strb       := '0';
-          end_ack            := '1';
+          end_ack_i           := '1';
           
           idx_int := to_unsigned(idx, idx_int'length);
 
@@ -199,8 +203,8 @@ begin
                     od(idx).last(1) := '1';
                     od(idx).empty   := '1';
                     ov              := '1'; 
-                    if end_req = '1' then
-                      end_ack := '1';
+                    if end_req_i = '1' then
+                      end_ack_i := '1';
                     end if;
                   when others =>
                     state := STATE_RECORD;
@@ -237,8 +241,8 @@ begin
                       od(idx).last(0) := '1';
                       od(idx).last(1) := '1';
                       od(idx).empty   := '1';     
-                      if end_req = '1' then
-                        end_ack := '1';
+                      if end_req_i = '1' then
+                        end_ack_i := '1';
                       end if;
                     end if;
                   when others =>
@@ -251,8 +255,8 @@ begin
           if id(idx).last(0) /= '0' then
             state := STATE_IDLE;
             nesting_level_th := (others => '0');
-            if end_req = '1' then
-              end_ack := '1';
+            if end_req_i = '1' then
+              end_ack_i := '1';
             end if;
           end if;
         end loop;
@@ -272,6 +276,7 @@ begin
       out_valid <= to_x01(ov);
       ir := not iv and not reset;
       in_ready <= ir and not reset;
+      end_ack <= end_req_i;
       for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
         out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;
         out_data.tag(idx)  <= od(idx).tag;

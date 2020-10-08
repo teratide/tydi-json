@@ -272,26 +272,50 @@ begin
     tc_check(b.pq_ready, true);
     tc_check(b.cq_get_d_nat, 11, "11");
     b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
     tc_check(b.cq_get_d_nat, 22, "22");
     --tc_check(c.cq_get_d_nat, 2, "count: 2");
     b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
     --c.cq_next;
     tc_check(b.cq_get_d_nat, 33, "33");
     b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
     tc_check(b.cq_get_d_nat, 44, "44");
-    --tc_check(c.cq_get_d_nat, 2, "count: 2");
     b.cq_next;
+    --tc_check(c.cq_get_d_nat, 2, "count: 2");
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
     --c.cq_next;
     tc_check(b.cq_get_d_nat, 55, "55");
     b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
     tc_check(b.cq_get_d_nat, 66, "66");
-    --tc_check(c.cq_get_d_nat, 2, "count: 2");
     b.cq_next;
+    --tc_check(c.cq_get_d_nat, 2, "count: 2");
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
     --c.cq_next;
     tc_check(b.cq_get_d_nat, 77, "77");
     b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
     tc_check(b.cq_get_d_nat, 88, "88");
     b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
     tc_check(b.cq_get_d_nat, 99, "99");
     --tc_check(c.cq_get_d_nat, 3, "count: 3");
 

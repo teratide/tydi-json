@@ -163,7 +163,6 @@ architecture behavioral of IntParser is
                   oe := '0';
                   ov := '1';
                 end if;
-
               end if;
 
               if not stall then
@@ -190,8 +189,7 @@ architecture behavioral of IntParser is
               end if;
             end loop;
           end loop;
-          
-    
+
           -- Handle reset.
           if to_x01(reset) /= '0' then
             ir    := '0';

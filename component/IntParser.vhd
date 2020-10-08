@@ -37,7 +37,7 @@ entity IntParser is
       -- Stream(
       --     Bits(64),
       --     d=NESTING_LEVEL,
-      --     c=1
+      --     c=2
       -- )
       out_valid             : out std_logic;
       out_ready             : in  std_logic;

@@ -35,6 +35,9 @@ entity JsonRecordParser is
       in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
       in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
 
+      end_req               : in  std_logic := 0;
+      end_ack               : out std_logic;
+
       -- Stream(
       --     Bits(9),
       --     t=ELEMENTS_PER_TRANSFER,
@@ -147,6 +150,7 @@ begin
           od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)      := id(idx).last & "00";
           od(idx).empty      := id(idx).empty;
           od(idx).strb       := '0';
+          end_ack            := '1';
           
           idx_int := to_unsigned(idx, idx_int'length);
 
@@ -195,6 +199,9 @@ begin
                     od(idx).last(1) := '1';
                     od(idx).empty   := '1';
                     ov              := '1'; 
+                    if end_req = '1' then
+                      end_ack := '1';
+                    end if;
                   when others =>
                     state := STATE_RECORD;
                 end case;
@@ -229,7 +236,10 @@ begin
                       state := STATE_IDLE;   
                       od(idx).last(0) := '1';
                       od(idx).last(1) := '1';
-                      od(idx).empty   := '1';                  
+                      od(idx).empty   := '1';     
+                      if end_req = '1' then
+                        end_ack := '1';
+                      end if;
                     end if;
                   when others =>
                     state := STATE_VALUE;
@@ -241,6 +251,9 @@ begin
           if id(idx).last(0) /= '0' then
             state := STATE_IDLE;
             nesting_level_th := (others => '0');
+            if end_req = '1' then
+              end_ack := '1';
+            end if;
           end if;
         end loop;
         ov := '1';

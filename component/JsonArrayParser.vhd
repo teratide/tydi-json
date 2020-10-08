@@ -49,12 +49,12 @@ entity JsonArrayParser is
       out_empty             : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
       out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
       out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-      out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+      out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
 
 
-      out_count_valid       : out std_logic;
-      out_count_ready       : in  std_logic := '1';
-      out_count_data        : out std_logic_vector(ELEMENT_COUNTER_BW-1 downto 0)
+      -- out_count_valid       : out std_logic;
+      -- out_count_ready       : in  std_logic := '1';
+      -- out_count_data        : out std_logic_vector(ELEMENT_COUNTER_BW-1 downto 0)
 
   );
 end entity;
@@ -97,8 +97,6 @@ begin
     variable endi    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
     variable idx_int : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
 
-    variable tag     : kv_tag_t;
-
     -- Enumeration type for our state machine.
     type state_t is (STATE_IDLE,
                      STATE_ARRAY);
@@ -109,9 +107,9 @@ begin
     variable nesting_level_th : std_logic_vector(INNER_NESTING_LEVEL downto 0) := (others => '0');
     variable nesting_inner    : std_logic_vector(INNER_NESTING_LEVEL downto 1) := (others => '0');
 
-    variable element_counter  : unsigned(ELEMENT_COUNTER_BW-1 downto 0);
-    variable counter_valid    : std_logic;
-    variable counter_taken    : std_logic;
+    -- variable element_counter  : unsigned(ELEMENT_COUNTER_BW-1 downto 0);
+    -- variable counter_valid    : std_logic;
+    -- variable counter_taken    : std_logic;
 
 
   begin
@@ -122,7 +120,6 @@ begin
         iv := in_valid;
         stai      := to_unsigned(0, stai'length);
         endi      := to_unsigned(ELEMENTS_PER_TRANSFER-1, endi'length);
-        tag       := KEY;
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
           id(idx).data := in_data.data(8*idx+7 downto 8*idx);
           id(idx).empty:= in_empty(idx);
@@ -143,12 +140,11 @@ begin
       if to_x01(out_ready) = '1' then
         ov := '0';
       end if;
-      ir                 := counter_taken;
-
-      if counter_valid = '1' and out_count_ready = '1' then
-        counter_taken := '1';
-        counter_valid := '0';
-      end if;
+      
+      -- if counter_valid = '1' and out_count_ready = '1' then
+      --   counter_taken := '1';
+      --   counter_valid := '0';
+      -- end if;
 
       -- Do processing when both registers are ready.
       if to_x01(iv) = '1' and to_x01(ov) /= '1' then
@@ -160,8 +156,6 @@ begin
           od(idx).empty      := id(idx).empty;
           od(idx).strb       := '0';
           
-          idx_int := to_unsigned(idx, idx_int'length);
-
           -- Element-wise processing only when the lane is valid.
           if to_x01(id(idx).strb) = '1' and comm = ENABLE then
 
@@ -190,10 +184,11 @@ begin
               when STATE_IDLE =>
                 case id(idx).data is
                   when X"5B" => -- '['
-                    if counter_taken then  
-                      state := STATE_ARRAY;
-                      element_counter := (others => '0');
-                    end if;
+                    state := STATE_ARRAY;
+                    --if counter_taken then  
+                    --  state := STATE_ARRAY;
+                    --  element_counter := (others => '0');
+                    --end if;
                   when others =>
                     state := STATE_IDLE;
                 end case;
@@ -205,7 +200,7 @@ begin
                   when X"5D" => -- ']'
                     if or_reduce(nesting_inner) = '0' then
                       state := STATE_IDLE;
-                      element_counter := element_counter+1;
+                      --element_counter := element_counter+1;
                       od(idx).last(0) := '1';
                       od(idx).last(1) := '1';
                       od(idx).empty   := '1';
@@ -213,7 +208,7 @@ begin
                   when X"2C" => -- ','
                     if or_reduce(nesting_inner) = '0' then
                       state := STATE_ARRAY;
-                      element_counter := element_counter+1;
+                      --element_counter := element_counter+1;
                       od(idx).last(0) := '1';
                       od(idx).empty   := '1';
                     end if;
@@ -225,9 +220,11 @@ begin
           -- Clear state upon any last, to prevent broken elements from messing
           -- up everything.
           if or_reduce(id(idx).last) /= '0' then
-            --state := STATE_IDLE;
+            state := STATE_IDLE;
           end if;
         end loop;
+        ov := '1';
+        iv := '0';--counter_taken;
       end if;
 
       -- Handle reset.
@@ -235,13 +232,14 @@ begin
         ir    := '0';
         ov    := '0';
         state := STATE_IDLE;
-        element_counter := (others => '0');
-        counter_taken := '1';
-        counter_valid := '0';
+        -- element_counter := (others => '0');
+        -- counter_taken := '1';
+        -- counter_valid := '0';
       end if;
 
       -- Forward output holding register.
       out_valid <= to_x01(ov);
+      ir := not iv and not reset;
       in_ready <= ir and not reset;
       for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
         out_data(8*idx+7 downto 8*idx) <= od(idx).data;
@@ -251,8 +249,8 @@ begin
         out_endi <= std_logic_vector(endi);
         out_strb(idx) <= od(idx).strb;
       end loop;
-      out_count_valid <= counter_valid;
-      out_count_data <= std_logic_vector(element_counter);
+      -- out_count_valid <= counter_valid;
+      -- out_count_data <= std_logic_vector(element_counter);
     end if;
   end process;
 end architecture;

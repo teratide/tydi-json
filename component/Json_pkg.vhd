@@ -119,12 +119,12 @@ package Json_pkg is
             out_empty             : out  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
             out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-            out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+            out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
 
 
-            out_count_valid       : out std_logic;
-            out_count_ready       : in  std_logic := '1';
-            out_count_data        : out std_logic_vector(ELEMENT_COUNTER_BW-1 downto 0)
+            -- out_count_valid       : out std_logic;
+            -- out_count_ready       : in  std_logic := '1';
+            -- out_count_data        : out std_logic_vector(ELEMENT_COUNTER_BW-1 downto 0)
       
         );
       end component;

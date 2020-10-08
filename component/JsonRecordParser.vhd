@@ -135,7 +135,7 @@ begin
       if to_x01(out_ready) = '1' then
         ov := '0';
       end if;
-      ir                 := '1';
+      --ir                 := '1';
 
       -- Do processing when both registers are ready.
       if to_x01(iv) = '1' and to_x01(ov) /= '1' then
@@ -238,11 +238,13 @@ begin
           end if;
           -- Clear state upon any last, to prevent broken elements from messing
           -- up everything.
-          if or_reduce(id(idx).last) /= '0' then
+          if id(idx).last(0) /= '0' then
             state := STATE_IDLE;
             nesting_level_th := (others => '0');
           end if;
         end loop;
+        ov := '1';
+        iv := '0';--counter_taken;
       end if;
 
       -- Handle reset.
@@ -255,6 +257,7 @@ begin
 
       -- Forward output holding register.
       out_valid <= to_x01(ov);
+      ir := not iv and not reset;
       in_ready <= ir and not reset;
       for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
         out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;

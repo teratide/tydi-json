@@ -1,0 +1,87 @@
+[*]
+[*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
+[*] Thu Oct  8 17:47:42 2020
+[*]
+[dumpfile] "/home/akos/work/Teratide/JSON_parser/repo/JSON-parser-components/work.battery_status_tc.vcd"
+[dumpfile_mtime] "Thu Oct  8 17:46:16 2020"
+[dumpfile_size] 40897
+[savefile] "/home/akos/work/Teratide/JSON_parser/repo/JSON-parser-components/test/gtkw/battery_schema.gtkw"
+[timestart] 2092000000
+[size] 1272 1372
+[pos] -1 -1
+*-24.515461 2150100000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+[treeopen] battery_status_tc.
+[sst_width] 211
+[signals_width] 174
+[sst_expanded] 1
+[sst_vpaned_height] 411
+@28
+battery_status_tc.array_ready
+battery_status_tc.array_valid
+battery_status_tc.array_empty[7:0]
+battery_status_tc.array_strb[7:0]
+@c00028
+battery_status_tc.array_last[31:0]
+@28
+(0)battery_status_tc.array_last[31:0]
+(1)battery_status_tc.array_last[31:0]
+(2)battery_status_tc.array_last[31:0]
+(3)battery_status_tc.array_last[31:0]
+(4)battery_status_tc.array_last[31:0]
+(5)battery_status_tc.array_last[31:0]
+(6)battery_status_tc.array_last[31:0]
+(7)battery_status_tc.array_last[31:0]
+(8)battery_status_tc.array_last[31:0]
+(9)battery_status_tc.array_last[31:0]
+(10)battery_status_tc.array_last[31:0]
+(11)battery_status_tc.array_last[31:0]
+(12)battery_status_tc.array_last[31:0]
+(13)battery_status_tc.array_last[31:0]
+(14)battery_status_tc.array_last[31:0]
+(15)battery_status_tc.array_last[31:0]
+(16)battery_status_tc.array_last[31:0]
+(17)battery_status_tc.array_last[31:0]
+(18)battery_status_tc.array_last[31:0]
+(19)battery_status_tc.array_last[31:0]
+(20)battery_status_tc.array_last[31:0]
+(21)battery_status_tc.array_last[31:0]
+(22)battery_status_tc.array_last[31:0]
+(23)battery_status_tc.array_last[31:0]
+(24)battery_status_tc.array_last[31:0]
+(25)battery_status_tc.array_last[31:0]
+(26)battery_status_tc.array_last[31:0]
+(27)battery_status_tc.array_last[31:0]
+(28)battery_status_tc.array_last[31:0]
+(29)battery_status_tc.array_last[31:0]
+(30)battery_status_tc.array_last[31:0]
+(31)battery_status_tc.array_last[31:0]
+@1401200
+-group_end
+@28
+battery_status_tc.conv_last[31:0]
+@820
+battery_status_tc.conv_data[63:0]
+@28
+battery_status_tc.conv_empty[7:0]
+battery_status_tc.conv_strb[7:0]
+battery_status_tc.intparser_i.in_last[31:0]
+battery_status_tc.intparser_i.in_empty[7:0]
+@24
+battery_status_tc.intparser_i.out_data[63:0]
+@28
+battery_status_tc.intparser_i.in_ready
+battery_status_tc.intparser_i.in_valid
+@820
+battery_status_tc.array_data[63:0]
+@29
+battery_status_tc.intparser_i.in_empty[7:0]
+@28
+battery_status_tc.intparser_i.in_strb[7:0]
+battery_status_tc.intparser_i.out_empty
+@22
+battery_status_tc.intparser_i.out_data[63:0]
+@28
+battery_status_tc.intparser_i.out_last[2:0]
+battery_status_tc.intparser_i.processed_dbg[7:0]
+[pattern_trace] 1
+[pattern_trace] 0

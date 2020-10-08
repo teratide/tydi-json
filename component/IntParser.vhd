@@ -1,7 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
-use ieee.std_logic_misc.or_reduce;
+use ieee.std_logic_misc.all;
 
 
 library work;
@@ -23,7 +23,7 @@ entity IntParser is
       --     Bits(8),
       --     t=ELEMENTS_PER_TRANSFER,
       --     d=NESTING_LEVEL,
-      --     c=8
+      --     c=7
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
@@ -49,6 +49,8 @@ entity IntParser is
 end entity;
 
 architecture behavioral of IntParser is
+    signal processed_dbg : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+    signal stall_dbg : std_logic;
     begin
       clk_proc: process (clk) is
         constant IDXW : natural := log2ceil(ELEMENTS_PER_TRANSFER);
@@ -88,9 +90,18 @@ architecture behavioral of IntParser is
         variable comm  : comm_t;
         variable val   : boolean;
 
+        -- Stall the input when there are characters
+        -- for multiple integers in the input transaction.
+        variable stall : boolean;
+                
+        -- Mark the processed characters in the 
+        -- current transaction.
+        variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+
         variable in_shr  : std_logic_vector(BITWIDTH+(BITWIDTH-4)/3-1 downto 0) := (others => '0');
         variable bcd_shr : std_logic_vector(BITWIDTH+(BITWIDTH-4)/3-1 downto 0) := (others => '0');
         variable bin_shr : std_logic_vector(BITWIDTH-1 downto 0) := (others => '0');
+
     
       begin
         if rising_edge(clk) then
@@ -98,69 +109,88 @@ architecture behavioral of IntParser is
           -- Latch input holding register if we said we would.
           if to_x01(ir) = '1' then
             iv := in_valid;
-            out_r := out_ready;
-            stai := unsigned(in_stai);
-            comm := in_data.comm;
-
-            for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
-              id(idx).data := in_data.data(8*idx+7 downto 8*idx);
-              id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
+            if to_x01(iv) = '1'then
               comm := in_data.comm;
-              stai := unsigned(in_stai);
-              --id(idx).last := in_last(idx);
-              id(idx).empty := in_empty(idx);
-              if idx < unsigned(in_stai) then
-                id(idx).strb := '0';
-              elsif idx > unsigned(in_endi) then
-                id(idx).strb := '0';
-              else
-                id(idx).strb := in_strb(idx);
-              end if;
-            end loop;
+              processed := (others => '0');
+              for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+                id(idx).data := in_data.data(8*idx+7 downto 8*idx);
+                id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
+                comm := in_data.comm;
+                stai := unsigned(in_stai);
+                id(idx).empty := in_empty(idx);
+                if idx < unsigned(in_stai) then
+                  id(idx).strb := '0';
+                elsif idx > unsigned(in_endi) then
+                  id(idx).strb := '0';
+                else
+                  id(idx).strb := in_strb(idx);
+                end if;
+              end loop;
+            end if;
           end if;
     
           -- Clear output holding register if transfer was accepted.
           if to_x01(out_ready) = '1' then
             ov := '0';
+            stall := false;
           end if;
-          ir                   := '1';
-          ol                   := (others => '0');
+          ol := (others => '0');
+          oe := '0';
 
-          -- Do processing when both registers are ready.
-          if to_x01(iv) = '1' and to_x01(ov) /= '1' then
+          for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
 
-            bin_shr := (others => '0');
-            for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+            if to_x01(ov) /= '1' and processed(idx) = '0' and not stall then
+              bin_shr := (others => '0');
               if to_x01(id(idx).strb) = '1' then
-                if (id(idx).empty) = '1' then
-                  oe := '1';
-                  ov := '1';
-                end if;
+
                 ol := ol or id(idx).last(NESTING_LEVEL downto 1);
-                if comm = ENABLE and in_data.data(8*idx+7 downto 8*idx+4) = X"3"
+
+                if comm = ENABLE and to_x01(id(idx).empty) = '1' then
+                  oe := '1';
+                end if;
+
+                if comm = ENABLE and id(idx).data(7 downto 4) = X"3"
                     and to_x01(id(idx).empty) = '0' then
                   oe := '0';
                   in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
                 end if;
-              end if;
-              if id(idx).last(0) /= '0' then
-                bcd_shr := in_shr;
-                in_shr  := (others => '0');
-                ov := '1';
-              end if;
-            end loop;
 
-            for i in bin_shr'range loop
-              bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
-              bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
-              for idx in 0 to (BITWIDTH+(BITWIDTH-4)/3)/4-1 loop
-                if unsigned(bcd_shr(idx*4+3 downto idx*4)) >= 8 then
-                  bcd_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(bcd_shr(idx*4+3 downto idx*4)) - 3));
+                if id(idx).last(0) /= '0'  then
+                  bcd_shr := in_shr;
+                  in_shr  := (others => '0');
+                  processed(idx) := '1';
+                  stall := true;
+                  oe := '0';
+                  ov := '1';
                 end if;
-              end loop;
-            end loop;
 
-          end if;
+              end if;
+
+              if not stall then
+                processed(idx) := '1';
+              end if;
+
+            end if;
+            if stall then
+              ir := '0';
+            else
+              ir := or_reduce(processed);
+              if or_reduce(ol) and or_reduce(processed) then
+                ov := '1';  
+              end if;
+            end if;
+          end loop;
+
+          for i in bin_shr'range loop
+            bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
+            bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
+            for idx in 0 to (BITWIDTH+(BITWIDTH-4)/3)/4-1 loop
+              if unsigned(bcd_shr(idx*4+3 downto idx*4)) >= 8 then
+                bcd_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(bcd_shr(idx*4+3 downto idx*4)) - 3));
+              end if;
+            end loop;
+          end loop;
+          
     
           -- Handle reset.
           if to_x01(reset) /= '0' then
@@ -168,16 +198,18 @@ architecture behavioral of IntParser is
             ov    := '0';
             in_shr  := (others => '0');
             bin_shr := (others => '0');
+            processed := (others => '0');
           end if;
     
           -- Forward output holding register.
           out_valid <= to_x01(ov);
-          --out_data <= std_logic_vector(in_shr(63 downto 0));
           out_data <= bin_shr;
           out_last <= ol;
           out_empty <= oe;
           in_ready <= ir and not reset;
 
+          processed_dbg <= processed;
+          stall_dbg <= '1' when stall else '0';
         end if;
       end process;
     end architecture;

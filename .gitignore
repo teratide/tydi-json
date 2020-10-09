@@ -4,3 +4,5 @@ gtkwave.gtkw
 *.vcd
 
 battery.gtkw
+
+sim.sh

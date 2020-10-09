@@ -198,7 +198,8 @@ begin
     intparser_i: IntParser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8,
-      NESTING_LEVEL             => 3
+      NESTING_LEVEL             => 3,
+      BITWIDTH                  => 64
     )
     port map (
       clk                       => clk,

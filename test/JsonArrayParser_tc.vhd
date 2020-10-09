@@ -9,7 +9,6 @@ use work.ClockGen_pkg.all;
 use work.StreamSource_pkg.all;
 use work.StreamSink_pkg.all;
 use work.Json_pkg.all;
-use work.test_util_pkg.all;
 use work.TestCase_pkg.all;
 
 entity JsonArrayParser_tc is

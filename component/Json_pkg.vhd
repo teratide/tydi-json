@@ -14,20 +14,28 @@ package Json_pkg is
     type comm_t is (ENABLE,
                     DISABLE);
 
+    type kv_tag_array is array (natural range <>) of kv_tag_t;
+    -- type JsonRecordParser_out_t is record
+    --     tag   : kv_tag_array; 
+    --     data  : std_logic_vector ;
+    -- end record ;
+
     type JsonRecordParser_out_t is record
-        tag   : kv_tag_t ;  -- Note that this is unconstrained
-        data  : std_logic_vector ;
+        tag   : std_logic_vector; 
+        data  : std_logic_vector;
     end record ;
 
     type comp_in_t is record
-        comm  : comm_t ;  -- Note that this is unconstrained
+        comm  : comm_t ; 
         data  : std_logic_vector ;
     end record ;
 
     component JsonRecordParser is
         generic (
-            ELEMENTS_PER_TRANSFER : natural := 1;
-            NESTING_LEVEL         : natural := 1
+          ELEMENTS_PER_TRANSFER : natural := 1;
+          OUTER_NESTING_LEVEL   : natural := 1;
+          INNER_NESTING_LEVEL   : natural := 1;
+          END_REQ_EN            : boolean := false
             );
         port (
             clk                   : in  std_logic;
@@ -42,12 +50,15 @@ package Json_pkg is
             in_valid              : in  std_logic;
             in_ready              : out std_logic;
             in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-            --in_last               : in  std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-            in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+            in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
             in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
             in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+
+            end_req               : in  std_logic := '0';
+            end_ack               : out std_logic;
+
 
             -- Stream(
             --     Bits(9),
@@ -59,9 +70,9 @@ package Json_pkg is
             out_valid             : out std_logic;
             out_ready             : in  std_logic;
             --out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
-            out_data              : out JsonRecordParser_out_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
+            out_data              : out JsonRecordParser_out_t(tag(ELEMENTS_PER_TRANSFER-1 downto 0), data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
             --out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-            out_last              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+            out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             out_empty             : out  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
             out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
@@ -73,7 +84,9 @@ package Json_pkg is
     component JsonArrayParser is
         generic (
             ELEMENTS_PER_TRANSFER : natural := 1;
-            NESTING_LEVEL         : natural := 1
+            OUTER_NESTING_LEVEL   : natural := 1;
+            INNER_NESTING_LEVEL   : natural := 0;
+            ELEMENT_COUNTER_BW    : natural := 4
             );
         port (
             clk                   : in  std_logic;
@@ -89,7 +102,7 @@ package Json_pkg is
             in_ready              : out std_logic;
             in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
             --in_last               : in  std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-            in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+            in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
             in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
@@ -107,11 +120,16 @@ package Json_pkg is
             --out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
             out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
             --out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-            out_last              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+            out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             out_empty             : out  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
             out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
             out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
             out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
+
+
+            -- out_count_valid       : out std_logic;
+            -- out_count_ready       : in  std_logic := '1';
+            -- out_count_data        : out std_logic_vector(ELEMENT_COUNTER_BW-1 downto 0)
       
         );
       end component;
@@ -153,10 +171,12 @@ package Json_pkg is
         );
     end component;
 
-    component Int64Parser is
+    component IntParser is
       generic (
           ELEMENTS_PER_TRANSFER : natural := 1;
-          NESTING_LEVEL         : natural := 1
+          NESTING_LEVEL         : natural := 1;
+          BITWIDTH              : natural := 8;
+          SIGNED                : boolean := false -- Signed is not supported yet!
           );
       port (
           clk                   : in  std_logic;
@@ -171,7 +191,7 @@ package Json_pkg is
           in_valid              : in  std_logic;
           in_ready              : out std_logic;
           in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-          in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+          in_last               : in  std_logic_vector((NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
           in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
           in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
           in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
@@ -185,8 +205,8 @@ package Json_pkg is
           out_valid             : out std_logic;
           out_ready             : in  std_logic;
           out_data              : out std_logic_vector(63 downto 0);
-          out_last              : out std_logic_vector((NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0)
-    
+          out_empty             : out std_logic;
+          out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
       );
     end component;
 end Json_pkg;

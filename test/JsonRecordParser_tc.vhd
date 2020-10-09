@@ -2,6 +2,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
+
 library work;
 use work.TestCase_pkg.all;
 use work.Stream_pkg.all;
@@ -33,13 +34,12 @@ architecture test_case of JsonRecordParser_tc is
   signal out_ready        : std_logic;
   signal out_valid        : std_logic;
   signal out_data         : std_logic_vector(63 downto 0);
-  signal out_tag          : kv_tag_t;
+  signal out_tag          : std_logic_vector(7 downto 0);
+  signal out_empty        : std_logic_vector(7 downto 0);
   signal out_stai         : std_logic_vector(2 downto 0);
   signal out_endi         : std_logic_vector(2 downto 0);
   signal aligned_data     : std_logic_vector(63 downto 0);
   signal out_count        : std_logic_vector(3 downto 0);
-
-  signal out_tag_int      : integer;
 
 begin
 
@@ -73,7 +73,8 @@ begin
     dut: JsonRecordParser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8,
-      NESTING_LEVEL             => 2
+      OUTER_NESTING_LEVEL       => 1,
+      INNER_NESTING_LEVEL       => 1
     )
     port map (
       clk                       => clk,
@@ -85,13 +86,14 @@ begin
       in_strb                   => in_strb,
       out_data.data             => out_data,
       out_data.tag              => out_tag,
+      out_empty                 => out_empty,
       out_stai                  => out_stai,
       out_endi                  => out_endi,
       out_ready                 => out_ready
     );
 
     out_ready <= '1';
-    out_tag_int <= kv_tag_t'POS(out_tag);
+    --out_tag_int <= kv_tag_t'POS(out_tag);
 
     -- out_count <= std_logic_vector(unsigned('0' & out_endi) - unsigned('0' & out_stai) + 1);
     -- aligned_data <= left_align_stream(out_data, out_stai, 64);

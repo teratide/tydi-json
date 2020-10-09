@@ -14,12 +14,6 @@ package Json_pkg is
     type comm_t is (ENABLE,
                     DISABLE);
 
-    type kv_tag_array is array (natural range <>) of kv_tag_t;
-    -- type JsonRecordParser_out_t is record
-    --     tag   : kv_tag_array; 
-    --     data  : std_logic_vector ;
-    -- end record ;
-
     type JsonRecordParser_out_t is record
         tag   : std_logic_vector; 
         data  : std_logic_vector;
@@ -42,7 +36,7 @@ package Json_pkg is
             reset                 : in  std_logic;
 
             -- Stream(
-            --     Bits(9),
+            --     Bits(8),
             --     t=ELEMENTS_PER_TRANSFER,
             --     d=NESTING_LEVEL,
             --     c=8
@@ -61,7 +55,7 @@ package Json_pkg is
 
 
             -- Stream(
-            --     Bits(9),
+            --     Bits(8),
             --     t=ELEMENTS_PER_TRANSFER,
             --     d=NESTING_LEVEL,
             --     c=8
@@ -91,7 +85,7 @@ package Json_pkg is
             reset                 : in  std_logic;
       
             -- Stream(
-            --     Bits(9),
+            --     Bits(8),
             --     t=ELEMENTS_PER_TRANSFER,
             --     d=NESTING_LEVEL,
             --     c=8
@@ -106,7 +100,7 @@ package Json_pkg is
             in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
       
             -- Stream(
-            --     Bits(9),
+            --     Bits(8),
             --     t=ELEMENTS_PER_TRANSFER,
             --     d=NESTING_LEVEL,
             --     c=8

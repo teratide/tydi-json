@@ -80,11 +80,6 @@ begin
       out_ready                 => out_ready
     );
 
-    --out_ready <= '1';
-    -- out_count <= std_logic_vector(unsigned('0' & out_endi) - unsigned('0' & out_stai) + 1);
-    -- aligned_data <= left_align_stream(out_data, out_stai, 64);
-
-
     out_sink: StreamSink_mdl
     generic map (
       NAME                      => "b",

@@ -86,11 +86,6 @@ begin
       out_ready                 => out_ready
     );
 
-    --out_ready <= '1';
-    -- out_count <= std_logic_vector(unsigned('0' & out_endi) - unsigned('0' & out_stai) + 1);
-    -- aligned_data <= left_align_stream(out_data, out_stai, 64);
-
-
     out_sink: StreamSink_mdl
     generic map (
       NAME                      => "b",
@@ -133,8 +128,6 @@ begin
     b.unblock;
 
     tc_wait_for(10 us);
-
-    --tc_note(b.cq_get_d_str);
 
     tc_check(b.pq_ready, true);
     tc_check(b.cq_get_d_nat, 1234, "1234");

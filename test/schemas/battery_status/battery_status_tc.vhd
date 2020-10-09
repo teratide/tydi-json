@@ -23,6 +23,7 @@ architecture test_case of battery_status_tc is
   signal reset            : std_logic;
 
   constant ELEMENTS_PER_TRANSFER : integer := 10;
+  constant INTEGER_WIDTH         : integer := 64;
 
   signal in_valid         : std_logic;
   signal in_ready         : std_logic;
@@ -40,7 +41,7 @@ architecture test_case of battery_status_tc is
   signal out_valid       : std_logic;
   signal out_empty       : std_logic;
   signal out_dvalid      : std_logic;
-  signal out_data        : std_logic_vector(63 downto 0);
+  signal out_data        : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal out_last        : std_logic_vector(2 downto 0);
 
 begin
@@ -76,7 +77,7 @@ begin
     record_parser_i: BattSchemaParser
     generic map (
       ELEMENTS_PER_TRANSFER     => ELEMENTS_PER_TRANSFER,
-      INT_WIDTH                 => 64
+      INT_WIDTH                 => INTEGER_WIDTH
     )
     port map (
       clk                       => clk,
@@ -101,7 +102,7 @@ begin
     out_sink: StreamSink_mdl
     generic map (
       NAME                      => "b",
-      ELEMENT_WIDTH             => 64,
+      ELEMENT_WIDTH             => INTEGER_WIDTH,
       COUNT_MAX                 => 1,
       COUNT_WIDTH               => 1
     )

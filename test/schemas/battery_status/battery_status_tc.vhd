@@ -8,6 +8,7 @@ use work.Stream_pkg.all;
 use work.ClockGen_pkg.all;
 use work.StreamSource_pkg.all;
 use work.StreamSink_pkg.all;
+use work.UtilInt_pkg.all;
 use work.Json_pkg.all;
 use work.TestCase_pkg.all;
 use work.battery_status_pkg.all;
@@ -21,47 +22,19 @@ architecture test_case of battery_status_tc is
   signal clk              : std_logic;
   signal reset            : std_logic;
 
+  constant ELEMENTS_PER_TRANSFER : integer := 10;
 
   signal in_valid         : std_logic;
   signal in_ready         : std_logic;
   signal in_dvalid        : std_logic;
   signal in_last          : std_logic;
-  signal in_data          : std_logic_vector(63 downto 0);
-  signal in_count         : std_logic_vector(3 downto 0);
-  signal in_strb          : std_logic_vector(7 downto 0);
-  signal in_endi          : std_logic_vector(2 downto 0) := (others => '1');
-  signal in_stai          : std_logic_vector(2 downto 0) := (others => '0');
+  signal in_data          : std_logic_vector(ELEMENTS_PER_TRANSFER*8-1 downto 0);
+  signal in_count         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER+1)-1 downto 0);
+  signal in_strb          : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+  signal in_endi          : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
+  signal in_stai          : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
 
-  signal adv_last         : std_logic_vector(15 downto 0);
-
-  signal kv_ready        : std_logic;
-  signal kv_valid        : std_logic;
-  signal kv_data         : std_logic_vector(63 downto 0);
-  signal kv_tag          : std_logic_vector(7 downto 0);
-  signal kv_stai         : std_logic_vector(2 downto 0);
-  signal kv_endi         : std_logic_vector(2 downto 0);
-  signal kv_strb         : std_logic_vector(7 downto 0);
-  signal kv_empty        : std_logic_vector(7 downto 0);
-  signal kv_last         : std_logic_vector(23 downto 0);
-
-  signal array_ready        : std_logic;
-  signal array_valid        : std_logic;
-  signal array_data         : std_logic_vector(63 downto 0);
-  signal array_stai         : std_logic_vector(2 downto 0);
-  signal array_endi         : std_logic_vector(2 downto 0);
-  signal array_strb         : std_logic_vector(7 downto 0);
-  signal array_empty        : std_logic_vector(7 downto 0);
-  signal array_last         : std_logic_vector(31 downto 0);
-
-  signal conv_ready        : std_logic;
-  signal conv_valid        : std_logic;
-  signal conv_data         : std_logic_vector(63 downto 0);
-  signal conv_stai         : std_logic_vector(2 downto 0);
-  signal conv_endi         : std_logic_vector(2 downto 0);
-  signal conv_strb         : std_logic_vector(7 downto 0);
-  signal conv_empty        : std_logic_vector(7 downto 0);
-  signal conv_last         : std_logic_vector(31 downto 0);
-  
+  signal adv_last        : std_logic_vector(ELEMENTS_PER_TRANSFER*2-1 downto 0) := (others => '0');
 
   signal out_ready       : std_logic;
   signal out_valid       : std_logic;
@@ -69,18 +42,6 @@ architecture test_case of battery_status_tc is
   signal out_dvalid      : std_logic;
   signal out_data        : std_logic_vector(63 downto 0);
   signal out_last        : std_logic_vector(2 downto 0);
-
-  
-  signal aligned_data    : std_logic_vector(63 downto 0);
-  signal out_count       : std_logic_vector(3 downto 0);
-
-  signal out_tag_int     : integer;
-
-  -- signal count_ready     : std_logic;
-  -- signal count_valid     : std_logic;
-  -- signal count           : std_logic_vector(7 downto 0);
-
-
 
 begin
 
@@ -94,8 +55,8 @@ begin
     generic map (
       NAME                      => "a",
       ELEMENT_WIDTH             => 8,
-      COUNT_MAX                 => 8,
-      COUNT_WIDTH               => 4
+      COUNT_MAX                 => ELEMENTS_PER_TRANSFER,
+      COUNT_WIDTH               => log2ceil(ELEMENTS_PER_TRANSFER+1)
     )
     port map (
       clk                       => clk,
@@ -108,12 +69,13 @@ begin
       count                     => in_count
     );
 
-    in_strb <= element_mask(in_count, in_dvalid, 8); 
-    adv_last <= std_logic_vector(shift_left(unsigned'("0000000" & in_last), to_integer(unsigned(in_endi))))  & "00000000";
+    in_strb <= element_mask(in_count, in_dvalid, ELEMENTS_PER_TRANSFER); 
+
+    adv_last(ELEMENTS_PER_TRANSFER) <=  in_last;
 
     record_parser_i: BattSchemaParser
     generic map (
-      ELEMENTS_PER_TRANSFER     => 8,
+      ELEMENTS_PER_TRANSFER     => ELEMENTS_PER_TRANSFER,
       INT_WIDTH                 => 64
     )
     port map (

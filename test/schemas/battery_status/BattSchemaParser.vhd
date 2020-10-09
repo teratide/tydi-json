@@ -16,7 +16,6 @@ use work.battery_status_pkg.all;
 entity BattSchemaParser is
   generic (
     ELEMENTS_PER_TRANSFER : natural := 8;
-    INT_PARSER_BUFFER_D   : natural := 4;
     INT_WIDTH             : natural := 64
   );
   port (
@@ -62,33 +61,23 @@ architecture arch of BattSchemaParser is
 
   signal kv_ready        : std_logic;
   signal kv_valid        : std_logic;
-  signal kv_data         : std_logic_vector(63 downto 0);
-  signal kv_tag          : std_logic_vector(7 downto 0);
-  signal kv_stai         : std_logic_vector(2 downto 0);
-  signal kv_endi         : std_logic_vector(2 downto 0);
-  signal kv_strb         : std_logic_vector(7 downto 0);
-  signal kv_empty        : std_logic_vector(7 downto 0);
-  signal kv_last         : std_logic_vector(23 downto 0);
+  signal kv_data         : std_logic_vector(ELEMENTS_PER_TRANSFER*8-1 downto 0);
+  signal kv_tag          : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+  signal kv_stai         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+  signal kv_endi         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+  signal kv_strb         : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+  signal kv_empty        : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+  signal kv_last         : std_logic_vector(ELEMENTS_PER_TRANSFER*3-1 downto 0);
 
   signal array_ready        : std_logic;
   signal array_valid        : std_logic;
-  signal array_data         : std_logic_vector(63 downto 0);
-  signal array_stai         : std_logic_vector(2 downto 0);
-  signal array_endi         : std_logic_vector(2 downto 0);
-  signal array_strb         : std_logic_vector(7 downto 0);
-  signal array_empty        : std_logic_vector(7 downto 0);
-  signal array_last         : std_logic_vector(31 downto 0);
-
-  signal conv_ready        : std_logic;
-  signal conv_valid        : std_logic;
-  signal conv_data         : std_logic_vector(63 downto 0);
-  signal conv_stai         : std_logic_vector(2 downto 0);
-  signal conv_endi         : std_logic_vector(2 downto 0);
-  signal conv_strb         : std_logic_vector(7 downto 0);
-  signal conv_empty        : std_logic_vector(7 downto 0);
-  signal conv_last         : std_logic_vector(31 downto 0);
-
-  
+  signal array_data         : std_logic_vector(ELEMENTS_PER_TRANSFER*8-1 downto 0);
+  signal array_stai         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+  signal array_endi         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+  signal array_strb         : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+  signal array_empty        : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+  signal array_last         : std_logic_vector(ELEMENTS_PER_TRANSFER*4-1 downto 0);
+ 
   
 begin
   record_parser_i: JsonRecordParser
@@ -125,8 +114,7 @@ begin
     generic map (
       ELEMENTS_PER_TRANSFER     => ELEMENTS_PER_TRANSFER,
       OUTER_NESTING_LEVEL       => 2,
-      INNER_NESTING_LEVEL       => 0,
-      ELEMENT_COUNTER_BW        => 8
+      INNER_NESTING_LEVEL       => 0
     )
     port map (
       clk                       => clk,
@@ -147,7 +135,6 @@ begin
       out_strb                  => array_strb,
       out_empty                 => array_empty
     );
-
 
     intparser_i: IntParser
     generic map (

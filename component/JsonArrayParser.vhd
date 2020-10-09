@@ -21,7 +21,7 @@ entity JsonArrayParser is
       reset                 : in  std_logic;
 
       -- Stream(
-      --     Bits(9),
+      --     Bits(8),
       --     t=ELEMENTS_PER_TRANSFER,
       --     d=NESTING_LEVEL,
       --     c=8
@@ -36,7 +36,7 @@ entity JsonArrayParser is
       in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
 
       -- Stream(
-      --     Bits(9),
+      --     Bits(8),
       --     t=ELEMENTS_PER_TRANSFER,
       --     d=NESTING_LEVEL,
       --     c=8

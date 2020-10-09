@@ -14,14 +14,15 @@ entity JsonRecordParser is
   generic (
       ELEMENTS_PER_TRANSFER : natural := 1;
       OUTER_NESTING_LEVEL   : natural := 1;
-      INNER_NESTING_LEVEL   : natural := 0
+      INNER_NESTING_LEVEL   : natural := 0;
+      END_REQ_EN            : boolean := false
       );
   port (
       clk                   : in  std_logic;
       reset                 : in  std_logic;
 
       -- Stream(
-      --     Bits(9),
+      --     Bits(8),
       --     t=ELEMENTS_PER_TRANSFER,
       --     d=NESTING_LEVEL,
       --     c=8
@@ -39,7 +40,7 @@ entity JsonRecordParser is
       end_ack               : out std_logic;
 
       -- Stream(
-      --     Bits(9),
+      --     Bits(8),
       --     t=ELEMENTS_PER_TRANSFER,
       --     d=NESTING_LEVEL,
       --     c=8
@@ -114,6 +115,15 @@ begin
     variable nesting_inner    : std_logic_vector(INNER_NESTING_LEVEL downto 1) := (others => '0');
 
   begin
+
+    if END_REQ_EN then
+      assert OUTER_NESTING_LEVEL = 0 Report "When END_REQ_EN is asserted," &
+                                             "OUTER_NESTING_LEVEL needs to be set to 1" &
+                                             "in JsonRecordParser." 
+      severity Failure;
+    end if;
+
+
     if rising_edge(clk) then
 
       -- Latch input holding register if we said we would.
@@ -126,7 +136,6 @@ begin
           id(idx).data := in_data.data(8*idx+7 downto 8*idx);
           id(idx).last := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*(idx)+1);
           comm := in_data.comm;
-          --id(idx).last := in_last(idx);
           id(idx).empty := in_empty(idx);
           if idx < unsigned(in_stai) then
             id(idx).strb := '0';
@@ -142,7 +151,6 @@ begin
       if to_x01(out_ready) = '1' then
         ov := '0';
       end if;
-      --ir                 := '1';
 
       -- Do processing when both registers are ready.
       if to_x01(iv) = '1' and to_x01(ov) /= '1' then
@@ -243,6 +251,7 @@ begin
                       od(idx).empty   := '1';     
                       if end_req_i = '1' then
                         end_ack_i := '1';
+                        od(idx).last(3) := '1';
                       end if;
                     end if;
                   when others =>
@@ -261,7 +270,7 @@ begin
           end if;
         end loop;
         ov := '1';
-        iv := '0';--counter_taken;
+        iv := '0';
       end if;
 
       -- Handle reset.
@@ -275,7 +284,7 @@ begin
       -- Forward output holding register.
       out_valid <= to_x01(ov);
       ir := not iv and not reset;
-      in_ready <= ir and not reset;
+      in_ready <= ir;
       end_ack <= end_req_i;
       for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
         out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;

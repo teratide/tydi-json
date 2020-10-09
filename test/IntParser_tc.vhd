@@ -70,7 +70,8 @@ begin
     dut: IntParser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8,
-      NESTING_LEVEL             => 0
+      NESTING_LEVEL             => 0,
+      BITWIDTH                  => 64
     )
     port map (
       clk                       => clk,

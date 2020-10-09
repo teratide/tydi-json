@@ -3,7 +3,6 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 use ieee.std_logic_misc.all;
 
-
 library work;
 use work.UtilInt_pkg.all;
 use work.Json_pkg.all;
@@ -12,8 +11,8 @@ entity IntParser is
   generic (
       ELEMENTS_PER_TRANSFER : natural := 1;
       NESTING_LEVEL         : natural := 1;
-      BITWIDTH              : natural := 64;
-      SIGNED                : boolean := false -- Signed not supported yet!
+      BITWIDTH              : natural := 8;
+      SIGNED                : boolean := false -- Signed is not supported yet!
       );
   port (
       clk                   : in  std_logic;
@@ -23,7 +22,7 @@ entity IntParser is
       --     Bits(8),
       --     t=ELEMENTS_PER_TRANSFER,
       --     d=NESTING_LEVEL,
-      --     c=7
+      --     c=8
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
@@ -139,17 +138,17 @@ architecture behavioral of IntParser is
 
           for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
 
-            if to_x01(ov) /= '1' and processed(idx) = '0' and not stall then
+            if comm = ENABLE and to_x01(ov) /= '1' and processed(idx) = '0' and not stall then
               bin_shr := (others => '0');
               if to_x01(id(idx).strb) = '1' then
 
                 ol := ol or id(idx).last(NESTING_LEVEL downto 1);
 
-                if comm = ENABLE and to_x01(id(idx).empty) = '1' then
+                if to_x01(id(idx).empty) = '1' then
                   oe := '1';
                 end if;
 
-                if comm = ENABLE and id(idx).data(7 downto 4) = X"3"
+                if id(idx).data(7 downto 4) = X"3"
                     and to_x01(id(idx).empty) = '0' then
                   oe := '0';
                   in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
@@ -180,6 +179,8 @@ architecture behavioral of IntParser is
             end if;
           end loop;
 
+          -- Use the double-dabble alogorith to convert BCD to binary.
+          -- For wide integers it might fail timing :(
           for i in bin_shr'range loop
             bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
             bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);

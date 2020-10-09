@@ -108,7 +108,7 @@ begin
     variable b        : streamsink_type;
 
   begin
-    tc_open("Int64Parser", "test");
+    tc_open("IntParser", "test");
     a.initialize("a");
     b.initialize("b");
 

@@ -116,7 +116,7 @@ begin
     --variable b        : streamsink_type;
 
   begin
-    tc_open("JsonRecordParser", "test");
+    tc_open("JsonArrayParser", "test");
     a.initialize("a");
     --b.initialize("b");
 

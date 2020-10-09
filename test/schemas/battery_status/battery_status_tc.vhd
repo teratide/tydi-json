@@ -120,7 +120,7 @@ begin
     variable b        : streamsink_type;
 
   begin
-    tc_open("JsonRecordParser", "test");
+    tc_open("BattSchemaParser", "test");
     a.initialize("a");
     b.initialize("b");
 

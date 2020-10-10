@@ -100,8 +100,6 @@ begin
     variable end_req_i : std_logic;
     variable end_ack_i : std_logic;
 
-    variable tag     : kv_tag_t;
-
     -- Enumeration type for our state machine.
     type state_t is (STATE_IDLE,
                      STATE_RECORD,
@@ -251,7 +249,7 @@ begin
                       od(idx).empty   := '1';     
                       if end_req_i = '1' then
                         end_ack_i := '1';
-                        od(idx).last(3) := '1';
+                        od(idx).last(2) := '1';
                       end if;
                     end if;
                   when others =>

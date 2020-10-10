@@ -3,20 +3,15 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 library work;
-use work.TestCase_pkg.all;
 use work.Stream_pkg.all;
-use work.ClockGen_pkg.all;
-use work.StreamSource_pkg.all;
-use work.StreamSink_pkg.all;
 use work.UtilInt_pkg.all;
 use work.Json_pkg.all;
-use work.TestCase_pkg.all;
 use work.battery_status_pkg.all;
 
 entity BattSchemaParser is
   generic (
     ELEMENTS_PER_TRANSFER : natural := 8;
-    INT_WIDTH             : natural := 64
+    INT_WIDTH             : natural := 16
   );
   port (
       clk                   : in  std_logic;

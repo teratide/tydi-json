@@ -78,16 +78,9 @@ architecture behavioral of IntParser is
         variable ol : std_logic_vector(NESTING_LEVEL-1 downto 0);
         variable ov : std_logic := '0';
         variable oe : std_logic := '0';
-        variable out_r : std_logic := '0';
         
-        -- Enumeration type for our state machine.
-        type state_t is (STATE_IDLE,
-                         STATE_DONE);
-    
-        -- State variable
-        variable state : state_t;
+
         variable comm  : comm_t;
-        variable val   : boolean;
 
         -- Stall the input when there are characters
         -- for multiple integers in the input transaction.
@@ -167,8 +160,8 @@ architecture behavioral of IntParser is
               if not stall then
                 processed(idx) := '1';
               end if;
-
             end if;
+
             if stall then
               ir := '0';
             else

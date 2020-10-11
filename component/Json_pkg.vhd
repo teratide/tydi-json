@@ -165,7 +165,8 @@ package Json_pkg is
           ELEMENTS_PER_TRANSFER : natural := 1;
           NESTING_LEVEL         : natural := 1;
           BITWIDTH              : natural := 8;
-          SIGNED                : boolean := false -- Signed is not supported yet!
+          SIGNED                : boolean := false; -- Signed is not supported yet!
+          PIPELINE_STAGES       : natural := 1
           );
       port (
           clk                   : in  std_logic;

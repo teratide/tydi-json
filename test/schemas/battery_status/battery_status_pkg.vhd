@@ -12,7 +12,9 @@ package battery_status_pkg is
     component BattSchemaParser is
         generic (
           ELEMENTS_PER_TRANSFER : natural := 8;
-          INT_WIDTH             : natural := 16
+          INT_WIDTH             : natural := 16;
+          INT_P_PIPELINE_STAGES : natural := 1;
+          END_REQ_EN            : boolean := false
         );
         port (
             clk                   : in  std_logic;

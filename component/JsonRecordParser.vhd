@@ -155,12 +155,12 @@ begin
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
 
           -- Default behavior.
-          od(idx).data       := id(idx).data;
-          od(idx).tag        := '0';
-          od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)      := id(idx).last & "00";
-          od(idx).empty      := id(idx).empty;
-          od(idx).strb       := '0';
-          end_ack_i           := '1';
+          od(idx).data                                  := id(idx).data;
+          od(idx).tag                                   := '0';
+          od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)  := id(idx).last & "00";
+          od(idx).empty                                 := id(idx).empty;
+          od(idx).strb                                  := '0';
+          end_ack_i                                     := '1';
           
           idx_int := to_unsigned(idx, idx_int'length);
 

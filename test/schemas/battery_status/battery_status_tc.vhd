@@ -22,7 +22,7 @@ architecture test_case of battery_status_tc is
   signal clk              : std_logic;
   signal reset            : std_logic;
 
-  constant ELEMENTS_PER_TRANSFER : integer := 10;
+  constant ELEMENTS_PER_TRANSFER : integer := 8;
   constant INTEGER_WIDTH         : integer := 64;
 
   signal in_valid         : std_logic;
@@ -72,7 +72,9 @@ begin
 
     in_strb <= element_mask(in_count, in_dvalid, ELEMENTS_PER_TRANSFER); 
 
-    adv_last(ELEMENTS_PER_TRANSFER) <=  in_last;
+    -- TODO: Is there a cleaner solutiuon? It's getting late :(
+    adv_last(ELEMENTS_PER_TRANSFER*2-1 downto ELEMENTS_PER_TRANSFER) <=  std_logic_vector(shift_left(resize(unsigned'("0" & in_last), 
+                                                                            ELEMENTS_PER_TRANSFER), to_integer(unsigned(in_endi))));
 
     record_parser_i: BattSchemaParser
     generic map (

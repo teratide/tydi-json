@@ -113,17 +113,17 @@ begin
     b.initialize("b");
 
     a.push_str("1234");
-    a.transmit;
+    a.transmit(last => true);
     
     a.push_str("12345");
-    a.transmit;
+    a.transmit(last => true);
 
 
     a.push_str("   1234");
-    a.transmit;
+    a.transmit(last => true);
     
     a.push_str("   12345");
-    a.transmit;
+    a.transmit(last => true);
 
     b.unblock;
 

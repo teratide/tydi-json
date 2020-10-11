@@ -66,8 +66,6 @@ begin
     -- Input holding register.
     type in_type is record
       data  : std_logic_vector(7 downto 0);
-      --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
-      --last  : std_logic;
       last  : std_logic_vector(OUTER_NESTING_LEVEL-1 downto 0);
       empty : std_logic;
       strb  : std_logic;
@@ -112,6 +110,8 @@ begin
     variable nesting_level_th : std_logic_vector(INNER_NESTING_LEVEL downto 0) := (others => '0');
     variable nesting_inner    : std_logic_vector(INNER_NESTING_LEVEL downto 1) := (others => '0');
 
+    variable nesting_origo    : std_logic;
+
   begin
 
     if END_REQ_EN then
@@ -131,17 +131,18 @@ begin
         endi      := to_unsigned(ELEMENTS_PER_TRANSFER-1, endi'length);
         end_req_i := end_req;
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
-          id(idx).data := in_data.data(8*idx+7 downto 8*idx);
-          id(idx).last := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*(idx)+1);
-          comm := in_data.comm;
+          id(idx).data  := in_data.data(8*idx+7 downto 8*idx);
+          id(idx).last  := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*(idx)+1);
+          comm          := in_data.comm;
           id(idx).empty := in_empty(idx);
-          if idx < unsigned(in_stai) then
-            id(idx).strb := '0';
-          elsif idx > unsigned(in_endi) then
-            id(idx).strb := '0';
-          else
-            id(idx).strb := in_strb(idx);
-          end if;
+          id(idx).strb  := in_strb(idx);
+          -- if idx < unsigned(in_stai) then
+          --   id(idx).strb := '0';
+          -- elsif idx > unsigned(in_endi) then
+          --   id(idx).strb := '0';
+          -- else
+          --   id(idx).strb := in_strb(idx);
+          -- end if;
         end loop;
       end if;
 
@@ -151,7 +152,7 @@ begin
       end if;
 
       -- Do processing when both registers are ready.
-      if to_x01(iv) = '1' and to_x01(ov) /= '1' then
+      if to_x01(iv) = '1' and to_x01(out_ready) = '1' then
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
 
           -- Default behavior.
@@ -160,7 +161,7 @@ begin
           od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)  := id(idx).last & "00";
           od(idx).empty                                 := id(idx).empty;
           od(idx).strb                                  := '0';
-          end_ack_i                                     := '1';
+          end_ack_i                                     := '0';
           
           idx_int := to_unsigned(idx, idx_int'length);
 
@@ -187,6 +188,7 @@ begin
             end case;
 
             nesting_inner := nesting_level_th(nesting_level_th'high downto 1);
+            nesting_origo := not or_reduce(nesting_inner);
 
             case state is
               when STATE_IDLE =>
@@ -236,13 +238,13 @@ begin
                 ov := '1';
                 case id(idx).data is
                   when X"2C" => -- ','
-                    if or_reduce(nesting_inner) = '0' then
+                    if nesting_origo = '1' then
                       state := STATE_RECORD;
                       od(idx).last(0) := '1';
                       od(idx).empty   := '1';
                     end if;
                   when X"7D" => -- '}'
-                    if or_reduce(nesting_inner) = '0' then
+                    if nesting_origo = '1' then
                       state := STATE_IDLE;   
                       od(idx).last(0) := '1';
                       od(idx).last(1) := '1';

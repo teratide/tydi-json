@@ -188,7 +188,7 @@ package Json_pkg is
           in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
     
           -- Stream(
-          --     Bits(64),
+          --     Bits(BITWIDTH),
           --     d=NESTING_LEVEL,
           --     c=2
           -- )

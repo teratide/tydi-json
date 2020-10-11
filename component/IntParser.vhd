@@ -35,7 +35,7 @@ entity IntParser is
       in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
 
       -- Stream(
-      --     Bits(64),
+      --     Bits(BITWIDTH),
       --     d=NESTING_LEVEL,
       --     c=2
       -- )
@@ -149,13 +149,14 @@ architecture behavioral of IntParser is
                 comm := in_data.comm;
                 stai := unsigned(in_stai);
                 id(idx).empty := in_empty(idx);
-                if idx < unsigned(in_stai) then
-                  id(idx).strb := '0';
-                elsif idx > unsigned(in_endi) then
-                  id(idx).strb := '0';
-                else
-                  id(idx).strb := in_strb(idx);
-                end if;
+                id(idx).strb := in_strb(idx);
+                -- if idx < unsigned(in_stai) then
+                --   id(idx).strb := '0';
+                -- elsif idx > unsigned(in_endi) then
+                --   id(idx).strb := '0';
+                -- else
+                --   id(idx).strb := in_strb(idx);
+                -- end if;
               end loop;
             end if;
           end if;
@@ -172,51 +173,45 @@ architecture behavioral of IntParser is
           dd_in.bin := (others => '0');
 
           for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
-            if comm = ENABLE and to_x01(dd_in.valid) /= '1' and processed(idx) = '0' and not stall then
-              if to_x01(id(idx).strb) = '1' then
+            if comm = ENABLE and to_x01(out_ready) = '1' and processed(idx) = '0' then
+              if not stall or to_x01(id(idx).strb) = '0' then
+                processed(idx) := '1';
+              end if;
+              if not stall then
+                if to_x01(id(idx).strb) = '1' then
 
-                dd_in.last := dd_in.last or id(idx).last(NESTING_LEVEL downto 1);
+                  dd_in.last := dd_in.last or id(idx).last(NESTING_LEVEL downto 1);
 
-                if to_x01(id(idx).empty) = '1' then
-                  dd_in.empty := '1';
-                end if;
+                  if to_x01(id(idx).empty) = '1' then
+                    dd_in.empty := '1';
+                  end if;
 
-                if id(idx).data(7 downto 4) = X"3"
-                    and to_x01(id(idx).empty) = '0' then
-                  dd_in.empty := '0';
-                  in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
-                end if;
+                  if id(idx).data(7 downto 4) = X"3"
+                      and to_x01(id(idx).empty) = '0' then
+                    dd_in.empty := '0';
+                    in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
+                  end if;
 
-                if id(idx).last(0) /= '0'  then
-                  dd_in.bcd := in_shr;
-                  in_shr  := (others => '0');
-                  processed(idx) := '1';
-                  stall := true;
-                  dd_in.empty := '0';
-                  dd_in.valid := '1';
-                end if;
-              end if; 
-            end if;
-
-
-            if not stall then
-              processed(idx) := '1';
-            end if;
-
-            if and_reduce(processed) then
-              stall := false;
-            end if;
-
-            
-            if stall then
-              iv := '1';
-            else
-              iv := not and_reduce(processed);
-              if or_reduce(dd_in.last) and or_reduce(processed) then
-                dd_in.valid := '1';
+                  if id(idx).last(0) /= '0'  then
+                    dd_in.bcd := in_shr;
+                    in_shr  := (others => '0');
+                    stall := true;
+                    dd_in.empty := '0';
+                    dd_in.valid := '1';
+                  end if;
+                end if; 
               end if;
             end if;
           end loop;
+
+          if and_reduce(processed) then
+            stall := false;
+          end if;
+
+          iv := not and_reduce(processed);
+          if or_reduce(dd_in.last) and or_reduce(processed) then
+            dd_in.valid := '1';
+          end if;
 
           -- Handle reset.
           if to_x01(reset) /= '0' then
@@ -235,10 +230,18 @@ architecture behavioral of IntParser is
 
       pipeline_reg_proc: process (clk) is
       begin
-        pipeline_in_array(0) <= dd_in_s;
+        if to_x01(reset) /= '0' then
+          pipeline_in_array(0).valid   <= '0';
+        else
+          pipeline_in_array(0) <= dd_in_s;
+        end if;
 
         pipeline_reg_gen: for i in 1 to PIPELINE_STAGES-1  loop
-          pipeline_in_array(i) <= pipeline_out_array(i-1);
+          if to_x01(reset) /= '0' then
+            pipeline_in_array(i).valid   <= '0';
+          else
+            pipeline_in_array(i)    <= pipeline_out_array(i-1);
+          end if;
         end loop pipeline_reg_gen;
 
         -- Interfacing

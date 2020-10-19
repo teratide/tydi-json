@@ -118,10 +118,6 @@ architecture behavioral of IntParser is
       
           
           variable comm  : comm_t;
-
-          -- Stall the input when there are characters
-          -- for multiple integers in the input transaction.
-          variable stall : boolean;
                   
           -- Mark the processed characters in the 
           -- current transaction.
@@ -150,13 +146,13 @@ architecture behavioral of IntParser is
                 stai := unsigned(in_stai);
                 id(idx).empty := in_empty(idx);
                 id(idx).strb := in_strb(idx);
-                -- if idx < unsigned(in_stai) then
-                --   id(idx).strb := '0';
-                -- elsif idx > unsigned(in_endi) then
-                --   id(idx).strb := '0';
-                -- else
-                --   id(idx).strb := in_strb(idx);
-                -- end if;
+                if idx < unsigned(in_stai) then
+                  id(idx).strb := '0';
+                elsif idx > unsigned(in_endi) then
+                  id(idx).strb := '0';
+                else
+                  id(idx).strb := in_strb(idx);
+                end if;
               end loop;
             end if;
           end if;
@@ -164,7 +160,6 @@ architecture behavioral of IntParser is
           -- Clear output holding register if transfer was accepted.
           if to_x01(out_ready) = '1' then
             dd_in.valid := '0';
-            stall := false;
           end if;
 
           dd_in.last := (others => '0');
@@ -173,43 +168,39 @@ architecture behavioral of IntParser is
           dd_in.bin := (others => '0');
 
           for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
-            if comm = ENABLE and to_x01(out_ready) = '1' and processed(idx) = '0' then
-              if not stall or to_x01(id(idx).strb) = '0' then
-                processed(idx) := '1';
+            if comm = ENABLE and to_x01(dd_in.valid) = '0' and to_x01(id(idx).strb) = '1' then
+
+              dd_in.last := dd_in.last or id(idx).last(NESTING_LEVEL downto 1);
+
+              if to_x01(id(idx).empty) = '1' then
+                dd_in.empty := '1';
               end if;
-              if not stall then
-                if to_x01(id(idx).strb) = '1' then
 
-                  dd_in.last := dd_in.last or id(idx).last(NESTING_LEVEL downto 1);
-
-                  if to_x01(id(idx).empty) = '1' then
-                    dd_in.empty := '1';
-                  end if;
-
-                  if id(idx).data(7 downto 4) = X"3"
-                      and to_x01(id(idx).empty) = '0' then
-                    dd_in.empty := '0';
-                    in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
-                  end if;
-
-                  if id(idx).last(0) /= '0'  then
-                    dd_in.bcd := in_shr;
-                    in_shr  := (others => '0');
-                    stall := true;
-                    dd_in.empty := '0';
-                    dd_in.valid := '1';
-                  end if;
-                end if; 
+              if id(idx).data(7 downto 4) = X"3"
+                  and to_x01(id(idx).empty) = '0' then
+                dd_in.empty := '0';
+                in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
               end if;
+
+              if id(idx).last(0) /= '0'  then
+                dd_in.bcd := in_shr;
+                in_shr  := (others => '0');
+                dd_in.empty := '0';
+                dd_in.valid := '1';
+              end if;
+              id(idx).strb := '0';
             end if;
           end loop;
 
-          if and_reduce(processed) then
-            stall := false;
-          end if;
+          --iv := not and_reduce(processed);
+          iv := '0';
+          for lane in id'range loop
+            if id(lane).strb = '1' then
+              iv := '1';
+            end if;
+          end loop;
 
-          iv := not and_reduce(processed);
-          if or_reduce(dd_in.last) and or_reduce(processed) then
+          if or_reduce(dd_in.last) and not iv then
             dd_in.valid := '1';
           end if;
 
@@ -222,9 +213,9 @@ architecture behavioral of IntParser is
           end if;
     
           -- Assign input ready and forward data to the next stage.
-          ir := not iv;
-          in_ready <= ir;
-          dd_in_s <= dd_in;
+          ir        := not iv;
+          in_ready  <= ir;
+          dd_in_s   <= dd_in;
         end if;
       end process;
 

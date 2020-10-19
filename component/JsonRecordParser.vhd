@@ -89,8 +89,7 @@ begin
     variable od : out_array(0 to ELEMENTS_PER_TRANSFER-1);
     variable ov : std_logic := '0';
 
-    variable stai    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
-    variable endi    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+
     variable idx_int : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
 
     variable end_req_i : std_logic;
@@ -125,8 +124,6 @@ begin
       -- Latch input holding register if we said we would.
       if to_x01(ir) = '1' then
         iv := in_valid;
-        stai      := to_unsigned(0, stai'length);
-        endi      := to_unsigned(ELEMENTS_PER_TRANSFER-1, endi'length);
         end_req_i := end_req;
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
           id(idx).data  := in_data.data(8*idx+7 downto 8*idx);
@@ -134,13 +131,13 @@ begin
           comm          := in_data.comm;
           id(idx).empty := in_empty(idx);
           id(idx).strb  := in_strb(idx);
-          -- if idx < unsigned(in_stai) then
-          --   id(idx).strb := '0';
-          -- elsif idx > unsigned(in_endi) then
-          --   id(idx).strb := '0';
-          -- else
-          --   id(idx).strb := in_strb(idx);
-          -- end if;
+          if idx < unsigned(in_stai) then
+            id(idx).strb := '0';
+          elsif idx > unsigned(in_endi) then
+            id(idx).strb := '0';
+          else
+            id(idx).strb := in_strb(idx);
+          end if;
         end loop;
       end if;
 
@@ -150,7 +147,7 @@ begin
       end if;
 
       -- Do processing when both registers are ready.
-      if to_x01(iv) = '1' and to_x01(out_ready) = '1' then
+      if to_x01(iv) = '1' and to_x01(ov) = '0' then
         for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
 
           -- Default behavior.
@@ -208,7 +205,7 @@ begin
                     od(idx).last(0) := '1';
                     od(idx).last(1) := '1';
                     od(idx).empty   := '1';
-                    ov              := '1'; 
+                    --ov              := '1'; 
                     if end_req_i = '1' then
                       end_ack_i := '1';
                     end if;
@@ -219,21 +216,21 @@ begin
               when STATE_KEY =>
                 od(idx).tag := '0';
                 od(idx).strb := '1';
-                ov := '1';
+                --ov := '1';
                 case id(idx).data is
                   when X"22" => -- '"'
                     state := STATE_RECORD;
                     od(idx).last(0) := '1';
                     od(idx).empty   := '1';
                   when others =>
-                    ov := '1';
+                    --ov := '1';
                     state := STATE_KEY;
                 end case;
 
               when STATE_VALUE =>
                 od(idx).tag := '1';
                 od(idx).strb := '1';
-                ov := '1';
+                --ov := '1';
                 case id(idx).data is
                   when X"2C" => -- ','
                     if nesting_origo = '1' then
@@ -289,8 +286,8 @@ begin
         out_data.tag(idx)  <= od(idx).tag;
         out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= od(idx).last;
         out_empty(idx) <= od(idx).empty;
-        out_stai <= std_logic_vector(stai);
-        out_endi <= std_logic_vector(endi);
+        out_stai <= (others => '0');--std_logic_vector(stai);
+        out_endi <= (others => '1');--std_logic_vector(endi);
         out_strb(idx) <= od(idx).strb;
       end loop;
     end if;

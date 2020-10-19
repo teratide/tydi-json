@@ -10,8 +10,8 @@ use work.battery_status_pkg.all;
 
 entity BattSchemaParser is
   generic (
-    ELEMENTS_PER_TRANSFER : natural := 12;
-    INT_WIDTH             : natural := 32;
+    ELEMENTS_PER_TRANSFER : natural := 8;
+    INT_WIDTH             : natural := 16;
     INT_P_PIPELINE_STAGES : natural := 2;
     END_REQ_EN            : boolean := false
   );

@@ -123,6 +123,46 @@ package Json_pkg is
         );
       end component;
 
+    component KeyFilter is
+      generic (
+          ELEMENTS_PER_TRANSFER : natural := 1;
+          NESTING_LEVEL         : natural := 1;
+          DLY_COMP_BUFF_DEPTH   : natural := 1
+          );
+      port (
+          clk                   : in  std_logic;
+          reset                 : in  std_logic;
+
+          in_valid              : in  std_logic;
+          in_ready              : out std_logic;
+          in_data               : in  JsonRecordParser_out_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
+          in_last               : in  std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+          in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+          in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
+          in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
+          in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+
+          matcher_str_valid     : out std_logic;
+          matcher_str_ready     : in  std_logic;
+          matcher_str_data      : out std_logic_vector(ELEMENTS_PER_TRANSFER*8-1 downto 0);
+          matcher_str_strb      : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+          matcher_str_last      : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+
+          matcher_match_valid   : in  std_logic;
+          matcher_match_ready   : out std_logic;
+          matcher_match         : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+
+          out_valid             : out std_logic;
+          out_ready             : in  std_logic;
+          out_data              : out std_logic_vector(ELEMENTS_PER_TRANSFER*8-1 downto 0);
+          out_last              : out std_logic_vector(NESTING_LEVEL*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+          out_empty             : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
+          out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
+          out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
+          out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
+
+      );
+    end component;
 
     component BooleanParser is
         generic (

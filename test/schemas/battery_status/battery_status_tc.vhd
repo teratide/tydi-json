@@ -24,6 +24,7 @@ architecture test_case of battery_status_tc is
 
   constant ELEMENTS_PER_TRANSFER : integer := 8;
   constant INTEGER_WIDTH         : integer := 64;
+  constant INT_P_PIPELINE_STAGES : integer := 4;
 
   signal in_valid         : std_logic;
   signal in_ready         : std_logic;
@@ -79,7 +80,9 @@ begin
     record_parser_i: BattSchemaParser
     generic map (
       ELEMENTS_PER_TRANSFER     => ELEMENTS_PER_TRANSFER,
-      INT_WIDTH                 => INTEGER_WIDTH
+      INT_WIDTH                 => INTEGER_WIDTH,
+      INT_P_PIPELINE_STAGES     => INT_P_PIPELINE_STAGES,
+      END_REQ_EN                => false
     )
     port map (
       clk                       => clk,

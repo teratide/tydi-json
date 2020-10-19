@@ -22,7 +22,7 @@ entity JsonRecordParser is
       -- Stream(
       --     Bits(8),
       --     t=ELEMENTS_PER_TRANSFER,
-      --     d=NESTING_LEVEL,
+      --     d=OUTER_NESTING_LEVEL+1,
       --     c=8
       -- )
       in_valid              : in  std_logic;
@@ -40,10 +40,9 @@ entity JsonRecordParser is
       -- Stream(
       --     Bits(8),
       --     t=ELEMENTS_PER_TRANSFER,
-      --     d=NESTING_LEVEL,
+      --     d=OUTER_NESTING_LEVEL+2,
       --     c=8
       -- )
-      --
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
       out_data              : out JsonRecordParser_out_t(tag(ELEMENTS_PER_TRANSFER-1 downto 0), data(8*ELEMENTS_PER_TRANSFER-1 downto 0));

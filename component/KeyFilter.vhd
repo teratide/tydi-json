@@ -145,13 +145,13 @@ architecture behavioral of KeyFilter is
             comm          := in_data.comm;
             id(idx).empty := in_empty(idx);
             id(idx).strb  := in_strb(idx);
-            -- if idx < unsigned(in_stai) then
-            --   id(idx).strb := '0';
-            -- elsif idx > unsigned(in_endi) then
-            --   id(idx).strb := '0';
-            -- else
-            --   id(idx).strb := in_strb(idx);
-            -- end if;
+            if idx < unsigned(in_stai) then
+              id(idx).strb := '0';
+            elsif idx > unsigned(in_endi) then
+              id(idx).strb := '0';
+            else
+              id(idx).strb := in_strb(idx);
+            end if;
           end loop;
         end if;
   

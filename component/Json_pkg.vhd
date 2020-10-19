@@ -87,7 +87,7 @@ package Json_pkg is
             -- Stream(
             --     Bits(8),
             --     t=ELEMENTS_PER_TRANSFER,
-            --     d=NESTING_LEVEL,
+            --     d=OUTER_NESTING_LEVEL+1,
             --     c=8
             -- )
             in_valid              : in  std_logic;
@@ -102,10 +102,9 @@ package Json_pkg is
             -- Stream(
             --     Bits(8),
             --     t=ELEMENTS_PER_TRANSFER,
-            --     d=NESTING_LEVEL,
+            --     d=OUTER_NESTING_LEVEL+1,
             --     c=8
             -- )
-            --
             out_valid             : out std_logic;
             out_ready             : in  std_logic;
             out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);

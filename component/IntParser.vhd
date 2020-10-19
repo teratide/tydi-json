@@ -115,13 +115,8 @@ architecture behavioral of IntParser is
           variable stai : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
           variable iv   : std_logic := '0';
           variable ir   : std_logic := '0';
-      
-          
+    
           variable comm  : comm_t;
-                  
-          -- Mark the processed characters in the 
-          -- current transaction.
-          variable processed : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
 
           variable in_shr  : std_logic_vector(BITWIDTH+(BITWIDTH-4)/3-1 downto 0) := (others => '0');
 
@@ -138,7 +133,6 @@ architecture behavioral of IntParser is
             iv := in_valid;
             if to_x01(iv) = '1'then
               comm := in_data.comm;
-              processed := (others => '0');
               for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
                 id(idx).data := in_data.data(8*idx+7 downto 8*idx);
                 id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
@@ -209,7 +203,6 @@ architecture behavioral of IntParser is
             iv            := '0';
             dd_in.valid   := '0';
             in_shr        := (others => '0');
-            processed     := (others => '0');
           end if;
     
           -- Assign input ready and forward data to the next stage.

@@ -20,7 +20,7 @@ entity BooleanParser is
       -- Stream(
       --     Bits(8),
       --     t=ELEMENTS_PER_TRANSFER,
-      --     d=NESTING_LEVEL,
+      --     d=NESTING_LEVEL+1,
       --     c=8
       -- )
       in_valid              : in  std_logic;

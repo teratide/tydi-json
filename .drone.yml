@@ -6,4 +6,4 @@ steps:
     image: abstudelft/vhdeps:latest
     commands:
       - git submodule update --init --recursive
-      - /bin/bash sim.sh
+      - make test

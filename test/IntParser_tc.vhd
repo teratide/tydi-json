@@ -9,7 +9,6 @@ use work.ClockGen_pkg.all;
 use work.StreamSource_pkg.all;
 use work.StreamSink_pkg.all;
 use work.Json_pkg.all;
-use work.test_util_pkg.all;
 use work.TestCase_pkg.all;
 
 entity IntParser_tc is
@@ -70,7 +69,8 @@ begin
     dut: IntParser
     generic map (
       ELEMENTS_PER_TRANSFER     => 8,
-      NESTING_LEVEL             => 0
+      NESTING_LEVEL             => 0,
+      BITWIDTH                  => 64
     )
     port map (
       clk                       => clk,
@@ -85,11 +85,6 @@ begin
       out_valid                 => out_valid,
       out_ready                 => out_ready
     );
-
-    --out_ready <= '1';
-    -- out_count <= std_logic_vector(unsigned('0' & out_endi) - unsigned('0' & out_stai) + 1);
-    -- aligned_data <= left_align_stream(out_data, out_stai, 64);
-
 
     out_sink: StreamSink_mdl
     generic map (
@@ -113,28 +108,26 @@ begin
     variable b        : streamsink_type;
 
   begin
-    tc_open("Int64Parser", "test");
+    tc_open("IntParser", "test");
     a.initialize("a");
     b.initialize("b");
 
     a.push_str("1234");
-    a.transmit;
+    a.transmit(last => true);
     
     a.push_str("12345");
-    a.transmit;
+    a.transmit(last => true);
 
 
     a.push_str("   1234");
-    a.transmit;
+    a.transmit(last => true);
     
     a.push_str("   12345");
-    a.transmit;
+    a.transmit(last => true);
 
     b.unblock;
 
     tc_wait_for(10 us);
-
-    --tc_note(b.cq_get_d_str);
 
     tc_check(b.pq_ready, true);
     tc_check(b.cq_get_d_nat, 1234, "1234");

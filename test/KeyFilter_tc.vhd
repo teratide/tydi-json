@@ -235,7 +235,7 @@ begin
     variable b        : streamsink_type;
 
   begin
-    tc_open("KeyFilter", "test");
+    tc_open("KeyFilter_tc", "test");
     a.initialize("a");
     b.initialize("b");
 

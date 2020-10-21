@@ -112,7 +112,6 @@ architecture behavioral of BooleanParser is
           if to_x01(out_ready) = '1' then
             ov := '0';
           end if;
-          ir                   := '1';
 
           -- Do processing when both registers are ready.
           if to_x01(iv) = '1' and to_x01(ov) /= '1' then
@@ -139,12 +138,20 @@ architecture behavioral of BooleanParser is
                   when others =>
                       state := STATE_IDLE;
                 end case;
+                id(idx).strb := '0';
              end if;
 
               -- Clear state upon any last, to prevent broken elements from messing
               -- up everything.
               if id(idx).last /= '0' then
                 state := STATE_IDLE;
+              end if;
+            end loop;
+
+            iv := '0';
+            for idx in id'range loop
+              if id(idx).strb = '1' then
+                iv := '1';
               end if;
             end loop;
           end if;
@@ -159,6 +166,7 @@ architecture behavioral of BooleanParser is
           -- Forward output holding register.
           out_valid <= to_x01(ov);
           out_data <= '1' when val else '0';
+          ir := not iv and not reset;
           in_ready <= ir and not reset;
           
         end if;

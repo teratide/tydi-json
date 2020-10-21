@@ -33,8 +33,8 @@ architecture test_case of battery_status_tc is
   signal in_data          : std_logic_vector(EPC*8-1 downto 0);
   signal in_count         : std_logic_vector(log2ceil(EPC+1)-1 downto 0);
   signal in_strb          : std_logic_vector(EPC-1 downto 0);
-  signal in_endi          : std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
-  signal in_stai          : std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+  signal in_endi          : std_logic_vector(log2ceil(EPC+1)-1 downto 0) := (others => '1');
+  signal in_stai          : std_logic_vector(log2ceil(EPC+1)-1 downto 0) := (others => '0');
 
   signal adv_last        : std_logic_vector(EPC*2-1 downto 0) := (others => '0');
 
@@ -73,9 +73,11 @@ begin
 
     in_strb <= element_mask(in_count, in_dvalid, EPC); 
 
+    in_endi <= std_logic_vector(unsigned(in_count) - 1);
+
     -- TODO: Is there a cleaner solutiuon? It's getting late :(
-    adv_last(EPC*2-1 downto EPC) <=  std_logic_vector(shift_left(resize(unsigned'("0" & in_last), 
-                                                                            EPC), to_integer(unsigned(in_endi))));
+    adv_last(EPC*2-1 downto 0) <=  std_logic_vector(shift_left(resize(unsigned'("0" & in_last), 
+              EPC*2), to_integer(unsigned(in_endi(log2ceil(EPC)-1 downto 0))*2+1)));
 
     record_parser_i: BattSchemaParser
     generic map (
@@ -93,8 +95,6 @@ begin
       in_data.comm              => ENABLE,
       in_strb                   => in_strb,
       in_last                   => adv_last,
-      in_stai                   => in_stai,
-      in_endi                   => in_endi,
       out_data                  => out_data,
       out_valid                 => out_valid,
       out_ready                 => out_ready,

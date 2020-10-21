@@ -166,7 +166,7 @@ architecture behavioral of IntParser is
 
               dd_in.last := dd_in.last or id(idx).last(NESTING_LEVEL downto 1);
 
-              if to_x01(id(idx).empty) = '1' then
+              if or_reduce(dd_in.last) = '1' or to_x01(id(idx).empty) = '1' then
                 dd_in.empty := '1';
               end if;
 

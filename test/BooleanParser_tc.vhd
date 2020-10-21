@@ -64,7 +64,7 @@ begin
     
     dut: BooleanParser
     generic map (
-      ELEMENTS_PER_TRANSFER     => 8
+      EPC     => 8
     )
     port map (
       clk                       => clk,

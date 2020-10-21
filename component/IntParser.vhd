@@ -9,7 +9,7 @@ use work.Json_pkg.all;
 
 entity IntParser is
   generic (
-      ELEMENTS_PER_TRANSFER : natural := 1;
+      EPC : natural := 1;
       NESTING_LEVEL         : natural := 1;
       BITWIDTH              : natural := 8;
       SIGNED                : boolean := false; -- Signed is not supported yet!
@@ -21,18 +21,18 @@ entity IntParser is
 
       -- Stream(
       --     Bits(8),
-      --     t=ELEMENTS_PER_TRANSFER,
+      --     t=EPC,
       --     d=NESTING_LEVEL+1,
       --     c=8
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-      in_last               : in  std_logic_vector((NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
-      in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-      in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
+      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
+      in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+      in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+      in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
 
       -- Stream(
       --     Bits(BITWIDTH),
@@ -109,10 +109,10 @@ architecture behavioral of IntParser is
 
     begin
         in_stage: process (clk) is
-          constant IDXW : natural := log2ceil(ELEMENTS_PER_TRANSFER);
+          constant IDXW : natural := log2ceil(EPC);
           type in_array is array (natural range <>) of in_type;
-          variable id   : in_array(0 to ELEMENTS_PER_TRANSFER-1);
-          variable stai : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+          variable id   : in_array(0 to EPC-1);
+          variable stai : unsigned(log2ceil(EPC)-1 downto 0);
           variable iv   : std_logic := '0';
           variable ir   : std_logic := '0';
     
@@ -133,7 +133,7 @@ architecture behavioral of IntParser is
             iv := in_valid;
             if to_x01(iv) = '1'then
               comm := in_data.comm;
-              for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+              for idx in 0 to EPC-1 loop
                 id(idx).data := in_data.data(8*idx+7 downto 8*idx);
                 id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
                 comm := in_data.comm;
@@ -161,12 +161,12 @@ architecture behavioral of IntParser is
           dd_in.bcd := (others => '0');
           dd_in.bin := (others => '0');
 
-          for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+          for idx in 0 to EPC-1 loop
             if comm = ENABLE and to_x01(dd_in.valid) = '0' and to_x01(id(idx).strb) = '1' then
 
               dd_in.last := dd_in.last or id(idx).last(NESTING_LEVEL downto 1);
 
-              if to_x01(id(idx).empty) = '1' then
+              if or_reduce(dd_in.last) = '1' or to_x01(id(idx).empty) = '1' then
                 dd_in.empty := '1';
               end if;
 

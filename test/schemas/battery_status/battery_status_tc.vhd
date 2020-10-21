@@ -22,7 +22,7 @@ architecture test_case of battery_status_tc is
   signal clk              : std_logic;
   signal reset            : std_logic;
 
-  constant ELEMENTS_PER_TRANSFER : integer := 8;
+  constant EPC : integer := 8;
   constant INTEGER_WIDTH         : integer := 64;
   constant INT_P_PIPELINE_STAGES : integer := 4;
 
@@ -30,13 +30,13 @@ architecture test_case of battery_status_tc is
   signal in_ready         : std_logic;
   signal in_dvalid        : std_logic;
   signal in_last          : std_logic;
-  signal in_data          : std_logic_vector(ELEMENTS_PER_TRANSFER*8-1 downto 0);
-  signal in_count         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER+1)-1 downto 0);
-  signal in_strb          : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
-  signal in_endi          : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-  signal in_stai          : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
+  signal in_data          : std_logic_vector(EPC*8-1 downto 0);
+  signal in_count         : std_logic_vector(log2ceil(EPC+1)-1 downto 0);
+  signal in_strb          : std_logic_vector(EPC-1 downto 0);
+  signal in_endi          : std_logic_vector(log2ceil(EPC+1)-1 downto 0) := (others => '1');
+  signal in_stai          : std_logic_vector(log2ceil(EPC+1)-1 downto 0) := (others => '0');
 
-  signal adv_last        : std_logic_vector(ELEMENTS_PER_TRANSFER*2-1 downto 0) := (others => '0');
+  signal adv_last        : std_logic_vector(EPC*2-1 downto 0) := (others => '0');
 
   signal out_ready       : std_logic;
   signal out_valid       : std_logic;
@@ -57,8 +57,8 @@ begin
     generic map (
       NAME                      => "a",
       ELEMENT_WIDTH             => 8,
-      COUNT_MAX                 => ELEMENTS_PER_TRANSFER,
-      COUNT_WIDTH               => log2ceil(ELEMENTS_PER_TRANSFER+1)
+      COUNT_MAX                 => EPC,
+      COUNT_WIDTH               => log2ceil(EPC+1)
     )
     port map (
       clk                       => clk,
@@ -71,15 +71,17 @@ begin
       count                     => in_count
     );
 
-    in_strb <= element_mask(in_count, in_dvalid, ELEMENTS_PER_TRANSFER); 
+    in_strb <= element_mask(in_count, in_dvalid, EPC); 
+
+    in_endi <= std_logic_vector(unsigned(in_count) - 1);
 
     -- TODO: Is there a cleaner solutiuon? It's getting late :(
-    adv_last(ELEMENTS_PER_TRANSFER*2-1 downto ELEMENTS_PER_TRANSFER) <=  std_logic_vector(shift_left(resize(unsigned'("0" & in_last), 
-                                                                            ELEMENTS_PER_TRANSFER), to_integer(unsigned(in_endi))));
+    adv_last(EPC*2-1 downto 0) <=  std_logic_vector(shift_left(resize(unsigned'("0" & in_last), 
+              EPC*2), to_integer(unsigned(in_endi(log2ceil(EPC)-1 downto 0))*2+1)));
 
     record_parser_i: BattSchemaParser
     generic map (
-      ELEMENTS_PER_TRANSFER     => ELEMENTS_PER_TRANSFER,
+      EPC     => EPC,
       INT_WIDTH                 => INTEGER_WIDTH,
       INT_P_PIPELINE_STAGES     => INT_P_PIPELINE_STAGES,
       END_REQ_EN                => false
@@ -93,8 +95,6 @@ begin
       in_data.comm              => ENABLE,
       in_strb                   => in_strb,
       in_last                   => adv_last,
-      in_stai                   => in_stai,
-      in_endi                   => in_endi,
       out_data                  => out_data,
       out_valid                 => out_valid,
       out_ready                 => out_ready,

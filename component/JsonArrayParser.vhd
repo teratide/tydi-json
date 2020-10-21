@@ -11,7 +11,7 @@ use work.Json_pkg.all;
 
 entity JsonArrayParser is
   generic (
-      ELEMENTS_PER_TRANSFER : natural := 1;
+      EPC : natural := 1;
       OUTER_NESTING_LEVEL   : natural := 1;
       INNER_NESTING_LEVEL   : natural := 0;
       ELEMENT_COUNTER_BW    : natural := 4
@@ -22,34 +22,34 @@ entity JsonArrayParser is
 
       -- Stream(
       --     Bits(8),
-      --     t=ELEMENTS_PER_TRANSFER,
+      --     t=EPC,
       --     d=NESTING_LEVEL,
       --     c=8
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-      in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
-      in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-      in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
+      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
+      in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+      in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+      in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
 
       -- Stream(
       --     Bits(8),
-      --     t=ELEMENTS_PER_TRANSFER,
+      --     t=EPC,
       --     d=NESTING_LEVEL,
       --     c=8
       -- )
       --
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
-      out_data              : out std_logic_vector(8*ELEMENTS_PER_TRANSFER-1 downto 0);
-      out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      out_empty             : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
-      out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-      out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
+      out_data              : out std_logic_vector(8*EPC-1 downto 0);
+      out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*EPC-1 downto 0) := (others => '0');
+      out_empty             : out std_logic_vector(EPC-1 downto 0) := (others => '0');
+      out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+      out_endi              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+      out_strb              : out std_logic_vector(EPC-1 downto 0) := (others => '1')
 
 
       -- out_count_valid       : out std_logic;
@@ -62,7 +62,7 @@ end entity;
 architecture behavioral of JsonArrayParser is
 begin
   clk_proc: process (clk) is
-    constant IDXW : natural := log2ceil(ELEMENTS_PER_TRANSFER);
+    constant IDXW : natural := log2ceil(EPC);
 
     -- Input holding register.
     type in_type is record
@@ -76,7 +76,7 @@ begin
     variable comm  : comm_t;
 
     type in_array is array (natural range <>) of in_type;
-    variable id : in_array(0 to ELEMENTS_PER_TRANSFER-1);
+    variable id : in_array(0 to EPC-1);
     variable iv : std_logic := '0';
     variable ir : std_logic := '0';
 
@@ -90,12 +90,12 @@ begin
     end record;
 
     type out_array is array (natural range <>) of out_type;
-    variable od : out_array(0 to ELEMENTS_PER_TRANSFER-1);
+    variable od : out_array(0 to EPC-1);
     variable ov : std_logic := '0';
 
-    variable stai    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
-    variable endi    : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
-    variable idx_int : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+    variable stai    : unsigned(log2ceil(EPC)-1 downto 0);
+    variable endi    : unsigned(log2ceil(EPC)-1 downto 0);
+    variable idx_int : unsigned(log2ceil(EPC)-1 downto 0);
 
     -- Enumeration type for our state machine.
     type state_t is (STATE_IDLE,
@@ -119,8 +119,8 @@ begin
       if to_x01(ir) = '1' then
         iv := in_valid;
         stai      := to_unsigned(0, stai'length);
-        endi      := to_unsigned(ELEMENTS_PER_TRANSFER-1, endi'length);
-        for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+        endi      := to_unsigned(EPC-1, endi'length);
+        for idx in 0 to EPC-1 loop
           id(idx).data := in_data.data(8*idx+7 downto 8*idx);
           id(idx).empty:= in_empty(idx);
           id(idx).last := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*idx+1);
@@ -148,7 +148,7 @@ begin
 
       -- Do processing when both registers are ready.
       if to_x01(iv) = '1' and to_x01(ov) /= '1' then
-        for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+        for idx in 0 to EPC-1 loop
 
           -- Default behavior.
           od(idx).data       := id(idx).data;
@@ -241,7 +241,7 @@ begin
       out_valid <= to_x01(ov);
       ir := not iv and not reset;
       in_ready <= ir and not reset;
-      for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+      for idx in 0 to EPC-1 loop
         out_data(8*idx+7 downto 8*idx) <= od(idx).data;
         out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= od(idx).last;
         out_empty(idx) <= od(idx).empty;

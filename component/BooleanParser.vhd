@@ -10,7 +10,7 @@ use work.Json_pkg.all;
 
 entity BooleanParser is
   generic (
-      ELEMENTS_PER_TRANSFER : natural := 1;
+      EPC : natural := 1;
       NESTING_LEVEL         : natural := 1
       );
   port (
@@ -19,18 +19,18 @@ entity BooleanParser is
 
       -- Stream(
       --     Bits(8),
-      --     t=ELEMENTS_PER_TRANSFER,
+      --     t=EPC,
       --     d=NESTING_LEVEL+1,
       --     c=8
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-      in_last               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
-      in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-      in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_last               : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
+      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
+      in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+      in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+      in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
 
       -- Stream(
       --     Bits(1),
@@ -47,7 +47,7 @@ end entity;
 architecture behavioral of BooleanParser is
     begin
       clk_proc: process (clk) is
-        constant IDXW : natural := log2ceil(ELEMENTS_PER_TRANSFER);
+        constant IDXW : natural := log2ceil(EPC);
     
         -- Input holding register.
         type in_type is record
@@ -59,7 +59,7 @@ architecture behavioral of BooleanParser is
         end record;
     
         type in_array is array (natural range <>) of in_type;
-        variable id : in_array(0 to ELEMENTS_PER_TRANSFER-1);
+        variable id : in_array(0 to EPC-1);
         variable iv : std_logic := '0';
         variable ir : std_logic := '0';
     
@@ -70,7 +70,7 @@ architecture behavioral of BooleanParser is
         end record;
     
         type out_array is array (natural range <>) of out_type;
-        variable od : out_array(0 to ELEMENTS_PER_TRANSFER-1);
+        variable od : out_array(0 to EPC-1);
         variable ov : std_logic := '0';
         variable out_r : std_logic := '0';
         
@@ -92,7 +92,7 @@ architecture behavioral of BooleanParser is
           if to_x01(ir) = '1' then
             iv := in_valid;
             out_r := out_ready;
-            for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+            for idx in 0 to EPC-1 loop
               id(idx).data := in_data.data(8*idx+7 downto 8*idx);
               --id(idx).last := in_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx);
               comm := in_data.comm;
@@ -116,7 +116,7 @@ architecture behavioral of BooleanParser is
 
           -- Do processing when both registers are ready.
           if to_x01(iv) = '1' and to_x01(ov) /= '1' then
-            for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+            for idx in 0 to EPC-1 loop
               -- Element-wise processing only when the lane is valid.
               if to_x01(id(idx).strb) = '1' and comm = ENABLE and to_x01(id(idx).empty) = '0' then
                 case id(idx).data is

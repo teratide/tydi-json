@@ -71,7 +71,7 @@ begin
     
     dut: JsonRecordParser
     generic map (
-      ELEMENTS_PER_TRANSFER     => 8,
+      EPC     => 8,
       OUTER_NESTING_LEVEL       => 1,
       INNER_NESTING_LEVEL       => 1
     )

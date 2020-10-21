@@ -105,7 +105,7 @@ entity voltage_matcher is
 
     -- Outgoing match stream for one-string-per-cycle systems. match indicates
     -- which of the following regexs matched:
-    --  - 0: /voltage?/
+    --  - 0: /voltage/
     -- error indicates that a UTF-8 decoding error occured. Only the following
     -- decode errors are detected:
     --  - multi-byte sequence interrupted by last flag or a new sequence
@@ -664,13 +664,13 @@ architecture Behavioral of voltage_matcher is
 
     -- Pass through control signals and decode range signals by default.
     o.valid       := i.valid;
-    o.match(  0)  := i.b00001f47t47; -- g
-    o.match(  1)  := i.b00001f64t64; -- t
-    o.match(  2)  := i.b00001f54t54; -- l
-    o.match(  3)  := i.b00001f66t66; -- v
-    o.match(  4)  := i.b00001f57t57; -- o
-    o.match(  5)  := i.b00001f41t41; -- a
-    o.match(  6)  := i.b00001f45t45; -- e
+    o.match(  0)  := i.b00001f57t57; -- o
+    o.match(  1)  := i.b00001f54t54; -- l
+    o.match(  2)  := i.b00001f45t45; -- e
+    o.match(  3)  := i.b00001f41t41; -- a
+    o.match(  4)  := i.b00001f66t66; -- v
+    o.match(  5)  := i.b00001f47t47; -- g
+    o.match(  6)  := i.b00001f64t64; -- t
     o.last        := i.last;
     o.error       := i.error;
 
@@ -695,7 +695,7 @@ architecture Behavioral of voltage_matcher is
 
   type s5s_array is array (natural range <>) of s5s_type;
 
-  constant S5S_RESET            : s5s_type := "00000010";
+  constant S5S_RESET            : s5s_type := "00010000";
 
   ------------------------------------------------------------------------------
   -- Stage 5 output record
@@ -738,22 +738,20 @@ architecture Behavioral of voltage_matcher is
     -- Transition to the next state if there is an incoming character.
     if i.valid = '1' then
       si := s;
-      s(  0) := (si(  6) and i.match(  0));
-      s(  1) := '0';
-      s(  2) := (si(  3) and i.match(  1));
-      s(  3) := (si(  5) and i.match(  2));
-      s(  4) := (si(  1) and i.match(  3));
+      s(  0) := (si(  5) and i.match(  0));
+      s(  1) := (si(  0) and i.match(  1));
+      s(  2) := (si(  6) and i.match(  2));
+      s(  3) := (si(  7) and i.match(  3));
+      s(  4) := '0';
       s(  5) := (si(  4) and i.match(  4));
-      s(  6) := (si(  2) and i.match(  5));
-      s(  7) := (si(  6) and i.match(  0))
-             or (si(  0) and i.match(  6));
+      s(  6) := (si(  3) and i.match(  5));
+      s(  7) := (si(  1) and i.match(  6));
     end if;
 
     -- Save whether the next state will be a final state to determine whether
     -- a regex is matching or not. The timing of this corresponds to the last
     -- signal.
-    o.match(0) := s(  0)
-               or s(  7);
+    o.match(0) := s(  2);
 
     -- Reset the state when we're resetting or receiving the last character.
     if reset = '1' or i.last = '1' then

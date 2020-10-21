@@ -10,7 +10,7 @@ use work.battery_status_pkg.all;
 
 entity BattSchemaParser is
   generic (
-    ELEMENTS_PER_TRANSFER : natural := 8;
+    EPC : natural := 8;
     INT_WIDTH             : natural := 16;
     INT_P_PIPELINE_STAGES : natural := 2;
     END_REQ_EN            : boolean := false
@@ -21,18 +21,18 @@ entity BattSchemaParser is
 
       -- Stream(
       --     Bits(8),
-      --     t=ELEMENTS_PER_TRANSFER,
+      --     t=EPC,
       --     d=NESTING_LEVEL,
       --     c=8
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-      in_last               : in  std_logic_vector(2*ELEMENTS_PER_TRANSFER-1 downto 0);
-      in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
-      in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-      in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
+      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_last               : in  std_logic_vector(2*EPC-1 downto 0);
+      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
+      in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+      in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+      in_strb               : in  std_logic_vector(EPC-1 downto 0);
 
       end_req               : in  std_logic := '0';
       end_ack               : out std_logic;
@@ -58,28 +58,28 @@ architecture arch of BattSchemaParser is
 
   signal kv_ready        : std_logic;
   signal kv_valid        : std_logic;
-  signal kv_data         : std_logic_vector(ELEMENTS_PER_TRANSFER*8-1 downto 0);
-  signal kv_tag          : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
-  signal kv_stai         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
-  signal kv_endi         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
-  signal kv_strb         : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
-  signal kv_empty        : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
-  signal kv_last         : std_logic_vector(ELEMENTS_PER_TRANSFER*3-1 downto 0);
+  signal kv_data         : std_logic_vector(EPC*8-1 downto 0);
+  signal kv_tag          : std_logic_vector(EPC-1 downto 0);
+  signal kv_stai         : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal kv_endi         : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal kv_strb         : std_logic_vector(EPC-1 downto 0);
+  signal kv_empty        : std_logic_vector(EPC-1 downto 0);
+  signal kv_last         : std_logic_vector(EPC*3-1 downto 0);
 
   signal array_ready        : std_logic;
   signal array_valid        : std_logic;
-  signal array_data         : std_logic_vector(ELEMENTS_PER_TRANSFER*8-1 downto 0);
-  signal array_stai         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
-  signal array_endi         : std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
-  signal array_strb         : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
-  signal array_empty        : std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0);
-  signal array_last         : std_logic_vector(ELEMENTS_PER_TRANSFER*4-1 downto 0);
+  signal array_data         : std_logic_vector(EPC*8-1 downto 0);
+  signal array_stai         : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal array_endi         : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal array_strb         : std_logic_vector(EPC-1 downto 0);
+  signal array_empty        : std_logic_vector(EPC-1 downto 0);
+  signal array_last         : std_logic_vector(EPC*4-1 downto 0);
  
   
 begin
   record_parser_i: JsonRecordParser
     generic map (
-      ELEMENTS_PER_TRANSFER     => ELEMENTS_PER_TRANSFER,
+      EPC     => EPC,
       OUTER_NESTING_LEVEL       => 1,
       INNER_NESTING_LEVEL       => 1,
       END_REQ_EN                => END_REQ_EN
@@ -110,7 +110,7 @@ begin
 
     array_parser_i: JsonArrayParser
     generic map (
-      ELEMENTS_PER_TRANSFER     => ELEMENTS_PER_TRANSFER,
+      EPC     => EPC,
       OUTER_NESTING_LEVEL       => 2,
       INNER_NESTING_LEVEL       => 0
     )
@@ -136,7 +136,7 @@ begin
 
     intparser_i: IntParser
     generic map (
-      ELEMENTS_PER_TRANSFER     => ELEMENTS_PER_TRANSFER,
+      EPC     => EPC,
       NESTING_LEVEL             => 3,
       BITWIDTH                  => INT_WIDTH,
       PIPELINE_STAGES           => INT_P_PIPELINE_STAGES

@@ -10,7 +10,7 @@ use work.Json_pkg.all;
 
 entity JsonRecordParser is
   generic (
-      ELEMENTS_PER_TRANSFER : natural := 1;
+      EPC : natural := 1;
       OUTER_NESTING_LEVEL   : natural := 1;
       INNER_NESTING_LEVEL   : natural := 0;
       END_REQ_EN            : boolean := false
@@ -21,36 +21,36 @@ entity JsonRecordParser is
 
       -- Stream(
       --     Bits(8),
-      --     t=ELEMENTS_PER_TRANSFER,
+      --     t=EPC,
       --     d=OUTER_NESTING_LEVEL+1,
       --     c=8
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-      in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_empty              : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      in_stai               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
-      in_endi               : in  std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-      in_strb               : in  std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1');
+      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
+      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
+      in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+      in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+      in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
 
       end_req               : in  std_logic := '0';
       end_ack               : out std_logic;
 
       -- Stream(
       --     Bits(8),
-      --     t=ELEMENTS_PER_TRANSFER,
+      --     t=EPC,
       --     d=OUTER_NESTING_LEVEL+2,
       --     c=8
       -- )
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
-      out_data              : out JsonRecordParser_out_t(tag(ELEMENTS_PER_TRANSFER-1 downto 0), data(8*ELEMENTS_PER_TRANSFER-1 downto 0));
-      out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      out_empty             : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '0');
-      out_stai              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '0');
-      out_endi              : out std_logic_vector(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0) := (others => '1');
-      out_strb              : out std_logic_vector(ELEMENTS_PER_TRANSFER-1 downto 0) := (others => '1')
+      out_data              : out JsonRecordParser_out_t(tag(EPC-1 downto 0), data(8*EPC-1 downto 0));
+      out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*EPC-1 downto 0) := (others => '0');
+      out_empty             : out std_logic_vector(EPC-1 downto 0) := (others => '0');
+      out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+      out_endi              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+      out_strb              : out std_logic_vector(EPC-1 downto 0) := (others => '1')
 
   );
 end entity;
@@ -58,7 +58,7 @@ end entity;
 architecture behavioral of JsonRecordParser is
 begin
   clk_proc: process (clk) is
-    constant IDXW : natural := log2ceil(ELEMENTS_PER_TRANSFER);
+    constant IDXW : natural := log2ceil(EPC);
 
     -- Input holding register.
     type in_type is record
@@ -71,7 +71,7 @@ begin
     variable comm  : comm_t;
 
     type in_array is array (natural range <>) of in_type;
-    variable id : in_array(0 to ELEMENTS_PER_TRANSFER-1);
+    variable id : in_array(0 to EPC-1);
     variable iv : std_logic := '0';
     variable ir : std_logic := '0';
 
@@ -85,11 +85,11 @@ begin
     end record;
 
     type out_array is array (natural range <>) of out_type;
-    variable od : out_array(0 to ELEMENTS_PER_TRANSFER-1);
+    variable od : out_array(0 to EPC-1);
     variable ov : std_logic := '0';
 
 
-    variable idx_int : unsigned(log2ceil(ELEMENTS_PER_TRANSFER)-1 downto 0);
+    variable idx_int : unsigned(log2ceil(EPC)-1 downto 0);
 
     variable end_req_i : std_logic;
     variable end_ack_i : std_logic;
@@ -124,7 +124,7 @@ begin
       if to_x01(ir) = '1' then
         iv := in_valid;
         end_req_i := end_req;
-        for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+        for idx in 0 to EPC-1 loop
           id(idx).data  := in_data.data(8*idx+7 downto 8*idx);
           id(idx).last  := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*(idx)+1);
           comm          := in_data.comm;
@@ -147,7 +147,7 @@ begin
 
       -- Do processing when both registers are ready.
       if to_x01(iv) = '1' and to_x01(ov) = '0' then
-        for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+        for idx in 0 to EPC-1 loop
 
           -- Default behavior.
           od(idx).data                                  := id(idx).data;
@@ -201,10 +201,10 @@ begin
                     state := STATE_VALUE;
                   when X"7D" => -- '}'
                     state := STATE_IDLE;
-                    od(idx).last(0) := '1';
+                    --od(idx).last(0) := '1';
                     od(idx).last(1) := '1';
                     od(idx).empty   := '1';
-                    --ov              := '1'; 
+                    ov              := '1'; 
                     if end_req_i = '1' then
                       end_ack_i := '1';
                     end if;
@@ -215,21 +215,21 @@ begin
               when STATE_KEY =>
                 od(idx).tag := '0';
                 od(idx).strb := '1';
-                --ov := '1';
+                ov := '1';
                 case id(idx).data is
                   when X"22" => -- '"'
                     state := STATE_RECORD;
                     od(idx).last(0) := '1';
                     od(idx).empty   := '1';
                   when others =>
-                    --ov := '1';
+                    ov := '1';
                     state := STATE_KEY;
                 end case;
 
               when STATE_VALUE =>
                 od(idx).tag := '1';
                 od(idx).strb := '1';
-                --ov := '1';
+                ov := '1';
                 case id(idx).data is
                   when X"2C" => -- ','
                     if nesting_origo = '1' then
@@ -263,7 +263,7 @@ begin
             end if;
           end if;
         end loop;
-        ov := '1';
+      --  ov := '1';
         iv := '0';
       end if;
 
@@ -280,7 +280,7 @@ begin
       ir := not iv and not reset;
       in_ready <= ir;
       end_ack <= end_req_i;
-      for idx in 0 to ELEMENTS_PER_TRANSFER-1 loop
+      for idx in 0 to EPC-1 loop
         out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;
         out_data.tag(idx)  <= od(idx).tag;
         out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= od(idx).last;

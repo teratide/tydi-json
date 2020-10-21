@@ -1,6 +1,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_misc.all;
 
 library work;
 use work.Stream_pkg.all;
@@ -50,11 +51,6 @@ end entity;
 
 architecture behavioral of KeyFilter is
 
-  -- signal matcher_str_valid_s     : std_logic;
-  -- signal matcher_str_ready_s     : std_logic;
-  -- signal matcher_str_data_s      : std_logic_vector(EPC*8-1 downto 0);
-  -- signal matcher_str_mask_s      : std_logic_vector(EPC-1 downto 0);
-  -- signal matcher_str_last_s      : std_logic_vector(EPC-1 downto 0);
   
   -- Index constants for packing input into a single vector.
   constant BUFF_WIDTH            : integer := EPC*(3 + 8 + OUTER_NESTING_LEVEL+1);
@@ -149,7 +145,7 @@ architecture behavioral of KeyFilter is
       -- Input holding register.
       type in_type is record
         data  : std_logic_vector(7 downto 0);
-        last  : std_logic_vector(OUTER_NESTING_LEVEL-1 downto 0);
+        last  : std_logic_vector(OUTER_NESTING_LEVEL downto 0);
         match : std_logic;
         tag   : std_logic;
         empty : std_logic;
@@ -177,7 +173,7 @@ architecture behavioral of KeyFilter is
       variable ov : std_logic := '0';
   
       -- Enumeration type for our state machine.
-      type state_t is (STATE_INIT,
+      type state_t is (STATE_IDLE,
                        STATE_MATCH,
                        STATE_DROP);
   
@@ -197,7 +193,7 @@ architecture behavioral of KeyFilter is
             id(idx).tag   := buff_out_data(BUFF_TAG_STAI+idx);
             id(idx).empty := buff_out_data(BUFF_EMPTY_STAI+idx);
             id(idx).strb  := buff_out_data(BUFF_STRB_STAI+idx);
-            id(idx).last  := buff_out_data(BUFF_LAST_STAI+(OUTER_NESTING_LEVEL+1)*idx+OUTER_NESTING_LEVEL-1 downto BUFF_LAST_STAI+(OUTER_NESTING_LEVEL+1)*idx);
+            id(idx).last  := buff_out_data(BUFF_LAST_STAI+(OUTER_NESTING_LEVEL+1)*idx+OUTER_NESTING_LEVEL downto BUFF_LAST_STAI+(OUTER_NESTING_LEVEL+1)*idx);
 
           end loop;
         end if;
@@ -220,12 +216,18 @@ architecture behavioral of KeyFilter is
   
             -- Default behavior.
             od(idx).data                                  := id(idx).data;
-            od(idx).last(OUTER_NESTING_LEVEL-1 downto 0)  := id(idx).last;
-            od(idx).empty                                 := id(idx).empty;
+            od(idx).last(OUTER_NESTING_LEVEL downto 0)    := id(idx).last;
+            od(idx).empty                                 := '0';--id(idx).empty;
             od(idx).strb                                  := '0';
 
+            if id(idx).strb = '1' and or_reduce(id(idx).last(OUTER_NESTING_LEVEL downto 1)) = '1' then
+              od(idx).strb := '1';
+              od(idx).empty := '1';
+              ov := '1';
+            end if;
+
             case state is
-              when STATE_INIT =>
+              when STATE_IDLE =>
                 if to_x01(mv) = '1' then
                   if to_01(id(idx).match) = '1' then
                     state := STATE_MATCH;
@@ -237,9 +239,10 @@ architecture behavioral of KeyFilter is
                 bv := '0';
                 if id(idx).strb = '1' and id(idx).tag = '1' then
                   od(idx).strb := '1';
+                  od(idx).empty := id(idx).empty;
                   ov := '1';
                   if id(idx).last(0) = '1' then
-                    state := STATE_INIT;
+                    state := STATE_IDLE;
                   end if;
                 end if;
               when STATE_DROP =>
@@ -250,10 +253,9 @@ architecture behavioral of KeyFilter is
                   end if;
                 end if;
                 if id(idx).strb = '1' and id(idx).last(0) = '1' and id(idx).tag = '1' then
-                  state := STATE_INIT;
+                  state := STATE_IDLE;
                 end if;
             end case;
-  
           end loop;
           mv := '0'; 
         end if;
@@ -263,7 +265,7 @@ architecture behavioral of KeyFilter is
           br    := '0';
           mr    := '0';
           ov    := '0';
-          state := STATE_INIT;
+          state := STATE_IDLE;
         end if;
   
         -- Forward output holding register.

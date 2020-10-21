@@ -203,7 +203,7 @@ begin
     --b.initialize("b");
 
     a.push_str("{ ");
-    a.push_str(" ""voltage"" : 123456");
+    a.push_str(" ""voltage"" : 11");
     a.push_str(" ,}");
     a.push_str("{ ");
     a.push_str(" ""voltages1"" : 123456,");
@@ -212,7 +212,7 @@ begin
     a.push_str(" ""voltages4"" : 123456,");
     a.push_str(" ,}");
     a.push_str("{ ");
-    a.push_str(" ""voltage"" : 123456");
+    a.push_str(" ""voltage"" : 22");
     a.push_str(" ,}");
     --a.push_str("{""voltage"" : true}");
     a.transmit;

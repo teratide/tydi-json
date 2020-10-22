@@ -68,7 +68,7 @@ begin
     
     dut: IntParser
     generic map (
-      EPC     => 8,
+      EPC                       => 8,
       NESTING_LEVEL             => 0,
       BITWIDTH                  => 64
     )

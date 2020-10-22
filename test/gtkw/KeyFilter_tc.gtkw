@@ -1,15 +1,15 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Wed Oct 21 22:23:20 2020
+[*] Thu Oct 22 00:11:31 2020
 [*]
 [dumpfile] "/home/akos/work/Teratide/JSON_parser/repo/JSON-parser-components/work.keyfilter_tc.vcd"
-[dumpfile_mtime] "Wed Oct 21 22:21:35 2020"
-[dumpfile_size] 179977
+[dumpfile_mtime] "Wed Oct 21 23:05:55 2020"
+[dumpfile_size] 182133
 [savefile] "/home/akos/work/Teratide/JSON_parser/repo/JSON-parser-components/test/gtkw/KeyFilter_tc.gtkw"
-[timestart] 2186500000
+[timestart] 2124900000
 [size] 2560 1380
 [pos] -1 -1
-*-24.703749 2187400000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.703749 2348400000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] keyfilter_tc.
 [treeopen] keyfilter_tc.dut.
 [treeopen] keyfilter_tc.in_source.
@@ -136,7 +136,9 @@ keyfilter_tc.intparser_i.out_data[63:0]
 keyfilter_tc.out_valid
 keyfilter_tc.out_empty
 keyfilter_tc.out_last[1:0]
+@29
 keyfilter_tc.intparser_i.out_last[1:0]
+@28
 keyfilter_tc.intparser_i.in_last[23:0]
 @820
 keyfilter_tc.in_data[63:0]
@@ -150,11 +152,17 @@ keyfilter_tc.filter_data[63:0]
 @28
 keyfilter_tc.filter_strb[7:0]
 keyfilter_tc.filter_empty[7:0]
-@23
+@22
 keyfilter_tc.filter_last[23:0]
 @28
 keyfilter_tc.filter_valid
 keyfilter_tc.intparser_i.out_empty
 keyfilter_tc.in_last
+keyfilter_tc.matcher_match_ready
+keyfilter_tc.matcher_match_valid
+@820
+keyfilter_tc.in_data[63:0]
+@22
+keyfilter_tc.adv_last[15:0]
 [pattern_trace] 1
 [pattern_trace] 0

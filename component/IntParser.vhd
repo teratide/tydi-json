@@ -9,7 +9,7 @@ use work.Json_pkg.all;
 
 entity IntParser is
   generic (
-      EPC : natural := 1;
+      EPC                   : natural := 1;
       NESTING_LEVEL         : natural := 1;
       BITWIDTH              : natural := 8;
       SIGNED                : boolean := false; -- Signed is not supported yet!

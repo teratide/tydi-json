@@ -10,7 +10,7 @@ use work.battery_status_pkg.all;
 
 entity BattSchemaParser is
   generic (
-    EPC : natural := 8;
+    EPC                   : natural := 8;
     INT_WIDTH             : natural := 16;
     INT_P_PIPELINE_STAGES : natural := 2;
     END_REQ_EN            : boolean := false
@@ -79,7 +79,7 @@ architecture arch of BattSchemaParser is
 begin
   record_parser_i: JsonRecordParser
     generic map (
-      EPC     => EPC,
+      EPC                       => EPC,
       OUTER_NESTING_LEVEL       => 1,
       INNER_NESTING_LEVEL       => 1,
       END_REQ_EN                => END_REQ_EN
@@ -110,7 +110,7 @@ begin
 
     array_parser_i: JsonArrayParser
     generic map (
-      EPC     => EPC,
+      EPC                       => EPC,
       OUTER_NESTING_LEVEL       => 2,
       INNER_NESTING_LEVEL       => 0
     )
@@ -136,7 +136,7 @@ begin
 
     intparser_i: IntParser
     generic map (
-      EPC     => EPC,
+      EPC                       => EPC,
       NESTING_LEVEL             => 3,
       BITWIDTH                  => INT_WIDTH,
       PIPELINE_STAGES           => INT_P_PIPELINE_STAGES

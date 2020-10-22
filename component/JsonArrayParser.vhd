@@ -11,7 +11,7 @@ use work.Json_pkg.all;
 
 entity JsonArrayParser is
   generic (
-      EPC : natural := 1;
+      EPC                   : natural := 1;
       OUTER_NESTING_LEVEL   : natural := 1;
       INNER_NESTING_LEVEL   : natural := 0;
       ELEMENT_COUNTER_BW    : natural := 4

@@ -10,7 +10,7 @@ use work.Json_pkg.all;
 
 entity JsonRecordParser is
   generic (
-      EPC : natural := 1;
+      EPC                   : natural := 1;
       OUTER_NESTING_LEVEL   : natural := 1;
       INNER_NESTING_LEVEL   : natural := 0;
       END_REQ_EN            : boolean := false
@@ -284,7 +284,6 @@ begin
       for idx in 0 to EPC-1 loop
         out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;
         out_data.tag(idx)  <= od(idx).tag;
-        --out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= "1" & od(idx).last(1 downto 0);
         out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= od(idx).last;
         out_empty(idx) <= od(idx).empty;
         out_stai <= (others => '0');--std_logic_vector(stai);

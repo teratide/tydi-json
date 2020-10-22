@@ -70,7 +70,7 @@ begin
     
     dut: JsonArrayParser
     generic map (
-      EPC     => 8
+      EPC                       => 8
     )
     port map (
       clk                       => clk,

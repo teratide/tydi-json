@@ -26,7 +26,7 @@ package Json_pkg is
 
     component JsonRecordParser is
         generic (
-          EPC : natural := 1;
+          EPC                   : natural := 1;
           OUTER_NESTING_LEVEL   : natural := 1;
           INNER_NESTING_LEVEL   : natural := 1;
           END_REQ_EN            : boolean := false
@@ -74,7 +74,7 @@ package Json_pkg is
 
     component JsonArrayParser is
         generic (
-            EPC : natural := 1;
+            EPC                   : natural := 1;
             OUTER_NESTING_LEVEL   : natural := 1;
             INNER_NESTING_LEVEL   : natural := 0;
             ELEMENT_COUNTER_BW    : natural := 4
@@ -162,44 +162,44 @@ package Json_pkg is
     end component;
 
     component BooleanParser is
-        generic (
-            EPC : natural := 1;
-            NESTING_LEVEL         : natural := 1
-            );
-        port (
-            clk                   : in  std_logic;
-            reset                 : in  std_logic;
-    
-            -- Stream(
-            --     Bits(8),
-            --     t=EPC,
-            --     d=NESTING_LEVEL+1,
-            --     c=8
-            -- )
-            in_valid              : in  std_logic;
-            in_ready              : out std_logic;
-            in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
-            in_last               : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
-            in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
-            in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
-            in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
-            in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
-    
-            -- Stream(
-            --     Bits(1),
-            --     d=NESTING_LEVEL,
-            --     c=8
-            -- )
-            out_valid             : out std_logic;
-            out_ready             : in  std_logic;
-            out_data              : out std_logic
-    
+      generic (
+        EPC                   : natural := 1;
+        NESTING_LEVEL         : natural := 1
         );
+      port (
+          clk                   : in  std_logic;
+          reset                 : in  std_logic;
+    
+          -- Stream(
+          --     Bits(8),
+          --     t=EPC,
+          --     d=NESTING_LEVEL+1,
+          --     c=8
+          -- )
+          in_valid              : in  std_logic;
+          in_ready              : out std_logic;
+          in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+          in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
+          in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
+          in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+          in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+          in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
+    
+          -- Stream(
+          --     Bits(1),
+          --     d=NESTING_LEVEL,
+          --     c=8
+          -- )
+          out_valid             : out std_logic;
+          out_ready             : in  std_logic;
+          out_data              : out std_logic;
+          out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
+      );
     end component;
 
     component IntParser is
       generic (
-          EPC : natural := 1;
+          EPC                   : natural := 1;
           NESTING_LEVEL         : natural := 1;
           BITWIDTH              : natural := 8;
           SIGNED                : boolean := false; -- Signed is not supported yet!

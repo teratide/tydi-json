@@ -11,7 +11,7 @@ use work.Json_pkg.all;
 package battery_status_pkg is
     component BattSchemaParser is
         generic (
-          EPC : natural := 8;
+          EPC                   : natural := 8;
           INT_WIDTH             : natural := 16;
           INT_P_PIPELINE_STAGES : natural := 1;
           END_REQ_EN            : boolean := false

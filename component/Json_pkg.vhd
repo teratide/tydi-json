@@ -177,6 +177,7 @@ package Json_pkg is
           out_valid             : out std_logic;
           out_ready             : in  std_logic;
           out_data              : out std_logic;
+          out_empty             : out std_logic;
           out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
       );
     end component;

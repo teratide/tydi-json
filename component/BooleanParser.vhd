@@ -1,6 +1,8 @@
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
+use ieee.std_logic_misc.all;
+
 
 library work;
 use work.UtilInt_pkg.all;
@@ -40,6 +42,7 @@ entity BooleanParser is
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
       out_data              : out std_logic;
+      out_empty             : out std_logic;
       out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
   );
 end entity;
@@ -62,16 +65,9 @@ architecture behavioral of BooleanParser is
         variable iv : std_logic := '0';
         variable ir : std_logic := '0';
     
-        -- Output holding register.
-        type out_type is record
-          data  : std_logic_vector(7 downto 0);
-          last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
-        end record;
-    
-        type out_array is array (natural range <>) of out_type;
-        variable od : out_array(0 to EPC-1);
         variable ov : std_logic := '0';
-        variable out_r : std_logic := '0';
+        variable oe : std_logic := '1';
+        variable ol : std_logic_vector(NESTING_LEVEL-1 downto 0) := (others => '0');
         
         -- Enumeration type for our state machine.
         type state_t is (STATE_IDLE,
@@ -88,7 +84,6 @@ architecture behavioral of BooleanParser is
           -- Latch input holding register if we said we would.
           if to_x01(ir) = '1' then
             iv := in_valid;
-            out_r := out_ready;
             for idx in 0 to EPC-1 loop
               id(idx).data := in_data(8*idx+7 downto 8*idx);
               id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
@@ -113,6 +108,9 @@ architecture behavioral of BooleanParser is
             for idx in 0 to EPC-1 loop
               -- Element-wise processing only when the lane is valid.
               if to_x01(id(idx).strb) = '1' and to_x01(id(idx).empty) = '0' then
+
+                ol := ol or id(idx).last(NESTING_LEVEL downto 1);
+
                 case id(idx).data is
                   when X"66" => -- 'f'
                       ov := '1';
@@ -149,6 +147,10 @@ architecture behavioral of BooleanParser is
                 iv := '1';
               end if;
             end loop;
+          end if;
+
+          if or_reduce(ol) and not iv then
+            ov := '1';
           end if;
     
           -- Handle reset.

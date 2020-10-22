@@ -8,22 +8,6 @@ use work.UtilInt_pkg.all;
 
 
 package Json_pkg is
-    type kv_tag_t is (KEY,
-                     VALUE);
-
-    type comm_t is (ENABLE,
-                    DISABLE);
-
-    type JsonRecordParser_out_t is record
-        tag   : std_logic_vector; 
-        data  : std_logic_vector;
-    end record ;
-
-    type comp_in_t is record
-        comm  : comm_t ; 
-        data  : std_logic_vector ;
-    end record ;
-
     component JsonRecordParser is
         generic (
           EPC                   : natural := 1;

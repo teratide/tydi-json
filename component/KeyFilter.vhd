@@ -83,6 +83,10 @@ architecture behavioral of KeyFilter is
   signal buff_out_ready          : std_logic;
   signal buff_out_data           : std_logic_vector(BUFF_WIDTH-1 downto 0);
 
+  signal buff_out_dbg            : std_logic_vector(8*EPC-1 downto 0);
+  signal buff_out_last_dbg       : std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0);
+  signal buff_out_strb_dbg       : std_logic_vector(EPC-1 downto 0);
+
   begin
 
     dly_comp_buff: StreamBuffer
@@ -100,6 +104,10 @@ architecture behavioral of KeyFilter is
         out_ready               => buff_out_ready,
         out_data                => buff_out_data
       );
+
+      buff_out_dbg <= buff_out_data(8*EPC-1 downto 0);
+      buff_out_last_dbg <= buff_out_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI);
+      buff_out_strb_dbg <= buff_out_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI);
 
     in_sync: StreamSync
       generic map (
@@ -221,6 +229,7 @@ architecture behavioral of KeyFilter is
         
         -- Do processing when both registers are ready.
         if to_x01(bv) = '1' and to_x01(ov) = '0' then
+          bv := '0';
           for idx in 0 to EPC-1 loop
   
             -- Default behavior.
@@ -229,6 +238,7 @@ architecture behavioral of KeyFilter is
             od(idx).empty                                 := '0';--id(idx).empty;
             od(idx).strb                                  := '0';
 
+            -- Pass transfers that close out outer dimensions. 
             if id(idx).strb = '1' and or_reduce(id(idx).last(OUTER_NESTING_LEVEL downto 1)) = '1' then
               od(idx).strb := '1';
               od(idx).empty := '1';
@@ -237,11 +247,16 @@ architecture behavioral of KeyFilter is
 
             case state is
               when STATE_IDLE =>
-                if to_x01(mv) = '1' then
-                  if to_01(id(idx).match) = '1' then
-                    state := STATE_MATCH;
-                  else
-                    state := STATE_DROP;
+                -- If we get an innermost last in a key, that's gonna trigger the matcher, so keep it.
+                if id(idx).strb = '1' and id(idx).last(0) = '1' and id(idx).tag = '0' then
+                  bv := '1';
+                  if to_x01(mv) = '1' then
+                    if to_01(id(idx).match) = '1'then
+                      state := STATE_MATCH;
+                    else
+                    od(idx).empty := '1';
+                      state := STATE_DROP;
+                    end if;
                   end if;
                 end if;
               when STATE_MATCH =>
@@ -255,12 +270,13 @@ architecture behavioral of KeyFilter is
                   end if;
                 end if;
               when STATE_DROP =>
+              od(idx).empty := '1';
                 bv := '0';
                 if to_x01(mv) = '1' then
-                  if to_01(id(idx).match) = '1' then
+                  if to_01(id(idx).match) = '1' and id(idx).tag = '1' then
                     state := STATE_MATCH;
                   end if;
-                end if;
+                end if;                
                 
                 if id(idx).strb = '1' and id(idx).last(0) = '1' and id(idx).tag = '1' then
                   state := STATE_IDLE;

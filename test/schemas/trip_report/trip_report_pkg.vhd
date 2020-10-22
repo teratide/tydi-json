@@ -11,8 +11,15 @@ package trip_report_pkg is
     component TripReportParser is
         generic (
           EPC                                 : natural := 8;
+    
           TIMEZONE_INT_WIDTH                  : natural := 16;
           TIMEZONE_INT_P_PIPELINE_STAGES      : natural := 1;
+          TIMEZONE_BUFFER_D                   : natural := 1;
+          
+          VIN_INT_WIDTH                       : natural := 16;
+          VIN_INT_P_PIPELINE_STAGES           : natural := 1;
+          VIN_BUFFER_D                        : natural := 1;
+          
           END_REQ_EN                          : boolean := false
         );              
         port (              
@@ -31,11 +38,17 @@ package trip_report_pkg is
           end_req                             : in  std_logic := '0';
           end_ack                             : out std_logic;
 
-          timezone_valid                           : out std_logic;
-          timezone_ready                           : in  std_logic;
-          timezone_data                            : out std_logic_vector(TIMEZONE_INT_WIDTH-1 downto 0);
-          timezone_empty                           : out std_logic;
-          timezone_last                            : out std_logic_vector(1 downto 0)
+          timezone_valid                      : out std_logic;
+          timezone_ready                      : in  std_logic;
+          timezone_data                       : out std_logic_vector(TIMEZONE_INT_WIDTH-1 downto 0);
+          timezone_empty                      : out std_logic;
+          timezone_last                       : out std_logic_vector(1 downto 0);
+
+          vin_valid                           : out std_logic;
+          vin_ready                           : in  std_logic;
+          vin_data                            : out std_logic_vector(VIN_INT_WIDTH-1 downto 0);
+          vin_empty                           : out std_logic;
+          vin_last                            : out std_logic_vector(1 downto 0)
         );
     end component;
 end trip_report_pkg;

@@ -13,9 +13,15 @@ use work.tr_field_pkg.all;
 entity TripReportParser is
   generic (
     EPC                                 : natural := 8;
+    
     TIMEZONE_INT_WIDTH                  : natural := 16;
     TIMEZONE_INT_P_PIPELINE_STAGES      : natural := 1;
     TIMEZONE_BUFFER_D                   : natural := 1;
+    
+    VIN_INT_WIDTH                       : natural := 16;
+    VIN_INT_P_PIPELINE_STAGES           : natural := 1;
+    VIN_BUFFER_D                        : natural := 1;
+    
     END_REQ_EN                          : boolean := false
   );              
   port (              
@@ -38,7 +44,13 @@ entity TripReportParser is
     timezone_ready                      : in  std_logic;
     timezone_data                       : out std_logic_vector(TIMEZONE_INT_WIDTH-1 downto 0);
     timezone_empty                      : out std_logic;
-    timezone_last                       : out std_logic_vector(1 downto 0)
+    timezone_last                       : out std_logic_vector(1 downto 0);
+
+    vin_valid                           : out std_logic;
+    vin_ready                           : in  std_logic;
+    vin_data                            : out std_logic_vector(VIN_INT_WIDTH-1 downto 0);
+    vin_empty                           : out std_logic;
+    vin_last                            : out std_logic_vector(1 downto 0)
   );
 end TripReportParser;
 
@@ -57,6 +69,9 @@ architecture arch of TripReportParser is
   --Integer fields
   signal timezone_i_valid : std_logic;
   signal timezone_i_ready : std_logic;
+
+  signal vin_i_valid : std_logic;
+  signal vin_i_ready : std_logic;
 
 begin
 
@@ -92,7 +107,7 @@ begin
   sync_i: StreamSync
     generic map (
       NUM_INPUTS              => 1,
-      NUM_OUTPUTS             => 1
+      NUM_OUTPUTS             => 2
     )
     port map (
       clk                     => clk,
@@ -100,7 +115,9 @@ begin
       in_valid(0)             => rec_valid,
       in_ready(0)             => rec_ready,
       out_valid(0)            => timezone_i_valid,
-      out_ready(0)            => timezone_i_ready
+      out_valid(1)            => vin_i_valid,
+      out_ready(0)            => timezone_i_ready,
+      out_ready(1)            => vin_i_ready
     );
 
     timezone_f_i: timezone_f
@@ -125,6 +142,30 @@ begin
       out_data              => timezone_data,
       out_empty             => timezone_empty,
       out_last              => timezone_last
+    );
+
+    vin_f_i: vin_f
+    generic map (
+      EPC                   => EPC,
+      OUTER_NESTING_LEVEL   => 2,
+      INT_WIDTH             => VIN_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => VIN_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => VIN_BUFFER_D
+    )
+    port map (
+      clk                   => clk,
+      reset                 => reset,
+      in_valid              => vin_i_valid,
+      in_ready              => vin_i_ready,
+      in_data               => rec_data,
+      in_last               => rec_last,
+      in_empty              => rec_empty,
+      in_strb               => rec_strb,
+      out_valid             => vin_valid,
+      out_ready             => vin_ready,
+      out_data              => vin_data,
+      out_empty             => vin_empty,
+      out_last              => vin_last
     );
 
 end arch;

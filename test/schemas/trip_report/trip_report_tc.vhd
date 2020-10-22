@@ -22,7 +22,7 @@ architecture test_case of trip_report_tc is
   signal clk              : std_logic;
   signal reset            : std_logic;
 
-  constant EPC                   : integer := 8;
+  constant EPC                   : integer := 6;
   constant INTEGER_WIDTH         : integer := 64;
   constant INT_P_PIPELINE_STAGES : integer := 4;
 
@@ -39,13 +39,22 @@ architecture test_case of trip_report_tc is
   signal adv_last         : std_logic_vector(EPC*2-1 downto 0) := (others => '0');
 
 
-  --Integer fields
+  -- 
+  -- INTEGER FIELDS
+  --
   signal timezone_ready       : std_logic;
   signal timezone_valid       : std_logic;
   signal timezone_empty       : std_logic;
   signal timezone_dvalid      : std_logic;
   signal timezone_data        : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal timezone_last        : std_logic_vector(1 downto 0);
+
+  signal vin_ready       : std_logic;
+  signal vin_valid       : std_logic;
+  signal vin_empty       : std_logic;
+  signal vin_dvalid      : std_logic;
+  signal vin_data        : std_logic_vector(INTEGER_WIDTH-1 downto 0);
+  signal vin_last        : std_logic_vector(1 downto 0);
 
 begin
 
@@ -84,8 +93,15 @@ begin
     record_parser_i: TripReportParser
     generic map (
       EPC     => EPC,
+
       TIMEZONE_INT_WIDTH              => INTEGER_WIDTH,
       TIMEZONE_INT_P_PIPELINE_STAGES  => INT_P_PIPELINE_STAGES,
+      TIMEZONE_BUFFER_D               => 1,
+      
+      VIN_INT_WIDTH              => INTEGER_WIDTH,
+      VIN_INT_P_PIPELINE_STAGES  => INT_P_PIPELINE_STAGES,
+      VIN_BUFFER_D               => 1,
+      
       END_REQ_EN                      => false
     )
     port map (
@@ -100,11 +116,25 @@ begin
       timezone_valid                  => timezone_valid,
       timezone_ready                  => timezone_ready,
       timezone_last                   => timezone_last,
-      timezone_empty                  => timezone_empty
+      timezone_empty                  => timezone_empty,
+    
+      vin_data                        => vin_data,
+      vin_valid                       => vin_valid,
+      vin_ready                       => vin_ready,
+      vin_last                        => vin_last,
+      vin_empty                       => vin_empty
+      
     );
 
+    -- 
+    -- INTEGER FIELDS
+    --
     timezone_dvalid <= not timezone_empty;
+    vin_dvalid <= not vin_empty;
 
+    -- 
+    -- INTEGER FIELDS
+    --
     timezone_sink_i: StreamSink_mdl
     generic map (
       NAME                      => "timezone_sink",
@@ -121,38 +151,85 @@ begin
       dvalid                    => timezone_dvalid
     );
 
+    vin_sink_i: StreamSink_mdl
+    generic map (
+      NAME                      => "vin_sink",
+      ELEMENT_WIDTH             => INTEGER_WIDTH,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => vin_valid,
+      ready                     => vin_ready,
+      data                      => vin_data,
+      dvalid                    => vin_dvalid
+    );
+
   random_tc: process is
     variable src                    : streamsource_type;
+
+    -- 
+    -- INTEGER FIELDS
+    --
     variable timezone_sink          : streamsink_type;
+    variable vin_sink               : streamsink_type;
 
   begin
-    tc_open("BattSchemaParser", "test");
+    tc_open("TripReportParser", "test");
+
     src.initialize("src");
+
+    -- 
+    -- INTEGER FIELDS
+    --
     timezone_sink.initialize("timezone_sink");
+    vin_sink.initialize("vin_sink");
 
     src.push_str("{ ");
-    src.push_str(" ""timezone"" : 11,");
+    src.push_str(" ""timezone"" : 42,");
+    src.push_str(" ""vin"" : 124,");
     src.push_str(" }");
 
     src.push_str("{ ");
-    src.push_str(" ""timezone"" : 22,");
+    src.push_str(" ""timezone"" : 68,");
+    src.push_str(" ""vin"" : 125,");
     src.push_str(" }");
 
     src.transmit;
     timezone_sink.unblock;
+    vin_sink.unblock;
 
     tc_wait_for(2 us);
 
+    -- 
+    -- INTEGER FIELDS
+    --
+
+    -- "timezone"
     tc_check(timezone_sink.pq_ready, true);
     while not timezone_sink.cq_get_dvalid loop
       timezone_sink.cq_next;
     end loop;
-    tc_check(timezone_sink.cq_get_d_nat, 11, "11");
+    tc_check(timezone_sink.cq_get_d_nat, 42, "timezone: 42");
     timezone_sink.cq_next;
     while not timezone_sink.cq_get_dvalid loop
       timezone_sink.cq_next;
     end loop;
-    tc_check(timezone_sink.cq_get_d_nat, 22, "22");
+    tc_check(timezone_sink.cq_get_d_nat, 68, "timezone: 68");
+
+    -- "vin"
+    tc_check(vin_sink.pq_ready, true);
+    while not vin_sink.cq_get_dvalid loop
+      vin_sink.cq_next;
+    end loop;
+    tc_check(vin_sink.cq_get_d_nat, 124, "vin: 124");
+    vin_sink.cq_next;
+    while not vin_sink.cq_get_dvalid loop
+      vin_sink.cq_next;
+    end loop;
+    tc_check(vin_sink.cq_get_d_nat, 125, "vin: 125");
 
 
     tc_pass;

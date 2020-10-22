@@ -27,7 +27,7 @@ entity JsonRecordParser is
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_data               : in  std_logic_vector(8*EPC-1 downto 0);
       in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
       in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -45,7 +45,7 @@ entity JsonRecordParser is
       -- )
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
-      out_data              : out JsonRecordParser_out_t(tag(EPC-1 downto 0), data(8*EPC-1 downto 0));
+      out_data              : out std_logic_vector(8*EPC + EPC-1 downto 0);
       out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*EPC-1 downto 0) := (others => '0');
       out_empty             : out std_logic_vector(EPC-1 downto 0) := (others => '0');
       out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -56,6 +56,11 @@ entity JsonRecordParser is
 end entity;
 
 architecture behavioral of JsonRecordParser is
+  constant OUT_VEC_WIDTH : integer := 8*EPC + EPC;
+  constant OUT_DATA_STAI : integer := 0;
+  constant OUT_DATA_ENDI : integer := EPC*8-1;
+  CONSTANT OUT_TAG_STAI  : integer := EPC*8;
+  CONSTANT OUT_TAG_ENDI  : integer := EPC*8+EPC-1;
 begin
   clk_proc: process (clk) is
     constant IDXW : natural := log2ceil(EPC);
@@ -67,8 +72,6 @@ begin
       empty : std_logic;
       strb  : std_logic;
     end record;
-
-    variable comm  : comm_t;
 
     type in_array is array (natural range <>) of in_type;
     variable id : in_array(0 to EPC-1);
@@ -125,9 +128,8 @@ begin
         iv := in_valid;
         end_req_i := end_req;
         for idx in 0 to EPC-1 loop
-          id(idx).data  := in_data.data(8*idx+7 downto 8*idx);
+          id(idx).data  := in_data(8*idx+7 downto 8*idx);
           id(idx).last  := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*(idx)+1);
-          comm          := in_data.comm;
           id(idx).empty := in_empty(idx);
           id(idx).strb  := in_strb(idx);
           if idx < unsigned(in_stai) then
@@ -160,7 +162,7 @@ begin
           idx_int := to_unsigned(idx, idx_int'length);
 
           -- Element-wise processing only when the lane is valid.
-          if to_x01(id(idx).strb) = '1' and comm = ENABLE then
+          if to_x01(id(idx).strb) = '1' then
 
             if (id(idx).empty) = '1' then
               od(idx).strb := '1';
@@ -282,8 +284,9 @@ begin
       in_ready <= ir;
       end_ack <= end_req_i;
       for idx in 0 to EPC-1 loop
-        out_data.data(8*idx+7 downto 8*idx) <= od(idx).data;
-        out_data.tag(idx)  <= od(idx).tag;
+        --Pack output data
+        out_data(OUT_DATA_STAI+8*idx+7 downto OUT_DATA_STAI+8*idx) <= od(idx).data;
+        out_data(OUT_TAG_STAI+idx) <= od(idx).tag;
         out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= od(idx).last;
         out_empty(idx) <= od(idx).empty;
         out_stai <= (others => '0');--std_logic_vector(stai);

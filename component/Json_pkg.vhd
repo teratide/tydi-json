@@ -43,7 +43,7 @@ package Json_pkg is
             -- )
             in_valid              : in  std_logic;
             in_ready              : out std_logic;
-            in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+            in_data               : in  std_logic_vector(8*EPC-1 downto 0);
             in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
             in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
             in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -62,7 +62,7 @@ package Json_pkg is
             -- )
             out_valid             : out std_logic;
             out_ready             : in  std_logic;
-            out_data              : out JsonRecordParser_out_t(tag(EPC-1 downto 0), data(8*EPC-1 downto 0));
+            out_data              : out std_logic_vector(8*EPC + EPC-1 downto 0);
             out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*EPC-1 downto 0) := (others => '0');
             out_empty             : out std_logic_vector(EPC-1 downto 0) := (others => '0');
             out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -91,7 +91,7 @@ package Json_pkg is
             -- )
             in_valid              : in  std_logic;
             in_ready              : out std_logic;
-            in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+            in_data               : in  std_logic_vector(8*EPC-1 downto 0);
             in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
             in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
             in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -133,7 +133,7 @@ package Json_pkg is
   
         in_valid              : in  std_logic;
         in_ready              : out std_logic;
-        in_data               : in  JsonRecordParser_out_t(tag(EPC-1 downto 0), data(8*EPC-1 downto 0));
+        in_data               : in  std_logic_vector(8*EPC+EPC-1 downto 0);
         in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
         in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
         in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -178,7 +178,7 @@ package Json_pkg is
           -- )
           in_valid              : in  std_logic;
           in_ready              : out std_logic;
-          in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+          in_data               : in  std_logic_vector(8*EPC-1 downto 0);
           in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
           in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
           in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -217,7 +217,7 @@ package Json_pkg is
           -- )
           in_valid              : in  std_logic;
           in_ready              : out std_logic;
-          in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+          in_data               : in  std_logic_vector(8*EPC-1 downto 0);
           in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
           in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
           in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');

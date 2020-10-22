@@ -25,7 +25,7 @@ entity BooleanParser is
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_data               : in  std_logic_vector(8*EPC-1 downto 0);
       in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
       in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -80,8 +80,6 @@ architecture behavioral of BooleanParser is
         -- State variable
         variable state : state_t;
 
-        variable comm  : comm_t;
-
         variable val : boolean;
     
       begin
@@ -92,9 +90,8 @@ architecture behavioral of BooleanParser is
             iv := in_valid;
             out_r := out_ready;
             for idx in 0 to EPC-1 loop
-              id(idx).data := in_data.data(8*idx+7 downto 8*idx);
-              id(idx).last := in_data(NESTING_LEVEL*(idx+1)-1 downto NESTING_LEVEL*idx);
-              comm := in_data.comm;
+              id(idx).data := in_data(8*idx+7 downto 8*idx);
+              id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
               id(idx).empty := in_empty(idx);
               if idx < unsigned(in_stai) then
                 id(idx).strb := '0';
@@ -115,7 +112,7 @@ architecture behavioral of BooleanParser is
           if to_x01(iv) = '1' and to_x01(ov) /= '1' then
             for idx in 0 to EPC-1 loop
               -- Element-wise processing only when the lane is valid.
-              if to_x01(id(idx).strb) = '1' and comm = ENABLE and to_x01(id(idx).empty) = '0' then
+              if to_x01(id(idx).strb) = '1' and to_x01(id(idx).empty) = '0' then
                 case id(idx).data is
                   when X"66" => -- 'f'
                       ov := '1';
@@ -141,7 +138,7 @@ architecture behavioral of BooleanParser is
 
               -- Clear state upon any last, to prevent broken elements from messing
               -- up everything.
-              if id(idx).last /= '0' then
+              if id(idx).last(0) /= '0' then
                 state := STATE_IDLE;
               end if;
             end loop;

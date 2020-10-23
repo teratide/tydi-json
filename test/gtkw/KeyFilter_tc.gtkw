@@ -1,168 +1,62 @@
 [*]
 [*] GTKWave Analyzer v3.3.104 (w)1999-2020 BSI
-[*] Thu Oct 22 00:11:31 2020
+[*] Fri Oct 23 00:26:28 2020
 [*]
 [dumpfile] "/home/akos/work/Teratide/JSON_parser/repo/JSON-parser-components/work.keyfilter_tc.vcd"
-[dumpfile_mtime] "Wed Oct 21 23:05:55 2020"
-[dumpfile_size] 182133
+[dumpfile_mtime] "Fri Oct 23 00:24:30 2020"
+[dumpfile_size] 152417
 [savefile] "/home/akos/work/Teratide/JSON_parser/repo/JSON-parser-components/test/gtkw/KeyFilter_tc.gtkw"
-[timestart] 2124900000
+[timestart] 2117600000
 [size] 2560 1380
 [pos] -1 -1
-*-24.703749 2348400000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
+*-24.396767 2236800000 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1 -1
 [treeopen] keyfilter_tc.
-[treeopen] keyfilter_tc.dut.
-[treeopen] keyfilter_tc.in_source.
-[sst_width] 437
-[signals_width] 326
+[sst_width] 268
+[signals_width] 286
 [sst_expanded] 1
 [sst_vpaned_height] 415
-@820
-keyfilter_tc.in_data[63:0]
 @28
-keyfilter_tc.in_strb[7:0]
-keyfilter_tc.in_valid
-keyfilter_tc.in_ready
-@820
-keyfilter_tc.dut.matcher_str_data[63:0]
-@28
-keyfilter_tc.dut.matcher_str_mask[7:0]
-keyfilter_tc.dut.matcher_str_last[7:0]
-keyfilter_tc.dut.matcher_str_valid
-@22
-keyfilter_tc.dut.matcher_str_mask[7:0]
-@28
-keyfilter_tc.dut.matcher_match_valid
-keyfilter_tc.dut.matcher_match[7:0]
-@c00820
-keyfilter_tc.dut.out_data[63:0]
-@28
-(0)keyfilter_tc.dut.out_data[63:0]
-(1)keyfilter_tc.dut.out_data[63:0]
-(2)keyfilter_tc.dut.out_data[63:0]
-(3)keyfilter_tc.dut.out_data[63:0]
-(4)keyfilter_tc.dut.out_data[63:0]
-(5)keyfilter_tc.dut.out_data[63:0]
-(6)keyfilter_tc.dut.out_data[63:0]
-(7)keyfilter_tc.dut.out_data[63:0]
-(8)keyfilter_tc.dut.out_data[63:0]
-(9)keyfilter_tc.dut.out_data[63:0]
-(10)keyfilter_tc.dut.out_data[63:0]
-(11)keyfilter_tc.dut.out_data[63:0]
-(12)keyfilter_tc.dut.out_data[63:0]
-(13)keyfilter_tc.dut.out_data[63:0]
-(14)keyfilter_tc.dut.out_data[63:0]
-(15)keyfilter_tc.dut.out_data[63:0]
-(16)keyfilter_tc.dut.out_data[63:0]
-(17)keyfilter_tc.dut.out_data[63:0]
-(18)keyfilter_tc.dut.out_data[63:0]
-(19)keyfilter_tc.dut.out_data[63:0]
-(20)keyfilter_tc.dut.out_data[63:0]
-(21)keyfilter_tc.dut.out_data[63:0]
-(22)keyfilter_tc.dut.out_data[63:0]
-(23)keyfilter_tc.dut.out_data[63:0]
-(24)keyfilter_tc.dut.out_data[63:0]
-(25)keyfilter_tc.dut.out_data[63:0]
-(26)keyfilter_tc.dut.out_data[63:0]
-(27)keyfilter_tc.dut.out_data[63:0]
-(28)keyfilter_tc.dut.out_data[63:0]
-(29)keyfilter_tc.dut.out_data[63:0]
-(30)keyfilter_tc.dut.out_data[63:0]
-(31)keyfilter_tc.dut.out_data[63:0]
-(32)keyfilter_tc.dut.out_data[63:0]
-(33)keyfilter_tc.dut.out_data[63:0]
-(34)keyfilter_tc.dut.out_data[63:0]
-(35)keyfilter_tc.dut.out_data[63:0]
-(36)keyfilter_tc.dut.out_data[63:0]
-(37)keyfilter_tc.dut.out_data[63:0]
-(38)keyfilter_tc.dut.out_data[63:0]
-(39)keyfilter_tc.dut.out_data[63:0]
-(40)keyfilter_tc.dut.out_data[63:0]
-(41)keyfilter_tc.dut.out_data[63:0]
-(42)keyfilter_tc.dut.out_data[63:0]
-(43)keyfilter_tc.dut.out_data[63:0]
-(44)keyfilter_tc.dut.out_data[63:0]
-(45)keyfilter_tc.dut.out_data[63:0]
-(46)keyfilter_tc.dut.out_data[63:0]
-(47)keyfilter_tc.dut.out_data[63:0]
-(48)keyfilter_tc.dut.out_data[63:0]
-(49)keyfilter_tc.dut.out_data[63:0]
-(50)keyfilter_tc.dut.out_data[63:0]
-(51)keyfilter_tc.dut.out_data[63:0]
-(52)keyfilter_tc.dut.out_data[63:0]
-(53)keyfilter_tc.dut.out_data[63:0]
-(54)keyfilter_tc.dut.out_data[63:0]
-(55)keyfilter_tc.dut.out_data[63:0]
-(56)keyfilter_tc.dut.out_data[63:0]
-(57)keyfilter_tc.dut.out_data[63:0]
-(58)keyfilter_tc.dut.out_data[63:0]
-(59)keyfilter_tc.dut.out_data[63:0]
-(60)keyfilter_tc.dut.out_data[63:0]
-(61)keyfilter_tc.dut.out_data[63:0]
-(62)keyfilter_tc.dut.out_data[63:0]
-(63)keyfilter_tc.dut.out_data[63:0]
-@1401200
--group_end
-@28
-keyfilter_tc.dut.out_strb[7:0]
-keyfilter_tc.dut.out_last[23:0]
-@22
-keyfilter_tc.dut.out_empty[7:0]
-@28
-keyfilter_tc.dut.out_endi[2:0]
-keyfilter_tc.in_ready
-@820
-keyfilter_tc.dut.buff_out_data[111:0]
-@28
-keyfilter_tc.dut.buff_out_ready
-keyfilter_tc.dut.buff_out_valid
-@820
-keyfilter_tc.rec_data[63:0]
-@28
-keyfilter_tc.rec_empty[7:0]
-keyfilter_tc.rec_strb[7:0]
+keyfilter_tc.filter_ready
+keyfilter_tc.filter_valid
 @820
 keyfilter_tc.filter_data[63:0]
 @28
 keyfilter_tc.filter_empty[7:0]
 keyfilter_tc.filter_strb[7:0]
-@22
-keyfilter_tc.filter_last[23:0]
-@28
-keyfilter_tc.filter_valid
 @24
-keyfilter_tc.intparser_i.out_data[63:0]
+keyfilter_tc.out_data[63:0]
 @28
 keyfilter_tc.out_valid
-keyfilter_tc.out_empty
-keyfilter_tc.out_last[1:0]
-@29
-keyfilter_tc.intparser_i.out_last[1:0]
-@28
-keyfilter_tc.intparser_i.in_last[23:0]
-@820
-keyfilter_tc.in_data[63:0]
-keyfilter_tc.rec_data[63:0]
-@28
-keyfilter_tc.rec_strb[7:0]
+keyfilter_tc.out_ready
 @22
-keyfilter_tc.rec_last[23:0]
-@820
-keyfilter_tc.filter_data[63:0]
+keyfilter_tc.matcher_str_data[63:0]
+keyfilter_tc.matcher_str_last[7:0]
+keyfilter_tc.matcher_str_mask[7:0]
 @28
-keyfilter_tc.filter_strb[7:0]
-keyfilter_tc.filter_empty[7:0]
-@22
-keyfilter_tc.filter_last[23:0]
-@28
-keyfilter_tc.filter_valid
-keyfilter_tc.intparser_i.out_empty
-keyfilter_tc.in_last
+keyfilter_tc.matcher_str_ready
+keyfilter_tc.matcher_str_valid
+keyfilter_tc.matcher_match[7:0]
 keyfilter_tc.matcher_match_ready
 keyfilter_tc.matcher_match_valid
 @820
-keyfilter_tc.in_data[63:0]
+keyfilter_tc.dut.buff_out_dbg[63:0]
+@28
+keyfilter_tc.dut.buff_out_strb_dbg[7:0]
 @22
-keyfilter_tc.adv_last[15:0]
+keyfilter_tc.dut.buff_out_last_dbg[23:0]
+@28
+keyfilter_tc.rec_valid
+keyfilter_tc.rec_valid
+keyfilter_tc.rec_ready
+@820
+keyfilter_tc.rec_data[63:0]
+keyfilter_tc.dut.buff_out_dbg[63:0]
+@29
+keyfilter_tc.dut.buff_out_strb_dbg[7:0]
+@22
+keyfilter_tc.dut.buff_out_last_dbg[23:0]
+@28
+keyfilter_tc.dut.matcher_match_valid
+keyfilter_tc.dut.matcher_match[7:0]
 [pattern_trace] 1
 [pattern_trace] 0

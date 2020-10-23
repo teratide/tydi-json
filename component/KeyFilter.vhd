@@ -245,6 +245,10 @@ architecture behavioral of KeyFilter is
               ov := '1';
             end if;
 
+            if to_x01(mv) = '1' then
+              od(idx).empty := '1';
+            end if;
+
             case state is
               when STATE_IDLE =>
                 -- If we get an innermost last in a key, that's gonna trigger the matcher, so keep it.
@@ -252,9 +256,10 @@ architecture behavioral of KeyFilter is
                   bv := '1';
                   if to_x01(mv) = '1' then
                     if to_01(id(idx).match) = '1'then
+                      bv := '0';
                       state := STATE_MATCH;
                     else
-                    od(idx).empty := '1';
+                      bv := '0';
                       state := STATE_DROP;
                     end if;
                   end if;
@@ -270,7 +275,6 @@ architecture behavioral of KeyFilter is
                   end if;
                 end if;
               when STATE_DROP =>
-              od(idx).empty := '1';
                 bv := '0';
                 if to_x01(mv) = '1' then
                   if to_01(id(idx).match) = '1' and id(idx).tag = '1' then
@@ -283,6 +287,9 @@ architecture behavioral of KeyFilter is
                 end if;
                 
             end case;
+            
+            
+
           end loop;
           mv := '0';
         end if;

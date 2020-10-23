@@ -38,9 +38,9 @@ architecture Testbench of e_spd_chg_f_m_tb is
   signal in_data                : std_logic_vector(7 downto 0);
   signal in_last                : std_logic;
   signal out_valid              : std_logic;
-  signal out_match              : std_logic_vector(2 downto 0);
+  signal out_match              : std_logic_vector(0 downto 0);
   signal out_error              : std_logic;
-  signal out_match_mon          : std_logic_vector(2 downto 0);
+  signal out_match_mon          : std_logic_vector(0 downto 0);
   signal out_error_mon          : std_logic;
 begin
 
@@ -78,9 +78,7 @@ begin
     wait until falling_edge(clk);
     reset <= '0';
     wait until falling_edge(clk);
-    x(X"657863657373697665");
-    x(X"7370656564");
-    x(X"6368616E676573");
+    x(X"657863657373697665207370656564206368616E676573");
     wait;
   end process;
 

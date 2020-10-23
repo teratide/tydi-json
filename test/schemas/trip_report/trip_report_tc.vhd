@@ -42,19 +42,49 @@ architecture test_case of trip_report_tc is
   -- 
   -- INTEGER FIELDS
   --
-  signal timezone_ready       : std_logic;
-  signal timezone_valid       : std_logic;
-  signal timezone_empty       : std_logic;
-  signal timezone_dvalid      : std_logic;
-  signal timezone_data        : std_logic_vector(INTEGER_WIDTH-1 downto 0);
-  signal timezone_last        : std_logic_vector(1 downto 0);
+  signal timezone_ready             : std_logic;
+  signal timezone_valid             : std_logic;
+  signal timezone_empty             : std_logic;
+  signal timezone_dvalid            : std_logic;
+  signal timezone_data              : std_logic_vector(INTEGER_WIDTH-1 downto 0);
+  signal timezone_last              : std_logic_vector(1 downto 0);
 
-  signal vin_ready       : std_logic;
-  signal vin_valid       : std_logic;
-  signal vin_empty       : std_logic;
-  signal vin_dvalid      : std_logic;
-  signal vin_data        : std_logic_vector(INTEGER_WIDTH-1 downto 0);
-  signal vin_last        : std_logic_vector(1 downto 0);
+  signal vin_ready                  : std_logic;
+  signal vin_valid                  : std_logic;
+  signal vin_empty                  : std_logic;
+  signal vin_dvalid                 : std_logic;
+  signal vin_data                   : std_logic_vector(INTEGER_WIDTH-1 downto 0);
+  signal vin_last                   : std_logic_vector(1 downto 0);
+
+  signal odometer_ready             : std_logic;
+  signal odometer_valid             : std_logic;
+  signal odometer_empty             : std_logic;
+  signal odometer_dvalid            : std_logic;
+  signal odometer_data              : std_logic_vector(INTEGER_WIDTH-1 downto 0);
+  signal odometer_last              : std_logic_vector(1 downto 0);
+
+  signal avg_speed_ready            : std_logic;
+  signal avg_speed_valid            : std_logic;
+  signal avg_speed_empty            : std_logic;
+  signal avg_speed_dvalid           : std_logic;
+  signal avg_speed_data             : std_logic_vector(INTEGER_WIDTH-1 downto 0);
+  signal avg_speed_last             : std_logic_vector(1 downto 0);
+
+  signal s_acc_dec_ready            : std_logic;
+  signal s_acc_dec_valid            : std_logic;
+  signal s_acc_dec_empty            : std_logic;
+  signal s_acc_dec_dvalid           : std_logic;
+  signal s_acc_dec_data             : std_logic_vector(INTEGER_WIDTH-1 downto 0);
+  signal s_acc_dec_last             : std_logic_vector(1 downto 0);
+
+  signal e_spd_chg_ready            : std_logic;
+  signal e_spd_chg_valid            : std_logic;
+  signal e_spd_chg_empty            : std_logic;
+  signal e_spd_chg_dvalid           : std_logic;
+  signal e_spd_chg_data             : std_logic_vector(INTEGER_WIDTH-1 downto 0);
+  signal e_spd_chg_last             : std_logic_vector(1 downto 0);
+
+  
 
 begin
 
@@ -94,35 +124,75 @@ begin
     generic map (
       EPC     => EPC,
 
-      TIMEZONE_INT_WIDTH              => INTEGER_WIDTH,
-      TIMEZONE_INT_P_PIPELINE_STAGES  => INT_P_PIPELINE_STAGES,
-      TIMEZONE_BUFFER_D               => 1,
+      TIMEZONE_INT_WIDTH                    => INTEGER_WIDTH,
+      TIMEZONE_INT_P_PIPELINE_STAGES        => INT_P_PIPELINE_STAGES,
+      TIMEZONE_BUFFER_D                     => 1,
       
-      VIN_INT_WIDTH              => INTEGER_WIDTH,
-      VIN_INT_P_PIPELINE_STAGES  => INT_P_PIPELINE_STAGES,
-      VIN_BUFFER_D               => 1,
+      VIN_INT_WIDTH                         => INTEGER_WIDTH,
+      VIN_INT_P_PIPELINE_STAGES             => INT_P_PIPELINE_STAGES,
+      VIN_BUFFER_D                          => 1,
+
+      ODOMETER_INT_WIDTH                    => INTEGER_WIDTH,
+      ODOMETER_INT_P_PIPELINE_STAGES        => INT_P_PIPELINE_STAGES,
+      ODOMETER_BUFFER_D                     => 1,
+
+      AVG_SPEED_INT_WIDTH                   => INTEGER_WIDTH,
+      AVG_SPEED_INT_P_PIPELINE_STAGES       => INT_P_PIPELINE_STAGES,
+      AVG_SPEED_BUFFER_D                    => 1,
+
+      S_ACC_DEC_INT_WIDTH                   => INTEGER_WIDTH,
+      S_ACC_DEC_INT_P_PIPELINE_STAGES       => INT_P_PIPELINE_STAGES,
+      S_ACC_DEC_BUFFER_D                    => 1,
+
+      E_SPD_CHG_INT_WIDTH                   => INTEGER_WIDTH,
+      E_SPD_CHG_INT_P_PIPELINE_STAGES       => INT_P_PIPELINE_STAGES,
+      E_SPD_CHG_BUFFER_D                    => 1,
       
-      END_REQ_EN                      => false
+      END_REQ_EN                            => false
     )
     port map (
-      clk                             => clk,
-      reset                           => reset,
-      in_valid                        => in_valid,
-      in_ready                        => in_ready,
-      in_data                         => in_data,
-      in_strb                         => in_strb,
-      in_last                         => adv_last,
-      timezone_data                   => timezone_data,
-      timezone_valid                  => timezone_valid,
-      timezone_ready                  => timezone_ready,
-      timezone_last                   => timezone_last,
-      timezone_empty                  => timezone_empty,
+      clk                                   => clk,
+      reset                                 => reset,
+      in_valid                              => in_valid,
+      in_ready                              => in_ready,
+      in_data                               => in_data,
+      in_strb                               => in_strb,
+      in_last                               => adv_last,
+      timezone_data                         => timezone_data,
+      timezone_valid                        => timezone_valid,
+      timezone_ready                        => timezone_ready,
+      timezone_last                         => timezone_last,
+      timezone_empty                        => timezone_empty,
     
-      vin_data                        => vin_data,
-      vin_valid                       => vin_valid,
-      vin_ready                       => vin_ready,
-      vin_last                        => vin_last,
-      vin_empty                       => vin_empty
+      vin_data                              => vin_data,
+      vin_valid                             => vin_valid,
+      vin_ready                             => vin_ready,
+      vin_last                              => vin_last,
+      vin_empty                             => vin_empty,
+
+      odometer_data                         => odometer_data,
+      odometer_valid                        => odometer_valid,
+      odometer_ready                        => odometer_ready,
+      odometer_last                         => odometer_last,
+      odometer_empty                        => odometer_empty,
+
+      avg_speed_data                        => avg_speed_data,
+      avg_speed_valid                       => avg_speed_valid,
+      avg_speed_ready                       => avg_speed_ready,
+      avg_speed_last                        => avg_speed_last,
+      avg_speed_empty                       => avg_speed_empty,
+
+      s_acc_dec_data                        => s_acc_dec_data,
+      s_acc_dec_valid                       => s_acc_dec_valid,
+      s_acc_dec_ready                       => s_acc_dec_ready,
+      s_acc_dec_last                        => s_acc_dec_last,
+      s_acc_dec_empty                       => s_acc_dec_empty,
+
+      e_spd_chg_data                        => e_spd_chg_data,
+      e_spd_chg_valid                       => e_spd_chg_valid,
+      e_spd_chg_ready                       => e_spd_chg_ready,
+      e_spd_chg_last                        => e_spd_chg_last,
+      e_spd_chg_empty                       => e_spd_chg_empty
       
     );
 
@@ -131,6 +201,10 @@ begin
     --
     timezone_dvalid <= not timezone_empty;
     vin_dvalid <= not vin_empty;
+    odometer_dvalid <= not odometer_empty;
+    avg_speed_dvalid <= not avg_speed_empty;
+    s_acc_dec_dvalid <= not s_acc_dec_empty;
+    e_spd_chg_dvalid <= not e_spd_chg_empty;
 
     -- 
     -- INTEGER FIELDS
@@ -167,6 +241,70 @@ begin
       dvalid                    => vin_dvalid
     );
 
+    odometer_sink_i: StreamSink_mdl
+    generic map (
+      NAME                      => "odometer_sink",
+      ELEMENT_WIDTH             => INTEGER_WIDTH,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => odometer_valid,
+      ready                     => odometer_ready,
+      data                      => odometer_data,
+      dvalid                    => odometer_dvalid
+    );
+
+    avg_speed_sink_i: StreamSink_mdl
+    generic map (
+      NAME                      => "avg_speed_sink",
+      ELEMENT_WIDTH             => INTEGER_WIDTH,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => avg_speed_valid,
+      ready                     => avg_speed_ready,
+      data                      => avg_speed_data,
+      dvalid                    => avg_speed_dvalid
+    );
+
+    s_acc_dec_sink_i: StreamSink_mdl
+    generic map (
+      NAME                      => "s_acc_dec_sink",
+      ELEMENT_WIDTH             => INTEGER_WIDTH,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => s_acc_dec_valid,
+      ready                     => s_acc_dec_ready,
+      data                      => s_acc_dec_data,
+      dvalid                    => s_acc_dec_dvalid
+    );
+
+    e_spd_chg_sink_i: StreamSink_mdl
+    generic map (
+      NAME                      => "e_spd_chg_sink",
+      ELEMENT_WIDTH             => INTEGER_WIDTH,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => e_spd_chg_valid,
+      ready                     => e_spd_chg_ready,
+      data                      => e_spd_chg_data,
+      dvalid                    => e_spd_chg_dvalid
+    );
+
   random_tc: process is
     variable src                    : streamsource_type;
 
@@ -175,6 +313,10 @@ begin
     --
     variable timezone_sink          : streamsink_type;
     variable vin_sink               : streamsink_type;
+    variable odometer_sink          : streamsink_type;
+    variable avg_speed_sink         : streamsink_type;
+    variable s_acc_dec_sink         : streamsink_type;
+    variable e_spd_chg_sink         : streamsink_type;
 
   begin
     tc_open("TripReportParser", "test");
@@ -186,20 +328,37 @@ begin
     --
     timezone_sink.initialize("timezone_sink");
     vin_sink.initialize("vin_sink");
+    odometer_sink.initialize("odometer_sink");
+    avg_speed_sink.initialize("avg_speed_sink");
+    s_acc_dec_sink.initialize("s_acc_dec_sink");
+    e_spd_chg_sink.initialize("e_spd_chg_sink");
 
     src.push_str("{ ");
     src.push_str(" ""timezone"" : 42,");
     src.push_str(" ""vin"" : 124,");
+    src.push_str(" ""odometer"" : 68000,");
+    src.push_str(" ""avg speed"" : 54,");
+    src.push_str(" ""successive accel decel"" : 687,");
+    src.push_str(" ""excessive speed changes"" : 99,");
     src.push_str(" }");
 
     src.push_str("{ ");
     src.push_str(" ""timezone"" : 68,");
     src.push_str(" ""vin"" : 125,");
+    src.push_str(" ""odometer"" : 76000,");
+    src.push_str(" ""avg speed"" : 62,");
+    src.push_str(" ""successive accel decel"" : 4561,");
+    src.push_str(" ""excessive speed changes"" : 111,");
     src.push_str(" }");
 
     src.transmit;
     timezone_sink.unblock;
     vin_sink.unblock;
+    odometer_sink.unblock;
+    avg_speed_sink.unblock;
+    s_acc_dec_sink.unblock;
+    e_spd_chg_sink.unblock;
+    
 
     tc_wait_for(2 us);
 
@@ -230,6 +389,54 @@ begin
       vin_sink.cq_next;
     end loop;
     tc_check(vin_sink.cq_get_d_nat, 125, "vin: 125");
+
+    -- "odometer"
+    tc_check(odometer_sink.pq_ready, true);
+    while not odometer_sink.cq_get_dvalid loop
+      odometer_sink.cq_next;
+    end loop;
+    tc_check(odometer_sink.cq_get_d_nat, 68000, "odometer: 68000");
+    odometer_sink.cq_next;
+    while not odometer_sink.cq_get_dvalid loop
+      odometer_sink.cq_next;
+    end loop;
+    tc_check(odometer_sink.cq_get_d_nat, 76000, "odometer: 76000");
+
+    -- "avg speed"
+    tc_check(avg_speed_sink.pq_ready, true);
+    while not avg_speed_sink.cq_get_dvalid loop
+      avg_speed_sink.cq_next;
+    end loop;
+    tc_check(avg_speed_sink.cq_get_d_nat, 54, "avg speed: 54");
+    avg_speed_sink.cq_next;
+    while not avg_speed_sink.cq_get_dvalid loop
+      avg_speed_sink.cq_next;
+    end loop;
+    tc_check(avg_speed_sink.cq_get_d_nat, 62, "avg speed: 62");
+
+    -- "successive accel decel"
+    tc_check(s_acc_dec_sink.pq_ready, true);
+    while not s_acc_dec_sink.cq_get_dvalid loop
+      s_acc_dec_sink.cq_next;
+    end loop;
+    tc_check(s_acc_dec_sink.cq_get_d_nat, 687, "successive accel decel: 687");
+    s_acc_dec_sink.cq_next;
+    while not s_acc_dec_sink.cq_get_dvalid loop
+      s_acc_dec_sink.cq_next;
+    end loop;
+    tc_check(s_acc_dec_sink.cq_get_d_nat, 4561, "successive accel decel: 4561");
+
+    -- "excessive speed changes"
+    tc_check(e_spd_chg_sink.pq_ready, true);
+    while not e_spd_chg_sink.cq_get_dvalid loop
+      e_spd_chg_sink.cq_next;
+    end loop;
+    tc_check(e_spd_chg_sink.cq_get_d_nat, 99, "excessive speed changes: 99");
+    e_spd_chg_sink.cq_next;
+    while not e_spd_chg_sink.cq_get_dvalid loop
+      e_spd_chg_sink.cq_next;
+    end loop;
+    tc_check(e_spd_chg_sink.cq_get_d_nat, 111, "excessive speed changes: 111");
 
 
     tc_pass;

@@ -38,9 +38,9 @@ architecture Testbench of avg_speed_f_m_tb is
   signal in_data                : std_logic_vector(7 downto 0);
   signal in_last                : std_logic;
   signal out_valid              : std_logic;
-  signal out_match              : std_logic_vector(1 downto 0);
+  signal out_match              : std_logic_vector(0 downto 0);
   signal out_error              : std_logic;
-  signal out_match_mon          : std_logic_vector(1 downto 0);
+  signal out_match_mon          : std_logic_vector(0 downto 0);
   signal out_error_mon          : std_logic;
 begin
 
@@ -78,8 +78,7 @@ begin
     wait until falling_edge(clk);
     reset <= '0';
     wait until falling_edge(clk);
-    x(X"617667");
-    x(X"7370656564");
+    x(X"617667207370656564");
     wait;
   end process;
 

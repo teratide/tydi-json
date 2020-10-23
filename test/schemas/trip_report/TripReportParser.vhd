@@ -21,6 +21,22 @@ entity TripReportParser is
     VIN_INT_WIDTH                       : natural := 16;
     VIN_INT_P_PIPELINE_STAGES           : natural := 1;
     VIN_BUFFER_D                        : natural := 1;
+
+    ODOMETER_INT_WIDTH                  : natural := 16;
+    ODOMETER_INT_P_PIPELINE_STAGES      : natural := 1;
+    ODOMETER_BUFFER_D                   : natural := 1;
+
+    AVG_SPEED_INT_WIDTH                 : natural := 16;
+    AVG_SPEED_INT_P_PIPELINE_STAGES     : natural := 1;
+    AVG_SPEED_BUFFER_D                  : natural := 1;
+
+    S_ACC_DEC_INT_WIDTH                 : natural := 16;
+    S_ACC_DEC_INT_P_PIPELINE_STAGES     : natural := 1;
+    S_ACC_DEC_BUFFER_D                  : natural := 1;
+
+    E_SPD_CHG_INT_WIDTH                 : natural := 16;
+    E_SPD_CHG_INT_P_PIPELINE_STAGES     : natural := 1;
+    E_SPD_CHG_BUFFER_D                  : natural := 1;
     
     END_REQ_EN                          : boolean := false
   );              
@@ -50,7 +66,31 @@ entity TripReportParser is
     vin_ready                           : in  std_logic;
     vin_data                            : out std_logic_vector(VIN_INT_WIDTH-1 downto 0);
     vin_empty                           : out std_logic;
-    vin_last                            : out std_logic_vector(1 downto 0)
+    vin_last                            : out std_logic_vector(1 downto 0);
+
+    odometer_valid                      : out std_logic;
+    odometer_ready                      : in  std_logic;
+    odometer_data                       : out std_logic_vector(ODOMETER_INT_WIDTH-1 downto 0);
+    odometer_empty                      : out std_logic;
+    odometer_last                       : out std_logic_vector(1 downto 0);
+
+    avg_speed_valid                     : out std_logic;
+    avg_speed_ready                     : in  std_logic;
+    avg_speed_data                      : out std_logic_vector(AVG_SPEED_INT_WIDTH-1 downto 0);
+    avg_speed_empty                     : out std_logic;
+    avg_speed_last                      : out std_logic_vector(1 downto 0);
+
+    s_acc_dec_valid                     : out std_logic;
+    s_acc_dec_ready                     : in  std_logic;
+    s_acc_dec_data                      : out std_logic_vector(S_ACC_DEC_INT_WIDTH-1 downto 0);
+    s_acc_dec_empty                     : out std_logic;
+    s_acc_dec_last                      : out std_logic_vector(1 downto 0);
+
+    e_spd_chg_valid                     : out std_logic;
+    e_spd_chg_ready                     : in  std_logic;
+    e_spd_chg_data                      : out std_logic_vector(E_SPD_CHG_INT_WIDTH-1 downto 0);
+    e_spd_chg_empty                     : out std_logic;
+    e_spd_chg_last                      : out std_logic_vector(1 downto 0)
   );
 end TripReportParser;
 
@@ -67,11 +107,25 @@ architecture arch of TripReportParser is
 
   
   --Integer fields
-  signal timezone_i_valid : std_logic;
-  signal timezone_i_ready : std_logic;
+  signal timezone_i_valid  : std_logic;
+  signal timezone_i_ready  : std_logic;
 
-  signal vin_i_valid : std_logic;
-  signal vin_i_ready : std_logic;
+  signal vin_i_valid       : std_logic;
+  signal vin_i_ready       : std_logic;
+
+  signal odometer_i_valid  : std_logic;
+  signal odometer_i_ready  : std_logic;
+
+  signal avg_speed_i_valid : std_logic;
+  signal avg_speed_i_ready : std_logic;
+
+  signal s_acc_dec_i_valid : std_logic;
+  signal s_acc_dec_i_ready : std_logic;
+
+  signal e_spd_chg_i_valid : std_logic;
+  signal e_spd_chg_i_ready : std_logic;
+
+  
 
 begin
 
@@ -107,7 +161,7 @@ begin
   sync_i: StreamSync
     generic map (
       NUM_INPUTS              => 1,
-      NUM_OUTPUTS             => 2
+      NUM_OUTPUTS             => 6
     )
     port map (
       clk                     => clk,
@@ -116,8 +170,16 @@ begin
       in_ready(0)             => rec_ready,
       out_valid(0)            => timezone_i_valid,
       out_valid(1)            => vin_i_valid,
+      out_valid(2)            => odometer_i_valid,
+      out_valid(3)            => avg_speed_i_valid,
+      out_valid(4)            => s_acc_dec_i_valid,
+      out_valid(5)            => e_spd_chg_i_valid,
       out_ready(0)            => timezone_i_ready,
-      out_ready(1)            => vin_i_ready
+      out_ready(1)            => vin_i_ready,
+      out_ready(2)            => odometer_i_ready,
+      out_ready(3)            => avg_speed_i_ready,
+      out_ready(4)            => s_acc_dec_i_ready,
+      out_ready(5)            => e_spd_chg_i_ready
     );
 
     timezone_f_i: timezone_f
@@ -166,6 +228,102 @@ begin
       out_data              => vin_data,
       out_empty             => vin_empty,
       out_last              => vin_last
+    );
+
+    odometer_f_i: odometer_f
+    generic map (
+      EPC                   => EPC,
+      OUTER_NESTING_LEVEL   => 2,
+      INT_WIDTH             => ODOMETER_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => ODOMETER_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => ODOMETER_BUFFER_D
+    )
+    port map (
+      clk                   => clk,
+      reset                 => reset,
+      in_valid              => odometer_i_valid,
+      in_ready              => odometer_i_ready,
+      in_data               => rec_data,
+      in_last               => rec_last,
+      in_empty              => rec_empty,
+      in_strb               => rec_strb,
+      out_valid             => odometer_valid,
+      out_ready             => odometer_ready,
+      out_data              => odometer_data,
+      out_empty             => odometer_empty,
+      out_last              => odometer_last
+    );
+
+    avg_speed_f_i: avg_speed_f
+    generic map (
+      EPC                   => EPC,
+      OUTER_NESTING_LEVEL   => 2,
+      INT_WIDTH             => AVG_SPEED_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => AVG_SPEED_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => AVG_SPEED_BUFFER_D
+    )
+    port map (
+      clk                   => clk,
+      reset                 => reset,
+      in_valid              => avg_speed_i_valid,
+      in_ready              => avg_speed_i_ready,
+      in_data               => rec_data,
+      in_last               => rec_last,
+      in_empty              => rec_empty,
+      in_strb               => rec_strb,
+      out_valid             => avg_speed_valid,
+      out_ready             => avg_speed_ready,
+      out_data              => avg_speed_data,
+      out_empty             => avg_speed_empty,
+      out_last              => avg_speed_last
+    );
+
+    s_acc_dec_f_i: s_acc_dec_f
+    generic map (
+      EPC                   => EPC,
+      OUTER_NESTING_LEVEL   => 2,
+      INT_WIDTH             => S_ACC_DEC_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => S_ACC_DEC_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => S_ACC_DEC_BUFFER_D
+    )
+    port map (
+      clk                   => clk,
+      reset                 => reset,
+      in_valid              => s_acc_dec_i_valid,
+      in_ready              => s_acc_dec_i_ready,
+      in_data               => rec_data,
+      in_last               => rec_last,
+      in_empty              => rec_empty,
+      in_strb               => rec_strb,
+      out_valid             => s_acc_dec_valid,
+      out_ready             => s_acc_dec_ready,
+      out_data              => s_acc_dec_data,
+      out_empty             => s_acc_dec_empty,
+      out_last              => s_acc_dec_last
+    );
+
+    e_spd_chg_f_i: e_spd_chg_f
+    generic map (
+      EPC                   => EPC,
+      OUTER_NESTING_LEVEL   => 2,
+      INT_WIDTH             => E_SPD_CHG_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => E_SPD_CHG_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => E_SPD_CHG_BUFFER_D
+    )
+    port map (
+      clk                   => clk,
+      reset                 => reset,
+      in_valid              => e_spd_chg_i_valid,
+      in_ready              => e_spd_chg_i_ready,
+      in_data               => rec_data,
+      in_last               => rec_last,
+      in_empty              => rec_empty,
+      in_strb               => rec_strb,
+      out_valid             => e_spd_chg_valid,
+      out_ready             => e_spd_chg_ready,
+      out_data              => e_spd_chg_data,
+      out_empty             => e_spd_chg_empty,
+      out_last              => e_spd_chg_last
     );
 
 end arch;

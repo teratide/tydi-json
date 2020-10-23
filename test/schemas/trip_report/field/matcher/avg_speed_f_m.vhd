@@ -105,8 +105,7 @@ entity avg_speed_f_m is
 
     -- Outgoing match stream for one-string-per-cycle systems. match indicates
     -- which of the following regexs matched:
-    --  - 0: /avg/
-    --  - 1: /speed/
+    --  - 0: /avg speed/
     -- error indicates that a UTF-8 decoding error occured. Only the following
     -- decode errors are detected:
     --  - multi-byte sequence interrupted by last flag or a new sequence
@@ -120,12 +119,12 @@ entity avg_speed_f_m is
     --  - code points 0x10FFFF to 0x13FFFF (these are out of range, at least
     --    at the time of writing)
     --  - overlong sequences which are not apparent from the first byte
-    out_match                   : out std_logic_vector(1 downto 0);
+    out_match                   : out std_logic_vector(0 downto 0);
     out_error                   : out std_logic;
 
     -- Outgoing match stream for multiple-string-per-cycle systems.
     out_xmask                   : out std_logic_vector(BPC-1 downto 0);
-    out_xmatch                  : out std_logic_vector(BPC*2-1 downto 0);
+    out_xmatch                  : out std_logic_vector(BPC*1-1 downto 0);
     out_xerror                  : out std_logic_vector(BPC-1 downto 0)
 
   );
@@ -142,7 +141,7 @@ architecture Behavioral of avg_speed_f_m is
   ;
 
   -- Number of regular expressions matched by this unit.
-  constant NUM_RE               : natural := 2;
+  constant NUM_RE               : natural := 1;
 
   -- NOTE: in the records below, the unusual indentation implies a "validity"
   -- hierarchy; indented signals are valid iff the signal before the indented
@@ -568,6 +567,7 @@ architecture Behavioral of avg_speed_f_m is
     -- Code point subrange stream. Each flag signal represents one contiguous
     -- range of code points that does not cross a 64-CP boundary.
     valid                       : std_logic;
+      b00000f40t40              : std_logic; --  
       b00001f41t41              : std_logic; -- a
       b00001f44t44              : std_logic; -- d
       b00001f45t45              : std_logic; -- e
@@ -602,6 +602,7 @@ architecture Behavioral of avg_speed_f_m is
 
     -- Pass through control signals and decode range signals.
     o.valid         := i.valid;
+    o.b00000f40t40  := i.oh3( 0) and i.oh2( 0) and i.oh1( 0) and i.th0(31) and not i.th0(32); --  
     o.b00001f41t41  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(32) and not i.th0(33); -- a
     o.b00001f44t44  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(35) and not i.th0(36); -- d
     o.b00001f45t45  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(36) and not i.th0(37); -- e
@@ -615,6 +616,7 @@ architecture Behavioral of avg_speed_f_m is
     -- In simulation, make signals undefined when their value is meaningless.
     -- pragma translate_off
     if to_X01(o.valid) /= '1' then
+      o.b00000f40t40 := 'U';
       o.b00001f41t41 := 'U';
       o.b00001f44t44 := 'U';
       o.b00001f45t45 := 'U';
@@ -638,7 +640,7 @@ architecture Behavioral of avg_speed_f_m is
     -- Code point range stream. Each flag signal represents a set of code
     -- points as used by a transition in the NFAEs.
     valid                       : std_logic;
-      match                     : std_logic_vector(6 downto 0);
+      match                     : std_logic_vector(7 downto 0);
 
     -- Copy of s23.last/error.
     last                        : std_logic;
@@ -665,13 +667,14 @@ architecture Behavioral of avg_speed_f_m is
 
     -- Pass through control signals and decode range signals by default.
     o.valid       := i.valid;
-    o.match(  0)  := i.b00001f47t47; -- g
-    o.match(  1)  := i.b00001f41t41; -- a
-    o.match(  2)  := i.b00001f66t66; -- v
-    o.match(  3)  := i.b00001f45t45; -- e
-    o.match(  4)  := i.b00001f63t63; -- s
-    o.match(  5)  := i.b00001f60t60; -- p
-    o.match(  6)  := i.b00001f44t44; -- d
+    o.match(  0)  := i.b00001f44t44; -- d
+    o.match(  1)  := i.b00000f40t40; --  
+    o.match(  2)  := i.b00001f47t47; -- g
+    o.match(  3)  := i.b00001f66t66; -- v
+    o.match(  4)  := i.b00001f45t45; -- e
+    o.match(  5)  := i.b00001f63t63; -- s
+    o.match(  6)  := i.b00001f60t60; -- p
+    o.match(  7)  := i.b00001f41t41; -- a
     o.last        := i.last;
     o.error       := i.error;
 
@@ -696,7 +699,7 @@ architecture Behavioral of avg_speed_f_m is
 
   type s5s_array is array (natural range <>) of s5s_type;
 
-  constant S5S_RESET            : s5s_type := "0010001000";
+  constant S5S_RESET            : s5s_type := "0100000000";
 
   ------------------------------------------------------------------------------
   -- Stage 5 output record
@@ -739,23 +742,22 @@ architecture Behavioral of avg_speed_f_m is
     -- Transition to the next state if there is an incoming character.
     if i.valid = '1' then
       si := s;
-      s(  0) := (si(  2) and i.match(  0));
-      s(  1) := (si(  3) and i.match(  1));
-      s(  2) := (si(  1) and i.match(  2));
-      s(  3) := '0';
-      s(  4) := (si(  8) and i.match(  3));
-      s(  5) := (si(  4) and i.match(  3));
-      s(  6) := (si(  7) and i.match(  4));
-      s(  7) := '0';
-      s(  8) := (si(  6) and i.match(  5));
-      s(  9) := (si(  5) and i.match(  6));
+      s(  0) := (si(  4) and i.match(  0));
+      s(  1) := (si(  2) and i.match(  1));
+      s(  2) := (si(  3) and i.match(  2));
+      s(  3) := (si(  9) and i.match(  3));
+      s(  4) := (si(  5) and i.match(  4));
+      s(  5) := (si(  7) and i.match(  4));
+      s(  6) := (si(  1) and i.match(  5));
+      s(  7) := (si(  6) and i.match(  6));
+      s(  8) := '0';
+      s(  9) := (si(  8) and i.match(  7));
     end if;
 
     -- Save whether the next state will be a final state to determine whether
     -- a regex is matching or not. The timing of this corresponds to the last
     -- signal.
     o.match(0) := s(  0);
-    o.match(1) := s(  9);
 
     -- Reset the state when we're resetting or receiving the last character.
     if reset = '1' or i.last = '1' then

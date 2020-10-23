@@ -22,7 +22,7 @@ architecture test_case of trip_report_tc is
   signal clk              : std_logic;
   signal reset            : std_logic;
 
-  constant EPC                   : integer := 6;
+  constant EPC                   : integer := 8;
   constant INTEGER_WIDTH         : integer := 64;
   constant INT_P_PIPELINE_STAGES : integer := 4;
 
@@ -84,6 +84,22 @@ architecture test_case of trip_report_tc is
   signal e_spd_chg_data             : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal e_spd_chg_last             : std_logic_vector(1 downto 0);
 
+  -- 
+  -- BOOLEAN FIELDS
+  --
+  signal hyper_miling_valid         : std_logic;
+  signal hyper_miling_ready         : std_logic;
+  signal hyper_miling_data          : std_logic;
+  signal hyper_miling_empty         : std_logic;
+  signal hyper_miling_dvalid        : std_logic;
+  signal hyper_miling_last          : std_logic_vector(1 downto 0);
+
+  signal orientation_valid          : std_logic;
+  signal orientation_ready          : std_logic;
+  signal orientation_data           : std_logic;
+  signal orientation_empty          : std_logic;
+  signal orientation_dvalid         : std_logic;
+  signal orientation_last           : std_logic_vector(1 downto 0);
   
 
 begin
@@ -124,6 +140,9 @@ begin
     generic map (
       EPC     => EPC,
 
+      -- 
+      -- INTEGER FIELDS
+      --
       TIMEZONE_INT_WIDTH                    => INTEGER_WIDTH,
       TIMEZONE_INT_P_PIPELINE_STAGES        => INT_P_PIPELINE_STAGES,
       TIMEZONE_BUFFER_D                     => 1,
@@ -147,6 +166,12 @@ begin
       E_SPD_CHG_INT_WIDTH                   => INTEGER_WIDTH,
       E_SPD_CHG_INT_P_PIPELINE_STAGES       => INT_P_PIPELINE_STAGES,
       E_SPD_CHG_BUFFER_D                    => 1,
+
+      -- 
+      -- BOOLEAN FIELDS
+      --
+      HYPER_MILING_BUFFER_D                 => 1,
+      ORIENTATION_BUFFER_D                  => 1,
       
       END_REQ_EN                            => false
     )
@@ -192,7 +217,19 @@ begin
       e_spd_chg_valid                       => e_spd_chg_valid,
       e_spd_chg_ready                       => e_spd_chg_ready,
       e_spd_chg_last                        => e_spd_chg_last,
-      e_spd_chg_empty                       => e_spd_chg_empty
+      e_spd_chg_empty                       => e_spd_chg_empty,
+
+      hyper_miling_data                     => hyper_miling_data,
+      hyper_miling_valid                    => hyper_miling_valid,
+      hyper_miling_ready                    => hyper_miling_ready,
+      hyper_miling_last                     => hyper_miling_last,
+      hyper_miling_empty                    => hyper_miling_empty,
+
+      orientation_data                      => orientation_data,
+      orientation_valid                     => orientation_valid,
+      orientation_ready                     => orientation_ready,
+      orientation_last                      => orientation_last,
+      orientation_empty                     => orientation_empty
       
     );
 
@@ -205,6 +242,12 @@ begin
     avg_speed_dvalid <= not avg_speed_empty;
     s_acc_dec_dvalid <= not s_acc_dec_empty;
     e_spd_chg_dvalid <= not e_spd_chg_empty;
+
+    -- 
+    -- BOOLEAN FIELDS
+    --
+    hyper_miling_dvalid <= not hyper_miling_empty;
+    orientation_dvalid <= not orientation_empty;
 
     -- 
     -- INTEGER FIELDS
@@ -305,6 +348,41 @@ begin
       dvalid                    => e_spd_chg_dvalid
     );
 
+    -- 
+    -- BOOLEAN FIELDS
+    --
+    hyper_miling_sink_i: StreamSink_mdl
+    generic map (
+      NAME                      => "hyper_miling_sink",
+      ELEMENT_WIDTH             => 1,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => hyper_miling_valid,
+      ready                     => hyper_miling_ready,
+      data(0)                   => hyper_miling_data,
+      dvalid                    => hyper_miling_dvalid
+    );
+
+    orientation_sink_i: StreamSink_mdl
+    generic map (
+      NAME                      => "orientation_sink",
+      ELEMENT_WIDTH             => 1,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => orientation_valid,
+      ready                     => orientation_ready,
+      data(0)                   => orientation_data,
+      dvalid                    => orientation_dvalid
+    );
+
   random_tc: process is
     variable src                    : streamsource_type;
 
@@ -317,6 +395,12 @@ begin
     variable avg_speed_sink         : streamsink_type;
     variable s_acc_dec_sink         : streamsink_type;
     variable e_spd_chg_sink         : streamsink_type;
+
+    -- 
+    -- BOOLEAN FIELDS
+    --
+    variable hyper_miling_sink      : streamsink_type;
+    variable orientation_sink       : streamsink_type;
 
   begin
     tc_open("TripReportParser", "test");
@@ -333,6 +417,12 @@ begin
     s_acc_dec_sink.initialize("s_acc_dec_sink");
     e_spd_chg_sink.initialize("e_spd_chg_sink");
 
+    -- 
+    -- BOOLEAN FIELDS
+    --
+    hyper_miling_sink.initialize("hyper_miling_sink");
+    orientation_sink.initialize("orientation_sink");
+
     src.push_str("{ ");
     src.push_str(" ""timezone"" : 42,");
     src.push_str(" ""vin"" : 124,");
@@ -340,6 +430,8 @@ begin
     src.push_str(" ""avg speed"" : 54,");
     src.push_str(" ""successive accel decel"" : 687,");
     src.push_str(" ""excessive speed changes"" : 99,");
+    src.push_str(" ""hyper-miling"" : true,");
+    src.push_str(" ""orientation"" : false,");
     src.push_str(" }");
 
     src.push_str("{ ");
@@ -349,15 +441,29 @@ begin
     src.push_str(" ""avg speed"" : 62,");
     src.push_str(" ""successive accel decel"" : 4561,");
     src.push_str(" ""excessive speed changes"" : 111,");
+    src.push_str(" ""hyper-miling"" : false,");
+    src.push_str(" ""orientation"" : true,");
     src.push_str(" }");
 
+    
+    
     src.transmit;
+    
+    -- 
+    -- INTEGER FIELDS
+    --
     timezone_sink.unblock;
     vin_sink.unblock;
     odometer_sink.unblock;
     avg_speed_sink.unblock;
     s_acc_dec_sink.unblock;
     e_spd_chg_sink.unblock;
+
+    -- 
+    -- BOOLEAN FIELDS
+    --
+    hyper_miling_sink.unblock;
+    orientation_sink.unblock;
     
 
     tc_wait_for(2 us);
@@ -437,6 +543,35 @@ begin
       e_spd_chg_sink.cq_next;
     end loop;
     tc_check(e_spd_chg_sink.cq_get_d_nat, 111, "excessive speed changes: 111");
+
+    -- 
+    -- BOOLEAN FIELDS
+    --
+
+    -- "hyper-miling"
+    tc_check(hyper_miling_sink.pq_ready, true);
+    while not hyper_miling_sink.cq_get_dvalid loop
+      hyper_miling_sink.cq_next;
+    end loop;
+    tc_check(hyper_miling_sink.cq_get_d_nat, 1, "hyper-miling: true");
+    hyper_miling_sink.cq_next;
+    while not hyper_miling_sink.cq_get_dvalid loop
+      hyper_miling_sink.cq_next;
+    end loop;
+    tc_check(hyper_miling_sink.cq_get_d_nat, 0, "hyper-miling: false");
+
+    -- "orientation"
+    tc_check(orientation_sink.pq_ready, true);
+    while not orientation_sink.cq_get_dvalid loop
+      orientation_sink.cq_next;
+    end loop;
+    tc_check(orientation_sink.cq_get_d_nat, 0, "orientation: false");
+    orientation_sink.cq_next;
+    while not orientation_sink.cq_get_dvalid loop
+      orientation_sink.cq_next;
+    end loop;
+    tc_check(orientation_sink.cq_get_d_nat, 1, "orientation: true");
+
 
 
     tc_pass;

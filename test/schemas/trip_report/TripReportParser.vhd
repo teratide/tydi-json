@@ -47,6 +47,13 @@ entity TripReportParser is
     HYPER_MILING_BUFFER_D               : natural := 1;
     ORIENTATION_BUFFER_D                : natural := 1;
 
+    -- 
+    -- INTEGER ARRAY FIELDS
+    --
+    SECS_IN_B_INT_WIDTH                 : natural := 16;
+    SECS_IN_B_INT_P_PIPELINE_STAGES     : natural := 1;
+    SECS_IN_B_BUFFER_D                  : natural := 1;
+
     END_REQ_EN                          : boolean := false
   );              
   port (              
@@ -117,7 +124,16 @@ entity TripReportParser is
     orientation_ready                   : in  std_logic;
     orientation_data                    : out std_logic;
     orientation_empty                   : out std_logic;
-    orientation_last                    : out std_logic_vector(1 downto 0)
+    orientation_last                    : out std_logic_vector(1 downto 0);
+
+    -- 
+    -- INTEGER ARRAY FIELDS
+    --
+    secs_in_b_valid                     : out std_logic;
+    secs_in_b_ready                     : in  std_logic;
+    secs_in_b_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
+    secs_in_b_empty                     : out std_logic;
+    secs_in_b_last                      : out std_logic_vector(2 downto 0)
   );
 end TripReportParser;
 
@@ -162,6 +178,12 @@ architecture arch of TripReportParser is
 
   signal orientation_i_valid   : std_logic;
   signal orientation_i_ready   : std_logic;
+
+  -- 
+  -- INTEGER ARRAY FIELDS
+  --
+  signal secs_in_b_i_valid    : std_logic;
+  signal secs_in_b_i_ready    : std_logic;
   
 
 begin
@@ -198,7 +220,7 @@ begin
   sync_i: StreamSync
     generic map (
       NUM_INPUTS              => 1,
-      NUM_OUTPUTS             => 8
+      NUM_OUTPUTS             => 9
     )
     port map (
       clk                     => clk,
@@ -213,6 +235,7 @@ begin
       out_valid(5)            => e_spd_chg_i_valid,
       out_valid(6)            => hyper_miling_i_valid,
       out_valid(7)            => orientation_i_valid,
+      out_valid(8)            => secs_in_b_i_valid,
       out_ready(0)            => timezone_i_ready,
       out_ready(1)            => vin_i_ready,
       out_ready(2)            => odometer_i_ready,
@@ -220,7 +243,8 @@ begin
       out_ready(4)            => s_acc_dec_i_ready,
       out_ready(5)            => e_spd_chg_i_ready,
       out_ready(6)            => hyper_miling_i_ready,
-      out_ready(7)            => orientation_i_ready
+      out_ready(7)            => orientation_i_ready,
+      out_ready(8)            => secs_in_b_i_ready
     );
 
     timezone_f_i: timezone_f
@@ -410,5 +434,30 @@ begin
       out_empty             => orientation_empty,
       out_last              => orientation_last
     );
+
+    secs_in_b_f_i: secs_in_b_f
+    generic map (
+      EPC                   => EPC,
+      OUTER_NESTING_LEVEL   => 2,
+      INT_WIDTH             => SECS_IN_B_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => SECS_IN_B_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => SECS_IN_B_BUFFER_D
+    )
+    port map (
+      clk                   => clk,
+      reset                 => reset,
+      in_valid              => secs_in_b_i_valid,
+      in_ready              => secs_in_b_i_ready,
+      in_data               => rec_data,
+      in_last               => rec_last,
+      in_empty              => rec_empty,
+      in_strb               => rec_strb,
+      out_valid             => secs_in_b_valid,
+      out_ready             => secs_in_b_ready,
+      out_data              => secs_in_b_data,
+      out_empty             => secs_in_b_empty,
+      out_last              => secs_in_b_last
+    );
+
 
 end arch;

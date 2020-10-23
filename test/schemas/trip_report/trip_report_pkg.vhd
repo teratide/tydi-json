@@ -45,6 +45,13 @@ package trip_report_pkg is
         HYPER_MILING_BUFFER_D               : natural := 1;
         ORIENTATION_BUFFER_D                : natural := 1;
 
+        -- 
+        -- INTEGER ARRAY FIELDS
+        --
+        SECS_IN_B_INT_WIDTH                 : natural := 16;
+        SECS_IN_B_INT_P_PIPELINE_STAGES     : natural := 1;
+        SECS_IN_B_BUFFER_D                  : natural := 1;
+
         END_REQ_EN                          : boolean := false
       );              
       port (              
@@ -115,7 +122,16 @@ package trip_report_pkg is
         orientation_ready                   : in  std_logic;
         orientation_data                    : out std_logic;
         orientation_empty                   : out std_logic;
-        orientation_last                    : out std_logic_vector(1 downto 0)
+        orientation_last                    : out std_logic_vector(1 downto 0);
+
+        -- 
+        -- INTEGER ARRAY FIELDS
+        --
+        secs_in_b_valid                     : out std_logic;
+        secs_in_b_ready                     : in  std_logic;
+        secs_in_b_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
+        secs_in_b_empty                     : out std_logic;
+        secs_in_b_last                      : out std_logic_vector(2 downto 0)
       );
     end component;
 end trip_report_pkg;

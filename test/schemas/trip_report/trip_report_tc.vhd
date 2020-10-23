@@ -19,12 +19,12 @@ end trip_report_tc;
 
 architecture test_case of trip_report_tc is
 
-  signal clk              : std_logic;
-  signal reset            : std_logic;
-
   constant EPC                   : integer := 8;
   constant INTEGER_WIDTH         : integer := 64;
   constant INT_P_PIPELINE_STAGES : integer := 4;
+
+  signal clk              : std_logic;
+  signal reset            : std_logic;
 
   signal in_valid         : std_logic;
   signal in_ready         : std_logic;
@@ -101,6 +101,15 @@ architecture test_case of trip_report_tc is
   signal orientation_dvalid         : std_logic;
   signal orientation_last           : std_logic_vector(1 downto 0);
   
+  -- 
+  -- INTEGER ARRAY FIELDS
+  --
+  signal secs_in_b_ready            : std_logic;
+  signal secs_in_b_valid            : std_logic;
+  signal secs_in_b_empty            : std_logic;
+  signal secs_in_b_dvalid           : std_logic;
+  signal secs_in_b_data             : std_logic_vector(INTEGER_WIDTH-1 downto 0);
+  signal secs_in_b_last             : std_logic_vector(2 downto 0);
 
 begin
 
@@ -172,7 +181,15 @@ begin
       --
       HYPER_MILING_BUFFER_D                 => 1,
       ORIENTATION_BUFFER_D                  => 1,
-      
+
+      -- 
+      -- INTEGER ARRAY FIELDS
+      --
+      SECS_IN_B_INT_WIDTH                   => INTEGER_WIDTH,
+      SECS_IN_B_INT_P_PIPELINE_STAGES       => INT_P_PIPELINE_STAGES,
+      SECS_IN_B_BUFFER_D                    => 1,
+
+
       END_REQ_EN                            => false
     )
     port map (
@@ -229,8 +246,14 @@ begin
       orientation_valid                     => orientation_valid,
       orientation_ready                     => orientation_ready,
       orientation_last                      => orientation_last,
-      orientation_empty                     => orientation_empty
+      orientation_empty                     => orientation_empty,
       
+      secs_in_b_data                        => secs_in_b_data,
+      secs_in_b_valid                       => secs_in_b_valid,
+      secs_in_b_ready                       => secs_in_b_ready,
+      secs_in_b_last                        => secs_in_b_last,
+      secs_in_b_empty                       => secs_in_b_empty
+
     );
 
     -- 
@@ -248,6 +271,12 @@ begin
     --
     hyper_miling_dvalid <= not hyper_miling_empty;
     orientation_dvalid <= not orientation_empty;
+
+    -- 
+    -- INTEGER ARRAY FIELDS
+    --
+    secs_in_b_dvalid <= not secs_in_b_empty;
+
 
     -- 
     -- INTEGER FIELDS
@@ -383,6 +412,22 @@ begin
       dvalid                    => orientation_dvalid
     );
 
+    secs_in_b_sink_i: StreamSink_mdl
+    generic map (
+      NAME                      => "secs_in_b_sink",
+      ELEMENT_WIDTH             => INTEGER_WIDTH,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => secs_in_b_valid,
+      ready                     => secs_in_b_ready,
+      data                      => secs_in_b_data,
+      dvalid                    => secs_in_b_dvalid
+    );
+
   random_tc: process is
     variable src                    : streamsource_type;
 
@@ -401,6 +446,12 @@ begin
     --
     variable hyper_miling_sink      : streamsink_type;
     variable orientation_sink       : streamsink_type;
+
+    -- 
+    -- INTEGER FIELDS
+    --
+    variable secs_in_b_sink         : streamsink_type;
+    
 
   begin
     tc_open("TripReportParser", "test");
@@ -423,6 +474,15 @@ begin
     hyper_miling_sink.initialize("hyper_miling_sink");
     orientation_sink.initialize("orientation_sink");
 
+    -- 
+    -- INTEGER FIELDS
+    --
+    secs_in_b_sink.initialize("secs_in_b_sink");
+
+
+    -- 
+    -- TEST DATA
+    --
     src.push_str("{ ");
     src.push_str(" ""timezone"" : 42,");
     src.push_str(" ""vin"" : 124,");
@@ -432,6 +492,7 @@ begin
     src.push_str(" ""excessive speed changes"" : 99,");
     src.push_str(" ""hyper-miling"" : true,");
     src.push_str(" ""orientation"" : false,");
+    src.push_str(" ""seconds in band"" : [10, 20, 30],");
     src.push_str(" }");
 
     src.push_str("{ ");
@@ -443,8 +504,11 @@ begin
     src.push_str(" ""excessive speed changes"" : 111,");
     src.push_str(" ""hyper-miling"" : false,");
     src.push_str(" ""orientation"" : true,");
+    src.push_str(" ""orientation"" : false,");
+    src.push_str(" ""seconds in band"" : [40, 50, 60],");
     src.push_str(" }");
 
+    
     
     
     src.transmit;
@@ -464,9 +528,14 @@ begin
     --
     hyper_miling_sink.unblock;
     orientation_sink.unblock;
+
+    -- 
+    -- INTEGER FIELDS
+    --
+    secs_in_b_sink.unblock;
     
 
-    tc_wait_for(2 us);
+    tc_wait_for(4 us);
 
     -- 
     -- INTEGER FIELDS
@@ -572,7 +641,40 @@ begin
     end loop;
     tc_check(orientation_sink.cq_get_d_nat, 1, "orientation: true");
 
-
+    -- 
+    -- INTEGER ARRAY FIELDS
+    --
+    -- "seconds in band"
+    tc_check(secs_in_b_sink.pq_ready, true);
+    while not secs_in_b_sink.cq_get_dvalid loop
+      secs_in_b_sink.cq_next;
+    end loop;
+    tc_check(secs_in_b_sink.cq_get_d_nat, 10, "seconds in band: 10");
+    secs_in_b_sink.cq_next;
+    while not secs_in_b_sink.cq_get_dvalid loop
+      secs_in_b_sink.cq_next;
+    end loop;
+    tc_check(secs_in_b_sink.cq_get_d_nat, 20, "seconds in band: 20");
+    secs_in_b_sink.cq_next;
+    while not secs_in_b_sink.cq_get_dvalid loop
+      secs_in_b_sink.cq_next;
+    end loop;
+    tc_check(secs_in_b_sink.cq_get_d_nat, 30, "seconds in band: 30");
+    secs_in_b_sink.cq_next;
+    while not secs_in_b_sink.cq_get_dvalid loop
+      secs_in_b_sink.cq_next;
+    end loop;
+    tc_check(secs_in_b_sink.cq_get_d_nat, 40, "seconds in band: 40");
+    secs_in_b_sink.cq_next;
+    while not secs_in_b_sink.cq_get_dvalid loop
+      secs_in_b_sink.cq_next;
+    end loop;
+    tc_check(secs_in_b_sink.cq_get_d_nat, 50, "seconds in band: 50");
+    secs_in_b_sink.cq_next;
+    while not secs_in_b_sink.cq_get_dvalid loop
+      secs_in_b_sink.cq_next;
+    end loop;
+    tc_check(secs_in_b_sink.cq_get_d_nat, 60, "seconds in band: 60");
 
     tc_pass;
     wait;

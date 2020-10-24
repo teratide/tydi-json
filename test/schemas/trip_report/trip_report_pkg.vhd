@@ -94,7 +94,12 @@ package trip_report_pkg is
 
         LARGE_SPD_V_M_INT_WIDTH                 : natural := 16;
         LARGE_SPD_V_M_INT_P_PIPELINE_STAGES     : natural := 1; 
-        LARGE_SPD_V_M_BUFFER_D                  : natural := 1; 
+        LARGE_SPD_V_M_BUFFER_D                  : natural := 1;
+
+        -- 
+        -- STRING FIELDS
+        --
+        TIMESTAMP_BUFFER_D                      : natural := 1;
 
         END_REQ_EN                              : boolean := false
       );              
@@ -237,7 +242,19 @@ package trip_report_pkg is
         large_spd_v_m_ready                     : in  std_logic;
         large_spd_v_m_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
         large_spd_v_m_empty                     : out std_logic;
-        large_spd_v_m_last                      : out std_logic_vector(2 downto 0)
+        large_spd_v_m_last                      : out std_logic_vector(2 downto 0);
+
+        --    
+        -- STRING FIELDS   
+        -- 
+        timestamp_valid                         : out std_logic;
+        timestamp_ready                         : in  std_logic;
+        timestamp_data                          : out std_logic_vector(8*EPC-1 downto 0);
+        timestamp_last                          : out std_logic_vector(3*EPC-1 downto 0);
+        timestamp_empty                         : out std_logic_vector(EPC-1 downto 0) := (others => '0');
+        timestamp_stai                          : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+        timestamp_endi                          : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+        timestamp_strb                          : out std_logic_vector(EPC-1 downto 0)
       );
     end component;
 end trip_report_pkg;

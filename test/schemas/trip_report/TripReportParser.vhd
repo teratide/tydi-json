@@ -96,7 +96,12 @@ entity TripReportParser is
 
     LARGE_SPD_V_M_INT_WIDTH                 : natural := 16;
     LARGE_SPD_V_M_INT_P_PIPELINE_STAGES     : natural := 1; 
-    LARGE_SPD_V_M_BUFFER_D                  : natural := 1; 
+    LARGE_SPD_V_M_BUFFER_D                  : natural := 1;
+
+    -- 
+    -- STRING FIELDS
+    --
+    TIMESTAMP_BUFFER_D                      : natural := 1;
 
     END_REQ_EN                              : boolean := false
   );              
@@ -239,7 +244,19 @@ entity TripReportParser is
     large_spd_v_m_ready                     : in  std_logic;
     large_spd_v_m_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
     large_spd_v_m_empty                     : out std_logic;
-    large_spd_v_m_last                      : out std_logic_vector(2 downto 0)
+    large_spd_v_m_last                      : out std_logic_vector(2 downto 0);
+
+    --    
+    -- STRING FIELDS   
+    -- 
+    timestamp_valid                         : out std_logic;
+    timestamp_ready                         : in  std_logic;
+    timestamp_data                          : out std_logic_vector(8*EPC-1 downto 0);
+    timestamp_last                          : out std_logic_vector(3*EPC-1 downto 0);
+    timestamp_empty                         : out std_logic_vector(EPC-1 downto 0) := (others => '0');
+    timestamp_stai                          : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+    timestamp_endi                          : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+    timestamp_strb                          : out std_logic_vector(EPC-1 downto 0)
   );
 end TripReportParser;
 
@@ -318,6 +335,12 @@ architecture arch of TripReportParser is
   signal large_spd_v_m_i_valid    : std_logic;
   signal large_spd_v_m_i_ready    : std_logic;
 
+  -- 
+  -- STRING FIELDS
+  --
+  signal timestamp_i_valid        : std_logic;
+  signal timestamp_i_ready        : std_logic;
+
 begin
 
   -- Main record parser
@@ -352,7 +375,7 @@ begin
   sync_i: StreamSync
     generic map (
       NUM_INPUTS              => 1,
-      NUM_OUTPUTS             => 18
+      NUM_OUTPUTS             => 19
     )
     port map (
       clk                     => clk,
@@ -378,6 +401,7 @@ begin
       out_valid(15)           => accel_m_t_10s_i_valid,
       out_valid(16)           => small_spd_v_m_i_valid,
       out_valid(17)           => large_spd_v_m_i_valid,
+      out_valid(18)           => timestamp_i_valid,
 
 
       out_ready(0)            => timezone_i_ready,
@@ -397,7 +421,8 @@ begin
       out_ready(14)           => brk_m_t_10s_i_ready,
       out_ready(15)           => accel_m_t_10s_i_ready,
       out_ready(16)           => small_spd_v_m_i_ready,
-      out_ready(17)           => large_spd_v_m_i_ready
+      out_ready(17)           => large_spd_v_m_i_ready,
+      out_ready(18)           => timestamp_i_ready
 
     );
 
@@ -828,4 +853,31 @@ begin
       out_empty             => large_spd_v_m_empty,
       out_last              => large_spd_v_m_last
     );
+
+    timestamp_f_i: timestamp_f
+    generic map (
+      EPC                   => EPC,
+      OUTER_NESTING_LEVEL   => 2,
+      BUFER_DEPTH           => TIMESTAMP_BUFFER_D
+    )
+    port map (
+      clk                   => clk,
+      reset                 => reset,
+      in_valid              => timestamp_i_valid,
+      in_ready              => timestamp_i_ready,
+      in_data               => rec_data,
+      in_last               => rec_last,
+      in_empty              => rec_empty,
+      in_strb               => rec_strb,
+      out_valid             => timestamp_valid,
+      out_ready             => timestamp_ready,
+      out_data              => timestamp_data,
+      out_empty             => timestamp_empty,
+      out_last              => timestamp_last,
+      out_strb              => timestamp_strb,
+      out_stai              => timestamp_stai,
+      out_endi              => timestamp_endi
+    );
+
+    
 end arch;

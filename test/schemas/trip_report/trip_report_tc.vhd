@@ -174,6 +174,18 @@ architecture test_case of trip_report_tc is
   signal large_spd_v_m_data         : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal large_spd_v_m_last         : std_logic_vector(2 downto 0);
 
+  -- 
+  -- STRING FIELDS
+  --
+  signal timestamp_valid            : std_logic;
+  signal timestamp_ready            : std_logic;
+  signal timestamp_data             : std_logic_vector(8*EPC-1 downto 0);
+  signal timestamp_last             : std_logic_vector(3*EPC-1 downto 0);
+  signal timestamp_empty            : std_logic_vector(EPC-1 downto 0) := (others => '0');
+  signal timestamp_stai             : std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+  signal timestamp_endi             : std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+  signal timestamp_strb             : std_logic_vector(EPC-1 downto 0);
+
 begin
 
   clkgen: ClockGen_mdl
@@ -298,6 +310,7 @@ begin
       in_data                                   => in_data,
       in_strb                                   => in_strb,
       in_last                                   => adv_last,
+
       timezone_data                             => timezone_data,
       timezone_valid                            => timezone_valid,
       timezone_ready                            => timezone_ready,
@@ -404,8 +417,17 @@ begin
       large_spd_v_m_valid                       => large_spd_v_m_valid,
       large_spd_v_m_ready                       => large_spd_v_m_ready,
       large_spd_v_m_last                        => large_spd_v_m_last,
-      large_spd_v_m_empty                       => large_spd_v_m_empty
+      large_spd_v_m_empty                       => large_spd_v_m_empty,
+
+      timestamp_data                            => timestamp_data,
+      timestamp_valid                           => timestamp_valid,
+      timestamp_ready                           => timestamp_ready,
+      timestamp_last                            => timestamp_last,
+      timestamp_empty                           => timestamp_empty
     );
+
+    -- String fields are not tested currently
+    timestamp_ready <= '1';
 
     -- 
     -- INTEGER FIELDS
@@ -1006,6 +1028,8 @@ begin
       secs_in_b_sink.cq_next;
     end loop;
     tc_check(secs_in_b_sink.cq_get_d_nat, 60, "seconds in band: 60");
+
+
 
     tc_pass;
     wait;

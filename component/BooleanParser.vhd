@@ -68,13 +68,6 @@ architecture behavioral of BooleanParser is
         variable ov : std_logic := '0';
         variable oe : std_logic := '1';
         variable ol : std_logic_vector(NESTING_LEVEL-1 downto 0) := (others => '0');
-        
-        -- Enumeration type for our state machine.
-        type state_t is (STATE_IDLE,
-                         STATE_DONE);
-    
-        -- State variable
-        variable state : state_t;
 
         variable val : boolean;
     
@@ -103,42 +96,42 @@ architecture behavioral of BooleanParser is
             ov := '0';
           end if;
 
+          ol := (others => '0');
+          oe := '1';
+
           -- Do processing when both registers are ready.
-          if to_x01(iv) = '1' and to_x01(ov) /= '1' then
+          if to_x01(iv) = '1' then
             for idx in 0 to EPC-1 loop
               -- Element-wise processing only when the lane is valid.
-              if to_x01(id(idx).strb) = '1' and to_x01(id(idx).empty) = '0' then
+
+              if to_x01(id(idx).strb) = '1' and to_x01(ov) /= '1' then
 
                 ol := ol or id(idx).last(NESTING_LEVEL downto 1);
-
-                case id(idx).data is
-                  when X"66" => -- 'f'
-                      ov := '1';
-                      state := STATE_DONE;
-                      val:= false;
-                  when X"46" => -- 'F'
-                      ov := '1';
-                      state := STATE_DONE;
-                      val:= false;
-                  when X"74" => -- 't'
-                      ov := '1';    
-                      state := STATE_DONE;
-                      val:= true;
-                  when X"54" => -- 'T'
-                      ov := '1';
-                      state := STATE_DONE;
-                      val:= true;
-                  when others =>
-                      state := STATE_IDLE;
-                end case;
+                if to_x01(id(idx).empty) = '0' then
+                  case id(idx).data is
+                    when X"66" => -- 'f'
+                        ov := '1';
+                        oe := '0';
+                        val:= false;
+                    when X"46" => -- 'F'
+                        ov := '1';
+                        oe := '0';
+                        val:= false;
+                    when X"74" => -- 't'
+                        ov := '1';
+                        oe := '0';    
+                        val:= true;
+                    when X"54" => -- 'T'
+                        ov := '1';
+                        oe := '0';
+                        val:= true;
+                    when others =>
+                        ov := '0';
+                  end case;
+                end if;
                 id(idx).strb := '0';
              end if;
 
-              -- Clear state upon any last, to prevent broken elements from messing
-              -- up everything.
-              if id(idx).last(0) /= '0' then
-                state := STATE_IDLE;
-              end if;
             end loop;
 
             iv := '0';
@@ -157,7 +150,6 @@ architecture behavioral of BooleanParser is
           if to_x01(reset) /= '0' then
             ir    := '0';
             ov    := '0';
-            state := STATE_IDLE;
           end if;
     
           -- Forward output holding register.
@@ -165,7 +157,8 @@ architecture behavioral of BooleanParser is
           in_ready <= ir and not reset;
           out_valid <= to_x01(ov);
           out_data <= '1' when val else '0';
-
+          out_last <= ol;
+          out_empty <= oe;
         end if;
       end process;
     end architecture;

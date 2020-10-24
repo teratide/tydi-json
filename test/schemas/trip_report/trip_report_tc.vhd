@@ -829,6 +829,7 @@ begin
     --
     src.push_str("{ ");
     src.push_str(" ""timezone"" : 42,");
+    src.push_str(" ""timestamp"" : ""2005-09-09T11:59:06-10:00"",");
     src.push_str(" ""vin"" : 124,");
     src.push_str(" ""odometer"" : 68000,");
     src.push_str(" ""avg speed"" : 54,");
@@ -837,10 +838,20 @@ begin
     src.push_str(" ""hyper-miling"" : true,");
     src.push_str(" ""orientation"" : false,");
     src.push_str(" ""seconds in band"" : [10, 20, 30],");
+    src.push_str(" ""miles in time range"" : [1191, 524, 1722],");
+    src.push_str(" ""constant speed miles in band"" : [1922, 1889, 679],");
+    src.push_str(" ""varying speed miles in band"" : [99, 431, 1647],");
+    src.push_str(" ""seconds decel"" : [98, 1857, 675],");
+    src.push_str(" ""seconds accel"" : [387, 1379, 1950],");
+    src.push_str(" ""braking more than 10s"" : [1678, 1880, 308],");
+    src.push_str(" ""accel more than 10s"" : [147, 845, 923],");
+    src.push_str(" ""small speed var miles"" : [867, 1460, 1661],");
+    src.push_str(" ""large speed var miles"" : [1580, 1387, 1713],");
     src.push_str(" }");
 
     src.push_str("{ ");
     src.push_str(" ""timezone"" : 68,");
+    src.push_str(" ""timestamp"" : ""2005-09-09T11:59:06-11:00"",");
     src.push_str(" ""vin"" : 125,");
     src.push_str(" ""odometer"" : 76000,");
     src.push_str(" ""avg speed"" : 62,");
@@ -850,6 +861,15 @@ begin
     src.push_str(" ""orientation"" : true,");
     src.push_str(" ""orientation"" : false,");
     src.push_str(" ""seconds in band"" : [40, 50, 60],");
+    src.push_str(" ""miles in time range"" : [398, 1648, 755],");
+    src.push_str(" ""constant speed miles in band"" : [140, 1441, 210],");
+    src.push_str(" ""varying speed miles in band"" : [1414, 562, 83],");
+    src.push_str(" ""seconds decel"" : [1749, 581, 896],");
+    src.push_str(" ""seconds accel"" : [1205, 1442, 1507],");
+    src.push_str(" ""braking more than 10s"" : [1065, 1541, 717],");
+    src.push_str(" ""accel more than 10s"" : [254, 1223, 1427],");
+    src.push_str(" ""small speed var miles"" : [1291, 1631, 410],");
+    src.push_str(" ""large speed var miles"" : [360, 1837, 92],");
     src.push_str(" }");
 
     
@@ -1028,6 +1048,294 @@ begin
       secs_in_b_sink.cq_next;
     end loop;
     tc_check(secs_in_b_sink.cq_get_d_nat, 60, "seconds in band: 60");
+
+    -- "miles in time range"
+    tc_check(miles_in_time_sink.pq_ready, true);
+    while not miles_in_time_sink.cq_get_dvalid loop
+      miles_in_time_sink.cq_next;
+    end loop;
+    tc_check(miles_in_time_sink.cq_get_d_nat, 1191, "miles in time range: 1191");
+    miles_in_time_sink.cq_next;
+    while not miles_in_time_sink.cq_get_dvalid loop
+      miles_in_time_sink.cq_next;
+    end loop;
+    tc_check(miles_in_time_sink.cq_get_d_nat, 524, "miles in time range: 524");
+    miles_in_time_sink.cq_next;
+    while not miles_in_time_sink.cq_get_dvalid loop
+      miles_in_time_sink.cq_next;
+    end loop;
+    tc_check(miles_in_time_sink.cq_get_d_nat, 1722, "miles in time range: 1722");
+    miles_in_time_sink.cq_next;
+    while not miles_in_time_sink.cq_get_dvalid loop
+      miles_in_time_sink.cq_next;
+    end loop;
+    tc_check(miles_in_time_sink.cq_get_d_nat, 398, "miles in time range: 398");
+    miles_in_time_sink.cq_next;
+    while not miles_in_time_sink.cq_get_dvalid loop
+      miles_in_time_sink.cq_next;
+    end loop;
+    tc_check(miles_in_time_sink.cq_get_d_nat, 1648, "miles in time range: 1648");
+    miles_in_time_sink.cq_next;
+    while not miles_in_time_sink.cq_get_dvalid loop
+      miles_in_time_sink.cq_next;
+    end loop;
+    tc_check(miles_in_time_sink.cq_get_d_nat, 755, "miles in time range: 755");
+
+    -- "constant speed miles in band"
+    tc_check(const_spd_m_in_b_sink.pq_ready, true);
+    while not const_spd_m_in_b_sink.cq_get_dvalid loop
+      const_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(const_spd_m_in_b_sink.cq_get_d_nat, 1922, "constant speed miles in band: 1922");
+    const_spd_m_in_b_sink.cq_next;
+    while not const_spd_m_in_b_sink.cq_get_dvalid loop
+      const_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(const_spd_m_in_b_sink.cq_get_d_nat, 1889, "constant speed miles in band: 1889");
+    const_spd_m_in_b_sink.cq_next;
+    while not const_spd_m_in_b_sink.cq_get_dvalid loop
+      const_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(const_spd_m_in_b_sink.cq_get_d_nat, 679, "constant speed miles in band: 679");
+    const_spd_m_in_b_sink.cq_next;
+    while not const_spd_m_in_b_sink.cq_get_dvalid loop
+      const_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(const_spd_m_in_b_sink.cq_get_d_nat, 140, "constant speed miles in band: 140");
+    const_spd_m_in_b_sink.cq_next;
+    while not const_spd_m_in_b_sink.cq_get_dvalid loop
+      const_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(const_spd_m_in_b_sink.cq_get_d_nat, 1441, "constant speed miles in band: 1441");
+    const_spd_m_in_b_sink.cq_next;
+    while not const_spd_m_in_b_sink.cq_get_dvalid loop
+      const_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(const_spd_m_in_b_sink.cq_get_d_nat, 210, "constant speed miles in band: 210");
+
+    -- "varying speed miles in band"
+    tc_check(var_spd_m_in_b_sink.pq_ready, true);
+    while not var_spd_m_in_b_sink.cq_get_dvalid loop
+      var_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(var_spd_m_in_b_sink.cq_get_d_nat, 99, "varying speed miles in band: 99");
+    var_spd_m_in_b_sink.cq_next;
+    while not var_spd_m_in_b_sink.cq_get_dvalid loop
+      var_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(var_spd_m_in_b_sink.cq_get_d_nat, 431, "varying speed miles in band: 431");
+    var_spd_m_in_b_sink.cq_next;
+    while not var_spd_m_in_b_sink.cq_get_dvalid loop
+      var_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(var_spd_m_in_b_sink.cq_get_d_nat, 1647, "varying speed miles in band: 1647");
+    var_spd_m_in_b_sink.cq_next;
+    while not var_spd_m_in_b_sink.cq_get_dvalid loop
+      var_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(var_spd_m_in_b_sink.cq_get_d_nat, 1414, "varying speed miles in band: 1414");
+    var_spd_m_in_b_sink.cq_next;
+    while not var_spd_m_in_b_sink.cq_get_dvalid loop
+      var_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(var_spd_m_in_b_sink.cq_get_d_nat, 562, "varying speed miles in band: 562");
+    var_spd_m_in_b_sink.cq_next;
+    while not var_spd_m_in_b_sink.cq_get_dvalid loop
+      var_spd_m_in_b_sink.cq_next;
+    end loop;
+    tc_check(var_spd_m_in_b_sink.cq_get_d_nat, 83, "varying speed miles in band: 83");
+
+    -- "seconds decel"
+    tc_check(seconds_decel_sink.pq_ready, true);
+    while not seconds_decel_sink.cq_get_dvalid loop
+      seconds_decel_sink.cq_next;
+    end loop;
+    tc_check(seconds_decel_sink.cq_get_d_nat, 98, "seconds decel: 98");
+    seconds_decel_sink.cq_next;
+    while not seconds_decel_sink.cq_get_dvalid loop
+      seconds_decel_sink.cq_next;
+    end loop;
+    tc_check(seconds_decel_sink.cq_get_d_nat, 1857, "seconds decel: 1857");
+    seconds_decel_sink.cq_next;
+    while not seconds_decel_sink.cq_get_dvalid loop
+      seconds_decel_sink.cq_next;
+    end loop;
+    tc_check(seconds_decel_sink.cq_get_d_nat, 675, "seconds decel: 675");
+    seconds_decel_sink.cq_next;
+    while not seconds_decel_sink.cq_get_dvalid loop
+      seconds_decel_sink.cq_next;
+    end loop;
+    tc_check(seconds_decel_sink.cq_get_d_nat, 1749, "seconds decel: 1749");
+    seconds_decel_sink.cq_next;
+    while not seconds_decel_sink.cq_get_dvalid loop
+      seconds_decel_sink.cq_next;
+    end loop;
+    tc_check(seconds_decel_sink.cq_get_d_nat, 581, "seconds decel: 581");
+    seconds_decel_sink.cq_next;
+    while not seconds_decel_sink.cq_get_dvalid loop
+      seconds_decel_sink.cq_next;
+    end loop;
+    tc_check(seconds_decel_sink.cq_get_d_nat, 896, "seconds decel: 896");
+
+     -- "seconds accel"
+     tc_check(seconds_accel_sink.pq_ready, true);
+     while not seconds_accel_sink.cq_get_dvalid loop
+       seconds_accel_sink.cq_next;
+     end loop;
+     tc_check(seconds_accel_sink.cq_get_d_nat, 387, "seconds accel: 387");
+     seconds_accel_sink.cq_next;
+     while not seconds_accel_sink.cq_get_dvalid loop
+       seconds_accel_sink.cq_next;
+     end loop;
+     tc_check(seconds_accel_sink.cq_get_d_nat, 1379, "seconds accel: 1379");
+     seconds_accel_sink.cq_next;
+     while not seconds_accel_sink.cq_get_dvalid loop
+       seconds_accel_sink.cq_next;
+     end loop;
+     tc_check(seconds_accel_sink.cq_get_d_nat, 1950, "seconds accel: 1950");
+     seconds_accel_sink.cq_next;
+     while not seconds_accel_sink.cq_get_dvalid loop
+       seconds_accel_sink.cq_next;
+     end loop;
+     tc_check(seconds_accel_sink.cq_get_d_nat, 1205, "seconds accel: 1205");
+     seconds_accel_sink.cq_next;
+     while not seconds_accel_sink.cq_get_dvalid loop
+       seconds_accel_sink.cq_next;
+     end loop;
+     tc_check(seconds_accel_sink.cq_get_d_nat, 1442, "seconds accel: 1442");
+     seconds_accel_sink.cq_next;
+     while not seconds_accel_sink.cq_get_dvalid loop
+       seconds_accel_sink.cq_next;
+     end loop;
+     tc_check(seconds_accel_sink.cq_get_d_nat, 1507, "seconds accel: 1507");
+
+     -- "braking more than 10s"
+    tc_check(brk_m_t_10s_sink.pq_ready, true);
+    while not brk_m_t_10s_sink.cq_get_dvalid loop
+      brk_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(brk_m_t_10s_sink.cq_get_d_nat, 1678, "braking more than 10s: 1678");
+    brk_m_t_10s_sink.cq_next;
+    while not brk_m_t_10s_sink.cq_get_dvalid loop
+      brk_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(brk_m_t_10s_sink.cq_get_d_nat, 1880, "braking more than 10s: 1880");
+    brk_m_t_10s_sink.cq_next;
+    while not brk_m_t_10s_sink.cq_get_dvalid loop
+      brk_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(brk_m_t_10s_sink.cq_get_d_nat, 308, "braking more than 10s: 308");
+    brk_m_t_10s_sink.cq_next;
+    while not brk_m_t_10s_sink.cq_get_dvalid loop
+      brk_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(brk_m_t_10s_sink.cq_get_d_nat, 1065, "braking more than 10s: 1065");
+    brk_m_t_10s_sink.cq_next;
+    while not brk_m_t_10s_sink.cq_get_dvalid loop
+      brk_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(brk_m_t_10s_sink.cq_get_d_nat, 1541, "braking more than 10s: 1541");
+    brk_m_t_10s_sink.cq_next;
+    while not brk_m_t_10s_sink.cq_get_dvalid loop
+      brk_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(brk_m_t_10s_sink.cq_get_d_nat, 717, "braking more than 10s: 717");
+
+    -- "accel more than 10s"
+    tc_check(accel_m_t_10s_sink.pq_ready, true);
+    while not accel_m_t_10s_sink.cq_get_dvalid loop
+      accel_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(accel_m_t_10s_sink.cq_get_d_nat, 147, "accel more than 10s: 147");
+    accel_m_t_10s_sink.cq_next;
+    while not accel_m_t_10s_sink.cq_get_dvalid loop
+      accel_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(accel_m_t_10s_sink.cq_get_d_nat, 845, "accel more than 10s: 845");
+    accel_m_t_10s_sink.cq_next;
+    while not accel_m_t_10s_sink.cq_get_dvalid loop
+      accel_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(accel_m_t_10s_sink.cq_get_d_nat, 923, "accel more than 10s: 923");
+    accel_m_t_10s_sink.cq_next;
+    while not accel_m_t_10s_sink.cq_get_dvalid loop
+      accel_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(accel_m_t_10s_sink.cq_get_d_nat, 254, "accel more than 10s: 254");
+    accel_m_t_10s_sink.cq_next;
+    while not accel_m_t_10s_sink.cq_get_dvalid loop
+      accel_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(accel_m_t_10s_sink.cq_get_d_nat, 1223, "accel more than 10s: 1223");
+    accel_m_t_10s_sink.cq_next;
+    while not accel_m_t_10s_sink.cq_get_dvalid loop
+      accel_m_t_10s_sink.cq_next;
+    end loop;
+    tc_check(accel_m_t_10s_sink.cq_get_d_nat, 1427, "accel more than 10s: 1427");
+
+    -- "small speed var miles"
+    tc_check(small_spd_v_m_sink.pq_ready, true);
+    while not small_spd_v_m_sink.cq_get_dvalid loop
+      small_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(small_spd_v_m_sink.cq_get_d_nat, 867, "small speed var miles: 867");
+    small_spd_v_m_sink.cq_next;
+    while not small_spd_v_m_sink.cq_get_dvalid loop
+      small_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(small_spd_v_m_sink.cq_get_d_nat, 1460, "small speed var miles: 1460");
+    small_spd_v_m_sink.cq_next;
+    while not small_spd_v_m_sink.cq_get_dvalid loop
+      small_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(small_spd_v_m_sink.cq_get_d_nat, 1661, "small speed var miles: 1661");
+    small_spd_v_m_sink.cq_next;
+    while not small_spd_v_m_sink.cq_get_dvalid loop
+      small_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(small_spd_v_m_sink.cq_get_d_nat, 1291, "small speed var miles: 1291");
+    small_spd_v_m_sink.cq_next;
+    while not small_spd_v_m_sink.cq_get_dvalid loop
+      small_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(small_spd_v_m_sink.cq_get_d_nat, 1631, "small speed var miles: 1631");
+    small_spd_v_m_sink.cq_next;
+    while not small_spd_v_m_sink.cq_get_dvalid loop
+      small_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(small_spd_v_m_sink.cq_get_d_nat, 410, "small speed var miles: 410");
+
+    -- "large speed var miles"
+    tc_check(large_spd_v_m_sink.pq_ready, true);
+    while not large_spd_v_m_sink.cq_get_dvalid loop
+      large_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(large_spd_v_m_sink.cq_get_d_nat, 1580, "large speed var miles: 1580");
+    large_spd_v_m_sink.cq_next;
+    while not large_spd_v_m_sink.cq_get_dvalid loop
+      large_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(large_spd_v_m_sink.cq_get_d_nat, 1387, "large speed var miles: 1387");
+    large_spd_v_m_sink.cq_next;
+    while not large_spd_v_m_sink.cq_get_dvalid loop
+      large_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(large_spd_v_m_sink.cq_get_d_nat, 1713, "large speed var miles: 1713");
+    large_spd_v_m_sink.cq_next;
+    while not large_spd_v_m_sink.cq_get_dvalid loop
+      large_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(large_spd_v_m_sink.cq_get_d_nat, 360, "large speed var miles: 360");
+    large_spd_v_m_sink.cq_next;
+    while not large_spd_v_m_sink.cq_get_dvalid loop
+      large_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(large_spd_v_m_sink.cq_get_d_nat, 1837, "large speed var miles: 1837");
+    large_spd_v_m_sink.cq_next;
+    while not large_spd_v_m_sink.cq_get_dvalid loop
+      large_spd_v_m_sink.cq_next;
+    end loop;
+    tc_check(large_spd_v_m_sink.cq_get_d_nat, 92, "large speed var miles: 92");
 
 
 

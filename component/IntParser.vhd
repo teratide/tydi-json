@@ -91,7 +91,7 @@ architecture behavioral of IntParser is
       -- Use the double-dabble alogorithm to convert BCD to binary.
       bcd_shr := i.bcd;
       bin_shr := i.bin;
-      for i in 0 to STEPS-1 loop
+      for j in 0 to STEPS-1 loop
         bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
         bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
         for idx in 0 to (BW+(BW-4)/3)/4-1 loop

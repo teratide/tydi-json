@@ -859,7 +859,6 @@ begin
     src.push_str(" ""excessive speed changes"" : 111,");
     src.push_str(" ""hyper-miling"" : false,");
     src.push_str(" ""orientation"" : true,");
-    src.push_str(" ""orientation"" : false,");
     src.push_str(" ""seconds in band"" : [40, 50, 60],");
     src.push_str(" ""miles in time range"" : [398, 1648, 755],");
     src.push_str(" ""constant speed miles in band"" : [140, 1441, 210],");

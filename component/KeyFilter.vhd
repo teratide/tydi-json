@@ -20,7 +20,7 @@ entity KeyFilter is
 
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  JsonRecordParser_out_t(tag(EPC-1 downto 0), data(8*EPC-1 downto 0));
+      in_data               : in  std_logic_vector(8*EPC+EPC-1 downto 0);
       in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
       in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -51,6 +51,11 @@ end entity;
 
 architecture behavioral of KeyFilter is
 
+  constant IN_VEC_WIDTH         : integer := 8*EPC + EPC;
+  constant IN_DATA_STAI         : integer := 0;
+  constant IN_DATA_ENDI         : integer := EPC*8-1;
+  CONSTANT IN_TAG_STAI          : integer := EPC*8;
+  CONSTANT IN_TAG_ENDI          : integer := EPC*8+EPC-1;
   
   -- Index constants for packing input into a single vector.
   constant BUFF_WIDTH            : integer := EPC*(3 + 8 + OUTER_NESTING_LEVEL+1);
@@ -78,6 +83,10 @@ architecture behavioral of KeyFilter is
   signal buff_out_ready          : std_logic;
   signal buff_out_data           : std_logic_vector(BUFF_WIDTH-1 downto 0);
 
+  signal buff_out_dbg            : std_logic_vector(8*EPC-1 downto 0);
+  signal buff_out_last_dbg       : std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0);
+  signal buff_out_strb_dbg       : std_logic_vector(EPC-1 downto 0);
+
   begin
 
     dly_comp_buff: StreamBuffer
@@ -96,6 +105,10 @@ architecture behavioral of KeyFilter is
         out_data                => buff_out_data
       );
 
+      buff_out_dbg <= buff_out_data(8*EPC-1 downto 0);
+      buff_out_last_dbg <= buff_out_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI);
+      buff_out_strb_dbg <= buff_out_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI);
+
     in_sync: StreamSync
       generic map (
         NUM_INPUTS              => 1,
@@ -112,9 +125,11 @@ architecture behavioral of KeyFilter is
         out_ready(1)            => matcher_str_ready
       );
 
-    input_interfacing: process (all) is
+    input_interfacing: process (in_data, in_last, in_empty, in_strb) is
       variable strb         :  std_logic_vector(EPC-1 downto 0);
       variable last         :  std_logic_vector(EPC-1 downto 0);
+      variable in_data_f    :  std_logic_vector(EPC*8-1 downto 0);
+      variable in_tag_f     :  std_logic_vector(EPC-1 downto 0);
     begin
       for idx in 0 to EPC-1 loop
         if idx < unsigned(in_stai) then
@@ -127,16 +142,19 @@ architecture behavioral of KeyFilter is
         last(idx) := in_last((OUTER_NESTING_LEVEL+1)*idx);
       end loop;
 
+      in_data_f := in_data(IN_DATA_ENDI downto IN_DATA_STAI);
+      in_tag_f  := in_data(IN_TAG_ENDI downto IN_TAG_STAI);
+
       -- Pack buffer data.
-      buff_in_data(BUFF_DATA_ENDI downto BUFF_DATA_STAI)    <= in_data.data;
-      buff_in_data(BUFF_TAG_ENDI downto BUFF_TAG_STAI)      <= in_data.tag;
+      buff_in_data(BUFF_DATA_ENDI downto BUFF_DATA_STAI)    <= in_data_f;
+      buff_in_data(BUFF_TAG_ENDI downto BUFF_TAG_STAI)      <= in_tag_f;
       buff_in_data(BUFF_EMPTY_ENDI downto BUFF_EMPTY_STAI)  <= in_empty;
       buff_in_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI)    <= strb;
       buff_in_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI)    <= in_last;
 
-      matcher_str_data <= to_stdlogicvector(to_bitvector(in_data.data)); -- Metavalue wanings fix. VERY DIRTY!!!
-      matcher_str_mask <= strb and (not in_data.tag) and (not in_empty);
-      matcher_str_last <= last and (not in_data.tag);
+      matcher_str_data <= to_stdlogicvector(to_bitvector(in_data(IN_DATA_ENDI downto IN_DATA_STAI))); -- Metavalue wanings fix. VERY DIRTY!!!
+      matcher_str_mask <= strb and (not in_tag_f) and (not in_empty);
+      matcher_str_last <= last and (not in_tag_f);
     end process;
 
     filter_proc: process (clk) is
@@ -211,6 +229,7 @@ architecture behavioral of KeyFilter is
         
         -- Do processing when both registers are ready.
         if to_x01(bv) = '1' and to_x01(ov) = '0' then
+          bv := '0';
           for idx in 0 to EPC-1 loop
   
             -- Default behavior.
@@ -219,19 +238,30 @@ architecture behavioral of KeyFilter is
             od(idx).empty                                 := '0';--id(idx).empty;
             od(idx).strb                                  := '0';
 
+            -- Pass transfers that close out outer dimensions. 
             if id(idx).strb = '1' and or_reduce(id(idx).last(OUTER_NESTING_LEVEL downto 1)) = '1' then
               od(idx).strb := '1';
               od(idx).empty := '1';
               ov := '1';
             end if;
 
+            if to_x01(mv) = '1' then
+              od(idx).empty := '1';
+            end if;
+
             case state is
               when STATE_IDLE =>
-                if to_x01(mv) = '1' then
-                  if to_01(id(idx).match) = '1' then
-                    state := STATE_MATCH;
-                  else
-                    state := STATE_DROP;
+                -- If we get an innermost last in a key, that's gonna trigger the matcher, so keep it.
+                if id(idx).strb = '1' and id(idx).last(0) = '1' and id(idx).tag = '0' then
+                  bv := '1';
+                  if to_x01(mv) = '1' then
+                    if to_01(id(idx).match) = '1'then
+                      bv := '0';
+                      state := STATE_MATCH;
+                    else
+                      bv := '0';
+                      state := STATE_DROP;
+                    end if;
                   end if;
                 end if;
               when STATE_MATCH =>
@@ -247,16 +277,19 @@ architecture behavioral of KeyFilter is
               when STATE_DROP =>
                 bv := '0';
                 if to_x01(mv) = '1' then
-                  if to_01(id(idx).match) = '1' then
+                  if to_01(id(idx).match) = '1' and id(idx).tag = '1' then
                     state := STATE_MATCH;
                   end if;
-                end if;
+                end if;                
                 
                 if id(idx).strb = '1' and id(idx).last(0) = '1' and id(idx).tag = '1' then
                   state := STATE_IDLE;
                 end if;
                 
             end case;
+            
+            
+
           end loop;
           mv := '0';
         end if;

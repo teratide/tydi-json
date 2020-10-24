@@ -10,7 +10,7 @@ use work.battery_status_pkg.all;
 
 entity BattSchemaParser is
   generic (
-    EPC : natural := 8;
+    EPC                   : natural := 8;
     INT_WIDTH             : natural := 16;
     INT_P_PIPELINE_STAGES : natural := 2;
     END_REQ_EN            : boolean := false
@@ -27,7 +27,7 @@ entity BattSchemaParser is
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_data               : in  std_logic_vector(8*EPC-1 downto 0);
       in_last               : in  std_logic_vector(2*EPC-1 downto 0);
       in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -58,8 +58,8 @@ architecture arch of BattSchemaParser is
 
   signal kv_ready        : std_logic;
   signal kv_valid        : std_logic;
+  signal kv_vec          : std_logic_vector(EPC*8+EPC-1 downto 0);
   signal kv_data         : std_logic_vector(EPC*8-1 downto 0);
-  signal kv_tag          : std_logic_vector(EPC-1 downto 0);
   signal kv_stai         : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal kv_endi         : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal kv_strb         : std_logic_vector(EPC-1 downto 0);
@@ -79,38 +79,37 @@ architecture arch of BattSchemaParser is
 begin
   record_parser_i: JsonRecordParser
     generic map (
-      EPC     => EPC,
-      OUTER_NESTING_LEVEL       => 1,
-      INNER_NESTING_LEVEL       => 1,
-      END_REQ_EN                => END_REQ_EN
+      EPC                         => EPC,
+      OUTER_NESTING_LEVEL         => 1,
+      INNER_NESTING_LEVEL         => 1,
+      END_REQ_EN                  => END_REQ_EN
     )
     port map (
-      clk                       => clk,
-      reset                     => reset,
-      in_valid                  => in_valid,
-      in_ready                  => in_ready,
-      in_data                   => in_data,
-      in_strb                   => in_strb,
-      in_last                   => in_last,
-      in_empty                  => in_empty,
-      in_stai                   => in_stai,
-      in_endi                   => in_endi,
-      out_data.data             => kv_data,
-      out_data.tag              => kv_tag,
-      out_stai                  => kv_stai,
-      out_endi                  => kv_endi,
-      out_ready                 => kv_ready,
-      out_valid                 => kv_valid,
-      out_strb                  => kv_strb,
-      out_last                  => kv_last,
-      out_empty                 => kv_empty
+      clk                         => clk,
+      reset                       => reset,
+      in_valid                    => in_valid,
+      in_ready                    => in_ready,
+      in_data                     => in_data,
+      in_strb                     => in_strb,
+      in_last                     => in_last,
+      in_empty                    => in_empty,
+      in_stai                     => in_stai,
+      in_endi                     => in_endi,
+      out_data                    => kv_vec,
+      out_stai                    => kv_stai,
+      out_endi                    => kv_endi,
+      out_ready                   => kv_ready,
+      out_valid                   => kv_valid,
+      out_strb                    => kv_strb,
+      out_last                    => kv_last,
+      out_empty                   => kv_empty
     );
 
-
+    kv_data <= kv_vec(EPC*8-1 downto 0);
 
     array_parser_i: JsonArrayParser
     generic map (
-      EPC     => EPC,
+      EPC                       => EPC,
       OUTER_NESTING_LEVEL       => 2,
       INNER_NESTING_LEVEL       => 0
     )
@@ -119,8 +118,7 @@ begin
       reset                     => reset,
       in_valid                  => kv_valid,
       in_ready                  => kv_ready,
-      in_data.data              => kv_data,
-      in_data.comm              => ENABLE,
+      in_data                   => kv_data,
       in_last                   => kv_last,
       in_strb                   => kv_strb,
       in_empty                  => kv_empty,
@@ -136,7 +134,7 @@ begin
 
     intparser_i: IntParser
     generic map (
-      EPC     => EPC,
+      EPC                       => EPC,
       NESTING_LEVEL             => 3,
       BITWIDTH                  => INT_WIDTH,
       PIPELINE_STAGES           => INT_P_PIPELINE_STAGES
@@ -146,8 +144,7 @@ begin
       reset                     => reset,
       in_valid                  => array_valid,
       in_ready                  => array_ready,
-      in_data.data              => array_data,
-      in_data.comm              => ENABLE,
+      in_data                   => array_data,
       in_last                   => array_last,
       in_strb                   => array_strb,
       in_empty                  => array_empty,

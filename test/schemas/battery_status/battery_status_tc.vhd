@@ -22,7 +22,7 @@ architecture test_case of battery_status_tc is
   signal clk              : std_logic;
   signal reset            : std_logic;
 
-  constant EPC : integer := 8;
+  constant EPC                   : integer := 8;
   constant INTEGER_WIDTH         : integer := 64;
   constant INT_P_PIPELINE_STAGES : integer := 4;
 
@@ -91,8 +91,7 @@ begin
       reset                     => reset,
       in_valid                  => in_valid,
       in_ready                  => in_ready,
-      in_data.data              => in_data,
-      in_data.comm              => ENABLE,
+      in_data                   => in_data,
       in_strb                   => in_strb,
       in_last                   => adv_last,
       out_data                  => out_data,

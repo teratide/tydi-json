@@ -68,7 +68,7 @@ begin
     
     dut: IntParser
     generic map (
-      EPC     => 8,
+      EPC                       => 8,
       NESTING_LEVEL             => 0,
       BITWIDTH                  => 64
     )
@@ -77,8 +77,7 @@ begin
       reset                     => reset,
       in_valid                  => in_valid,
       in_ready                  => in_ready,
-      in_data.data              => in_data,
-      in_data.comm              => ENABLE,
+      in_data                   => in_data,
       in_last                   => adv_last,
       in_strb                   => in_strb,
       out_data                  => out_data,

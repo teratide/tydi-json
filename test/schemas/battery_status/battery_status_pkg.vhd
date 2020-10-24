@@ -11,7 +11,7 @@ use work.Json_pkg.all;
 package battery_status_pkg is
     component BattSchemaParser is
         generic (
-          EPC : natural := 8;
+          EPC                   : natural := 8;
           INT_WIDTH             : natural := 16;
           INT_P_PIPELINE_STAGES : natural := 1;
           END_REQ_EN            : boolean := false
@@ -28,7 +28,7 @@ package battery_status_pkg is
             -- )
             in_valid              : in  std_logic;
             in_ready              : out std_logic;
-            in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+            in_data               : in  std_logic_vector(8*EPC-1 downto 0);
             in_last               : in  std_logic_vector(2*EPC-1 downto 0);
             in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
             in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');

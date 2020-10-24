@@ -11,7 +11,7 @@ use work.Json_pkg.all;
 
 entity JsonArrayParser is
   generic (
-      EPC : natural := 1;
+      EPC                   : natural := 1;
       OUTER_NESTING_LEVEL   : natural := 1;
       INNER_NESTING_LEVEL   : natural := 0;
       ELEMENT_COUNTER_BW    : natural := 4
@@ -28,7 +28,7 @@ entity JsonArrayParser is
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_data               : in  std_logic_vector(8*EPC-1 downto 0);
       in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
       in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -72,8 +72,6 @@ begin
       last  : std_logic_vector(OUTER_NESTING_LEVEL-1 downto 0);
       strb  : std_logic;
     end record;
-
-    variable comm  : comm_t;
 
     type in_array is array (natural range <>) of in_type;
     variable id : in_array(0 to EPC-1);
@@ -121,11 +119,9 @@ begin
         stai      := to_unsigned(0, stai'length);
         endi      := to_unsigned(EPC-1, endi'length);
         for idx in 0 to EPC-1 loop
-          id(idx).data := in_data.data(8*idx+7 downto 8*idx);
+          id(idx).data := in_data(8*idx+7 downto 8*idx);
           id(idx).empty:= in_empty(idx);
           id(idx).last := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*idx+1);
-          comm := in_data.comm;
-          id(idx).data := in_data.data(8*idx+7 downto 8*idx);
           if idx < unsigned(in_stai) then
             id(idx).strb := '0';
           elsif idx > unsigned(in_endi) then
@@ -157,7 +153,7 @@ begin
           od(idx).strb       := '0';
           
           -- Element-wise processing only when the lane is valid.
-          if to_x01(id(idx).strb) = '1' and comm = ENABLE then
+          if to_x01(id(idx).strb) = '1' then
 
             if (id(idx).empty) = '1' then
               od(idx).strb := '1';

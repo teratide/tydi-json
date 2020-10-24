@@ -32,7 +32,7 @@ architecture test_case of JsonRecordParser_tc is
 
   signal out_ready        : std_logic;
   signal out_valid        : std_logic;
-  signal out_data         : std_logic_vector(63 downto 0);
+  signal out_data         : std_logic_vector(64+8-1 downto 0);
   signal out_tag          : std_logic_vector(7 downto 0);
   signal out_empty        : std_logic_vector(7 downto 0);
   signal out_stai         : std_logic_vector(2 downto 0);
@@ -71,7 +71,7 @@ begin
     
     dut: JsonRecordParser
     generic map (
-      EPC     => 8,
+      EPC                       => 8,
       OUTER_NESTING_LEVEL       => 1,
       INNER_NESTING_LEVEL       => 1
     )
@@ -80,11 +80,9 @@ begin
       reset                     => reset,
       in_valid                  => in_valid,
       in_ready                  => in_ready,
-      in_data.data              => in_data,
-      in_data.comm              => ENABLE,
+      in_data                   => in_data,
       in_strb                   => in_strb,
-      out_data.data             => out_data,
-      out_data.tag              => out_tag,
+      out_data                  => out_data,
       out_empty                 => out_empty,
       out_stai                  => out_stai,
       out_endi                  => out_endi,

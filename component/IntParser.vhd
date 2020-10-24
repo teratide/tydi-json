@@ -9,7 +9,7 @@ use work.Json_pkg.all;
 
 entity IntParser is
   generic (
-      EPC : natural := 1;
+      EPC                   : natural := 1;
       NESTING_LEVEL         : natural := 1;
       BITWIDTH              : natural := 8;
       SIGNED                : boolean := false; -- Signed is not supported yet!
@@ -27,7 +27,7 @@ entity IntParser is
       -- )
       in_valid              : in  std_logic;
       in_ready              : out std_logic;
-      in_data               : in  comp_in_t(data(8*EPC-1 downto 0));
+      in_data               : in  std_logic_vector(8*EPC-1 downto 0);
       in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
       in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
@@ -116,8 +116,6 @@ architecture behavioral of IntParser is
           variable iv   : std_logic := '0';
           variable ir   : std_logic := '0';
     
-          variable comm  : comm_t;
-
           variable in_shr  : std_logic_vector(BITWIDTH+(BITWIDTH-4)/3-1 downto 0) := (others => '0');
 
           variable dd_in  : dd_stage_t;
@@ -132,11 +130,9 @@ architecture behavioral of IntParser is
           if to_x01(ir) = '1' then
             iv := in_valid;
             if to_x01(iv) = '1'then
-              comm := in_data.comm;
               for idx in 0 to EPC-1 loop
-                id(idx).data := in_data.data(8*idx+7 downto 8*idx);
+                id(idx).data := in_data(8*idx+7 downto 8*idx);
                 id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
-                comm := in_data.comm;
                 stai := unsigned(in_stai);
                 id(idx).empty := in_empty(idx);
                 id(idx).strb := in_strb(idx);
@@ -162,7 +158,7 @@ architecture behavioral of IntParser is
           dd_in.bin := (others => '0');
 
           for idx in 0 to EPC-1 loop
-            if comm = ENABLE and to_x01(dd_in.valid) = '0' and to_x01(id(idx).strb) = '1' then
+            if to_x01(dd_in.valid) = '0' and to_x01(id(idx).strb) = '1' then
 
               dd_in.last := dd_in.last or id(idx).last(NESTING_LEVEL downto 1);
 

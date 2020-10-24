@@ -64,15 +64,14 @@ begin
     
     dut: BooleanParser
     generic map (
-      EPC     => 8
+      EPC                       => 8
     )
     port map (
       clk                       => clk,
       reset                     => reset,
       in_valid                  => in_valid,
       in_ready                  => in_ready,
-      in_data.data              => in_data,
-      in_data.comm              => ENABLE,
+      in_data                   => in_data,
       in_last(0)                => in_last,
       in_strb                   => in_strb,
       out_data                  => out_data,

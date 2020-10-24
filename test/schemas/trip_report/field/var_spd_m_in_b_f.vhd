@@ -11,15 +11,15 @@ use work.tr_field_pkg.all;
 use work.Json_pkg.all;
 
 
-entity secs_in_b_f is
+entity var_spd_m_in_b_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
       INT_WIDTH                           : natural := 16;
       INT_P_PIPELINE_STAGES               : natural := 1;
       BUFER_DEPTH                         : natural := 1
-    );              
-    port (              
+    );
+    port (
       clk                                 : in  std_logic;
       reset                               : in  std_logic;
 
@@ -40,7 +40,7 @@ entity secs_in_b_f is
     );
 end entity;
 
-architecture arch of secs_in_b_f is
+architecture arch of var_spd_m_in_b_f is
 
   constant BUFF_WIDTH          : integer := EPC*(2 + 8 + OUTER_NESTING_LEVEL+2);
   constant BUFF_DATA_STAI      : integer := 0;
@@ -124,7 +124,7 @@ begin
     out_last                  => filter_last
   );
 
-  matcher_i: secs_in_b_f_m
+  matcher_i: var_spd_m_in_b_f_m
   generic map (
     BPC                       => EPC
   )
@@ -145,7 +145,7 @@ begin
   buff_in_data(BUFF_DATA_ENDI downto BUFF_DATA_STAI)    <= array_data;
   buff_in_data(BUFF_EMPTY_ENDI downto BUFF_EMPTY_STAI)  <= array_empty;
   buff_in_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI)    <= array_strb;
-  buff_in_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI)    <= array_last; 
+  buff_in_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI)    <= array_last;
 
   parser_in_data  <= buff_out_data(BUFF_DATA_ENDI downto BUFF_DATA_STAI);
   parser_in_empty <= buff_out_data(BUFF_EMPTY_ENDI downto BUFF_EMPTY_STAI);
@@ -216,6 +216,6 @@ begin
       out_last                  => out_last,
       out_empty                 => out_empty
     );
-  
+
 
 end arch;

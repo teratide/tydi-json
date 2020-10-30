@@ -19,7 +19,7 @@ end trip_report_tc;
 
 architecture test_case of trip_report_tc is
 
-  constant EPC                   : integer := 8;
+  constant EPC                   : integer := 2;
   constant INTEGER_WIDTH         : integer := 64;
   constant INT_P_PIPELINE_STAGES : integer := 4;
 
@@ -218,7 +218,7 @@ begin
 
     -- TODO: Is there a cleaner solutiuon? It's getting late :(
     adv_last(EPC*2-1 downto 0) <=  std_logic_vector(shift_left(resize(unsigned'("0" & in_last), 
-              EPC*2), to_integer(unsigned(in_endi(log2ceil(EPC)-1 downto 0))*2+1)));
+              EPC*2), to_integer((unsigned(in_endi))*2+1)));
 
     dut: TripReportParser
     generic map (

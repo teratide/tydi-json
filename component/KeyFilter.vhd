@@ -83,9 +83,7 @@ architecture behavioral of KeyFilter is
   signal buff_out_ready          : std_logic;
   signal buff_out_data           : std_logic_vector(BUFF_WIDTH-1 downto 0);
 
-  signal buff_out_dbg            : std_logic_vector(8*EPC-1 downto 0);
-  signal buff_out_last_dbg       : std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0);
-  signal buff_out_strb_dbg       : std_logic_vector(EPC-1 downto 0);
+  signal filter_ready            : std_logic;
 
   begin
 
@@ -105,14 +103,10 @@ architecture behavioral of KeyFilter is
         out_data                => buff_out_data
       );
 
-      buff_out_dbg <= buff_out_data(8*EPC-1 downto 0);
-      buff_out_last_dbg <= buff_out_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI);
-      buff_out_strb_dbg <= buff_out_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI);
-
     in_sync: StreamSync
       generic map (
         NUM_INPUTS              => 1,
-        NUM_OUTPUTS             => 2
+        NUM_OUTPUTS             => 3
       )
       port map (
         clk                     => clk,
@@ -122,7 +116,8 @@ architecture behavioral of KeyFilter is
         out_valid(0)            => buff_in_valid,
         out_valid(1)            => matcher_str_valid,
         out_ready(0)            => buff_in_ready,
-        out_ready(1)            => matcher_str_ready
+        out_ready(1)            => matcher_str_ready,
+        out_ready(2)            => filter_ready
       );
 
     input_interfacing: process (in_data, in_last, in_empty, in_strb) is
@@ -174,8 +169,11 @@ architecture behavioral of KeyFilter is
       variable id : in_array(0 to EPC-1);
       variable bv : std_logic := '0';
       variable mv : std_logic := '0';
+      variable fv : std_logic := '0';
       variable br : std_logic := '0';
       variable mr : std_logic := '0';
+      variable fr : std_logic := '0';
+      
 
   
       -- Output holding register.
@@ -205,6 +203,7 @@ architecture behavioral of KeyFilter is
         -- Latch buffer input holding register.
         if to_x01(br) = '1' then
           bv := buff_out_valid;
+          fv := buff_out_valid;
           for idx in 0 to EPC-1 loop
             id(idx).data  := buff_out_data(BUFF_DATA_STAI+idx*8+7 downto BUFF_DATA_STAI+idx*8);
             id(idx).tag   := buff_out_data(BUFF_TAG_STAI+idx);
@@ -230,12 +229,13 @@ architecture behavioral of KeyFilter is
         -- Do processing when both registers are ready.
         if to_x01(bv) = '1' and to_x01(ov) = '0' then
           bv := '0';
+          fv := '0';
           for idx in 0 to EPC-1 loop
   
             -- Default behavior.
             od(idx).data                                  := id(idx).data;
             od(idx).last(OUTER_NESTING_LEVEL downto 0)    := id(idx).last;
-            od(idx).empty                                 := '0';--id(idx).empty;
+            od(idx).empty                                 := id(idx).empty;
             od(idx).strb                                  := '0';
 
             -- Pass transfers that close out outer dimensions. 
@@ -265,7 +265,6 @@ architecture behavioral of KeyFilter is
                   end if;
                 end if;
               when STATE_MATCH =>
-                bv := '0';
                 if id(idx).strb = '1' and id(idx).tag = '1' then
                   od(idx).strb := '1';
                   od(idx).empty := id(idx).empty;
@@ -275,7 +274,6 @@ architecture behavioral of KeyFilter is
                   end if;
                 end if;
               when STATE_DROP =>
-                bv := '0';
                 if to_x01(mv) = '1' then
                   if to_01(id(idx).match) = '1' and id(idx).tag = '1' then
                     state := STATE_MATCH;
@@ -285,11 +283,7 @@ architecture behavioral of KeyFilter is
                 if id(idx).strb = '1' and id(idx).last(0) = '1' and id(idx).tag = '1' then
                   state := STATE_IDLE;
                 end if;
-                
             end case;
-            
-            
-
           end loop;
           mv := '0';
         end if;
@@ -306,8 +300,10 @@ architecture behavioral of KeyFilter is
         out_valid <= to_x01(ov);
         br := not bv and not reset;
         mr := not mv and not reset;
+        fr := not fv and not reset;
         buff_out_ready <= br;
         matcher_match_ready <= mr;
+        filter_ready <= fr;
         for idx in 0 to EPC-1 loop
           out_data(8*idx+7 downto 8*idx) <= od(idx).data;
           out_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*idx) <= od(idx).last;

@@ -18,7 +18,7 @@ end KeyFilter_tc;
 
 architecture test_case of KeyFilter_tc is
 
-  constant EPC                   : integer := 8;
+  constant EPC                   : integer := 3;
   constant INTEGER_WIDTH         : integer := 64;
   constant INT_P_PIPELINE_STAGES : integer := 4;
 
@@ -102,12 +102,13 @@ begin
       count                     => in_count
     );
 
-    in_strb <= element_mask(in_count, in_dvalid, 8); 
+    in_strb <= element_mask(in_count, in_dvalid, EPC); 
+
     in_endi <= std_logic_vector(unsigned(in_count) - 1);
 
-    -- TODO: Is there a cleaner solution? It's getting late :(
+    -- TODO: Is there a cleaner solutiuon? It's getting late :(
     adv_last(EPC*2-1 downto 0) <=  std_logic_vector(shift_left(resize(unsigned'("0" & in_last), 
-                                                                EPC*2), to_integer(unsigned(in_endi(log2ceil(EPC)-1 downto 0))*2+1)));
+              EPC*2), to_integer((unsigned(in_endi))*2+1)));
     
     record_parser: JsonRecordParser
     generic map (
@@ -244,10 +245,10 @@ begin
     a.push_str(" ,}");
     -- a.push_str("{ ");
     -- a.push_str(" ""voltage"" : 22");
-    -- a.push_str(" ,} ");
+    -- a.push_str(" ,}");
     a.push_str("{ ");
     a.push_str(" ""voltages1"" : 123456,");
-    a.push_str(" ""voltages2"" : 123456,");
+    a.push_str(" ""voltages2  "" : 123456,");
     a.push_str(" ""voltage"" : 22,");
     a.push_str(" ""voltages3"" : 123456,");
     a.push_str(" ""voltages4"" : 123456,");
@@ -276,7 +277,7 @@ begin
     if b.cq_get_last = '0' then
       b.cq_next;
     end if;
-    --tc_check(b.cq_get_last, '1', "Outermost nesting level last");
+    tc_check(b.cq_get_last, '1', "Outermost nesting level last");
 
 
     tc_pass;

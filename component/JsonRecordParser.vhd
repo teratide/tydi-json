@@ -69,7 +69,7 @@ begin
     type in_type is record
       data  : std_logic_vector(7 downto 0);
       last  : std_logic_vector(OUTER_NESTING_LEVEL-1 downto 0);
-      empty : std_logic;
+    --  empty : std_logic;
       strb  : std_logic;
     end record;
 
@@ -83,7 +83,7 @@ begin
       data  : std_logic_vector(7 downto 0);
       tag   : std_logic;
       last  : std_logic_vector(OUTER_NESTING_LEVEL+1 downto 0);
-      empty : std_logic;
+    --  empty : std_logic;
       strb  : std_logic;
     end record;
 
@@ -130,7 +130,7 @@ begin
         for idx in 0 to EPC-1 loop
           id(idx).data  := in_data(8*idx+7 downto 8*idx);
           id(idx).last  := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*(idx)+1);
-          id(idx).empty := in_empty(idx);
+        --  id(idx).empty := in_empty(idx);
           id(idx).strb  := in_strb(idx);
           if idx < unsigned(in_stai) then
             id(idx).strb := '0';
@@ -155,7 +155,7 @@ begin
           od(idx).data                                  := id(idx).data;
           od(idx).tag                                   := '0';
           od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)  := id(idx).last & "00";
-          od(idx).empty                                 := id(idx).empty;
+        --  od(idx).empty                                 := id(idx).empty;
           od(idx).strb                                  := '0';
           end_ack_i                                     := '0';
           
@@ -164,10 +164,10 @@ begin
           -- Element-wise processing only when the lane is valid.
           if to_x01(id(idx).strb) = '1' then
 
-            if (id(idx).empty) = '1' then
-              od(idx).strb := '1';
-              ov := '1';
-            end if;
+            -- if (id(idx).empty) = '1' then
+            --   od(idx).strb := '1';
+            --   ov := '1';
+            -- end if;
 
             -- Keep track of nesting.
             case id(idx).data is
@@ -205,8 +205,8 @@ begin
                   when X"7D" => -- '}'
                     --od(idx).last(0) := '1';
                     od(idx).last(1) := '1';
-                    od(idx).empty   := '1';
-                    od(idx).strb    := '1';
+                  --  od(idx).empty   := '1';
+                    od(idx).strb    := '0';
                     ov              := '1'; 
                     if end_req_i = '1' then
                       end_ack_i := '1';
@@ -224,7 +224,9 @@ begin
                   when X"22" => -- '"'
                     state := STATE_RECORD;
                     od(idx).last(0) := '1';
-                    od(idx).empty   := '1';
+                  --  od(idx).empty   := '1';
+                  --- !!!
+                  od(idx).strb   := '0';
                   when others =>
                     ov := '1';
                     state := STATE_KEY;
@@ -239,14 +241,18 @@ begin
                     if nesting_origo = '1' then
                       state := STATE_RECORD;
                       od(idx).last(0) := '1';
-                      od(idx).empty   := '1';
+                    --  od(idx).empty   := '1';
+                    --- !!!
+                    od(idx).strb   := '0';
                     end if;
                   when X"7D" => -- '}'
                     if nesting_origo = '1' then
                       state := STATE_IDLE;   
                       od(idx).last(0) := '1';
                       od(idx).last(1) := '1';
-                      od(idx).empty   := '1';     
+                    --  od(idx).empty   := '1';
+                    --- !!!
+                    od(idx).strb   := '0';     
                       if end_req_i = '1' then
                         end_ack_i := '1';
                         od(idx).last(2) := '1';
@@ -289,7 +295,7 @@ begin
         out_data(OUT_DATA_STAI+8*idx+7 downto OUT_DATA_STAI+8*idx) <= od(idx).data;
         out_data(OUT_TAG_STAI+idx) <= od(idx).tag;
         out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= od(idx).last;
-        out_empty(idx) <= od(idx).empty;
+      --  out_empty(idx) <= od(idx).empty;
         out_stai <= (others => '0');--std_logic_vector(stai);
         out_endi <= (others => '1');--std_logic_vector(endi);
         out_strb(idx) <= od(idx).strb;

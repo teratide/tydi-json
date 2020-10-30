@@ -234,28 +234,25 @@ architecture behavioral of KeyFilter is
   
             -- Default behavior.
             od(idx).data                                  := id(idx).data;
-            od(idx).last(OUTER_NESTING_LEVEL downto 0)    := id(idx).last;
-            od(idx).empty                                 := id(idx).empty;
+            od(idx).last(OUTER_NESTING_LEVEL downto 0)    := id(idx).last(OUTER_NESTING_LEVEL downto 1)  & "0";
+            --od(idx).empty                                 := id(idx).empty;
             od(idx).strb                                  := '0';
 
             -- Pass transfers that close out outer dimensions. 
-            if id(idx).strb = '1' and or_reduce(id(idx).last(OUTER_NESTING_LEVEL downto 1)) = '1' then
-              od(idx).strb := '1';
-              od(idx).empty := '1';
+            if or_reduce(id(idx).last(OUTER_NESTING_LEVEL downto 1)) = '1' then
               ov := '1';
             end if;
 
-            if to_x01(mv) = '1' then
-              od(idx).empty := '1';
-            end if;
 
+            od(idx).empty := '0';
             case state is
               when STATE_IDLE =>
                 -- If we get an innermost last in a key, that's gonna trigger the matcher, so keep it.
-                if id(idx).strb = '1' and id(idx).last(0) = '1' and id(idx).tag = '0' then
+                if id(idx).last(0) = '1' and id(idx).tag = '0' then
                   bv := '1';
                   if to_x01(mv) = '1' then
-                    if to_01(id(idx).match) = '1'then
+                    od(idx).empty := id(idx).match;
+                    if to_x01(id(idx).match) = '1' then
                       bv := '0';
                       state := STATE_MATCH;
                     else
@@ -265,22 +262,15 @@ architecture behavioral of KeyFilter is
                   end if;
                 end if;
               when STATE_MATCH =>
-                if id(idx).strb = '1' and id(idx).tag = '1' then
-                  od(idx).strb := '1';
-                  od(idx).empty := id(idx).empty;
-                  ov := '1';
-                  if id(idx).last(0) = '1' then
-                    state := STATE_IDLE;
-                  end if;
+                ov := '1';
+                od(idx).strb := id(idx).strb;
+                if id(idx).last(0) = '1' then
+                  state := STATE_IDLE;
+                  od(idx).strb := '0';
+                  od(idx).last(0) := '1';
                 end if;
               when STATE_DROP =>
-                if to_x01(mv) = '1' then
-                  if to_01(id(idx).match) = '1' and id(idx).tag = '1' then
-                    state := STATE_MATCH;
-                  end if;
-                end if;                
-                
-                if id(idx).strb = '1' and id(idx).last(0) = '1' and id(idx).tag = '1' then
+                if id(idx).last(0) = '1' and id(idx).tag = '1' then
                   state := STATE_IDLE;
                 end if;
             end case;

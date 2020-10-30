@@ -67,7 +67,7 @@ begin
     -- Input holding register.
     type in_type is record
       data  : std_logic_vector(7 downto 0);
-      empty : std_logic;
+    --  empty : std_logic;
       --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
       last  : std_logic_vector(OUTER_NESTING_LEVEL-1 downto 0);
       strb  : std_logic;
@@ -83,7 +83,7 @@ begin
       data  : std_logic_vector(7 downto 0);
       --last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
       last  : std_logic_vector(OUTER_NESTING_LEVEL+1 downto 0);
-      empty : std_logic;
+    --  empty : std_logic;
       strb  : std_logic;
     end record;
 
@@ -120,7 +120,7 @@ begin
         endi      := to_unsigned(EPC-1, endi'length);
         for idx in 0 to EPC-1 loop
           id(idx).data := in_data(8*idx+7 downto 8*idx);
-          id(idx).empty:= in_empty(idx);
+        --  id(idx).empty:= in_empty(idx);
           id(idx).last := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*idx+1);
           if idx < unsigned(in_stai) then
             id(idx).strb := '0';
@@ -149,16 +149,16 @@ begin
           -- Default behavior.
           od(idx).data       := id(idx).data;
           od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)   := id(idx).last & "00";
-          od(idx).empty      := id(idx).empty;
+        --  od(idx).empty      := id(idx).empty;
           od(idx).strb       := '0';
           
           -- Element-wise processing only when the lane is valid.
           if to_x01(id(idx).strb) = '1' then
 
-            if (id(idx).empty) = '1' then
-              od(idx).strb := '1';
-              ov := '1';
-            end if;
+            -- if (id(idx).empty) = '1' then
+            --   od(idx).strb := '1';
+            --   ov := '1';
+            -- end if;
 
             -- Keep track of nesting.
             case id(idx).data is
@@ -199,14 +199,18 @@ begin
                       --element_counter := element_counter+1;
                       od(idx).last(0) := '1';
                       od(idx).last(1) := '1';
-                      od(idx).empty   := '1';
+                     -- od(idx).empty   := '1';
+                     --- !!!
+                    od(idx).strb   := '0';
                     end if;
                   when X"2C" => -- ','
                     if or_reduce(nesting_inner) = '0' then
                       state := STATE_ARRAY;
                       --element_counter := element_counter+1;
                       od(idx).last(0) := '1';
-                      od(idx).empty   := '1';
+                    --  od(idx).empty   := '1';
+                    --- !!!
+                    od(idx).strb   := '0';
                     end if;
                   when others =>
                     state := STATE_ARRAY;
@@ -240,7 +244,7 @@ begin
       for idx in 0 to EPC-1 loop
         out_data(8*idx+7 downto 8*idx) <= od(idx).data;
         out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= od(idx).last;
-        out_empty(idx) <= od(idx).empty;
+      --  out_empty(idx) <= od(idx).empty;
         out_stai <= std_logic_vector(stai);
         out_endi <= std_logic_vector(endi);
         out_strb(idx) <= od(idx).strb;

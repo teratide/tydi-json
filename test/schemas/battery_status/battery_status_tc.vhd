@@ -24,7 +24,7 @@ architecture test_case of battery_status_tc is
 
   constant EPC                   : integer := 2;
   constant INTEGER_WIDTH         : integer := 64;
-  constant INT_P_PIPELINE_STAGES : integer := 4;
+  constant INT_P_PIPELINE_STAGES : integer := 1;
 
   signal in_valid         : std_logic;
   signal in_ready         : std_logic;
@@ -77,7 +77,7 @@ begin
 
     -- TODO: Is there a cleaner solutiuon? It's getting late :(
     adv_last(EPC*2-1 downto 0) <=  std_logic_vector(shift_left(resize(unsigned'("0" & in_last), 
-              EPC*2), to_integer(unsigned(in_endi(log2ceil(EPC)-1 downto 0))*2+1)));
+              EPC*2), to_integer(unsigned(in_endi)*2+1)));
 
     record_parser_i: BattSchemaParser
     generic map (
@@ -128,7 +128,7 @@ begin
     a.initialize("a");
     b.initialize("b");
 
-    a.push_str("{""values"" : [11 , 22]} {""valuessss"": [33 , 44]}{""values"" : [55 , 66]}{""values"" : [77 , 88, 99 ]}");
+    a.push_str("{""values"" : [11 , 22 ]} {""valuessss"": [33 , 44 ]}{""values"" : [55 , 66]}{""values"" : [77 , 88, 99 ]}");
     a.transmit;
     b.unblock;
 

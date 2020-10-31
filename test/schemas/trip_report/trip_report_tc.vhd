@@ -19,7 +19,7 @@ end trip_report_tc;
 
 architecture test_case of trip_report_tc is
 
-  constant EPC                   : integer := 3;
+  constant EPC                   : integer := 2;
   constant INTEGER_WIDTH         : integer := 64;
   constant INT_P_PIPELINE_STAGES : integer := 4;
 

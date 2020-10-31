@@ -269,6 +269,10 @@ architecture arch of TripReportParser is
   signal rec_empty        : std_logic_vector(EPC-1 downto 0);
   signal rec_last         : std_logic_vector(EPC*3-1 downto 0);
 
+  signal tag_dbg : std_logic_vector(EPC-1 downto 0);
+
+  
+
   
   -- 
   -- INTEGER FIELDS
@@ -340,6 +344,9 @@ architecture arch of TripReportParser is
   signal timestamp_i_ready        : std_logic;
 
 begin
+
+
+  tag_dbg <= rec_data(EPC + EPC*8-1 downto EPC*8);
 
   -- Main record parser
   record_parser_i: JsonRecordParser

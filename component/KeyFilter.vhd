@@ -72,6 +72,7 @@ architecture behavioral of KeyFilter is
   signal matcher_match_s         : std_logic_vector(EPC-1 downto 0);
 
   signal buff_in_valid           : std_logic;
+  signal buff_in_valid_t          : std_logic;
   signal buff_in_ready           : std_logic;
   signal buff_in_data            : std_logic_vector(BUFF_WIDTH-1 downto 0);
 
@@ -80,10 +81,6 @@ architecture behavioral of KeyFilter is
   signal buff_out_data           : std_logic_vector(BUFF_WIDTH-1 downto 0);
 
   signal filter_ready            : std_logic;
-
-  signal idle : std_logic_vector(EPC-1 downto 0);
-  signal drop : std_logic_vector(EPC-1 downto 0);
-  signal match : std_logic_vector(EPC-1 downto 0);
 
   begin
 
@@ -95,7 +92,7 @@ architecture behavioral of KeyFilter is
       port map (
         clk                     => clk,
         reset                   => reset,
-        in_valid                => buff_in_valid,
+        in_valid                => buff_in_valid_t,
         in_ready                => buff_in_ready,
         in_data                 => buff_in_data,
         out_valid               => buff_out_valid,
@@ -120,7 +117,7 @@ architecture behavioral of KeyFilter is
         out_ready(2)            => filter_ready
       );
 
-    input_interfacing: process (in_data, in_last, in_strb) is
+    input_interfacing: process (in_data, in_last, in_strb, buff_in_valid) is
       variable strb         :  std_logic_vector(EPC-1 downto 0);
       variable last         :  std_logic_vector(EPC-1 downto 0);
       variable in_data_f    :  std_logic_vector(EPC*8-1 downto 0);
@@ -146,9 +143,12 @@ architecture behavioral of KeyFilter is
       buff_in_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI)    <= strb;
       buff_in_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI)    <= in_last;
 
+
       matcher_str_data <= to_stdlogicvector(to_bitvector(in_data(IN_DATA_ENDI downto IN_DATA_STAI))); -- Metavalue wanings fix. VERY DIRTY!!!
       matcher_str_mask <= strb and (not in_tag_f);
       matcher_str_last <= last and (not in_tag_f);
+
+      buff_in_valid_t <= buff_in_valid and (or_reduce(in_tag_f) or or_reduce(in_last));
     end process;
 
     filter_proc: process (clk) is
@@ -196,9 +196,6 @@ architecture behavioral of KeyFilter is
     begin
     
       if rising_edge(clk) then
-        idle <= (others => '0');
-        match <= (others => '0');
-        drop <= (others => '0');
   
         -- Latch buffer input holding register.
         if to_x01(br) = '1' then
@@ -243,7 +240,6 @@ architecture behavioral of KeyFilter is
 
             case state is
               when STATE_IDLE =>
-              idle(idx) <= '1';
                 -- If we get an innermost last in a key, that's gonna trigger the matcher, so keep it.
                 if id(idx).last(0) = '1' and id(idx).tag = '0' then
                   bv := '1';
@@ -258,16 +254,14 @@ architecture behavioral of KeyFilter is
                   end if;
                 end if;
               when STATE_MATCH =>
-              match(idx) <= '1';
                 ov := '1';
                 od(idx).strb := id(idx).strb;
-                if id(idx).last(0) = '1' then
+                if id(idx).last(0) = '1' and id(idx).tag = '1' then
                   state := STATE_IDLE;
                   od(idx).strb := '0';
                   od(idx).last(0) := '1';
                 end if;
               when STATE_DROP =>
-              drop(idx) <= '1';
                 if id(idx).last(0) = '1' and id(idx).tag = '1' then
                   state := STATE_IDLE;
                 end if;

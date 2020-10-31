@@ -29,7 +29,6 @@ entity BattSchemaParser is
       in_ready              : out std_logic;
       in_data               : in  std_logic_vector(8*EPC-1 downto 0);
       in_last               : in  std_logic_vector(2*EPC-1 downto 0);
-      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
       in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
       in_strb               : in  std_logic_vector(EPC-1 downto 0);
@@ -47,7 +46,7 @@ entity BattSchemaParser is
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
       out_data              : out std_logic_vector(INT_WIDTH-1 downto 0);
-      out_empty             : out std_logic;
+      out_strb              : out std_logic;
       out_last              : out std_logic_vector(2 downto 0)
 
   );
@@ -63,7 +62,6 @@ architecture arch of BattSchemaParser is
   signal kv_stai         : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal kv_endi         : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal kv_strb         : std_logic_vector(EPC-1 downto 0);
-  signal kv_empty        : std_logic_vector(EPC-1 downto 0);
   signal kv_last         : std_logic_vector(EPC*3-1 downto 0);
 
   signal array_ready        : std_logic;
@@ -72,7 +70,6 @@ architecture arch of BattSchemaParser is
   signal array_stai         : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal array_endi         : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal array_strb         : std_logic_vector(EPC-1 downto 0);
-  signal array_empty        : std_logic_vector(EPC-1 downto 0);
   signal array_last         : std_logic_vector(EPC*4-1 downto 0);
  
   
@@ -92,7 +89,6 @@ begin
       in_data                     => in_data,
       in_strb                     => in_strb,
       in_last                     => in_last,
-      in_empty                    => in_empty,
       in_stai                     => in_stai,
       in_endi                     => in_endi,
       out_data                    => kv_vec,
@@ -101,8 +97,7 @@ begin
       out_ready                   => kv_ready,
       out_valid                   => kv_valid,
       out_strb                    => kv_strb,
-      out_last                    => kv_last,
-      out_empty                   => kv_empty
+      out_last                    => kv_last
     );
 
     kv_data <= kv_vec(EPC*8-1 downto 0);
@@ -121,15 +116,13 @@ begin
       in_data                   => kv_data,
       in_last                   => kv_last,
       in_strb                   => kv_strb,
-      in_empty                  => kv_empty,
       out_data                  => array_data,
       out_valid                 => array_valid,
       out_ready                 => array_ready,
       out_last                  => array_last,
       out_stai                  => array_stai,
       out_endi                  => array_endi,
-      out_strb                  => array_strb,
-      out_empty                 => array_empty
+      out_strb                  => array_strb
     );
 
     intparser_i: IntParser
@@ -147,12 +140,11 @@ begin
       in_data                   => array_data,
       in_last                   => array_last,
       in_strb                   => array_strb,
-      in_empty                  => array_empty,
       out_data                  => out_data,
       out_valid                 => out_valid,
       out_ready                 => out_ready,
       out_last                  => out_last,
-      out_empty                 => out_empty
+      out_strb                  => out_strb
     );
 
 

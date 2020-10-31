@@ -62,7 +62,6 @@ architecture test_case of KeyFilter_tc is
   signal filter_valid          : std_logic;
   signal filter_data           : std_logic_vector(EPC*8-1 downto 0);
   signal filter_tag            : std_logic_vector(EPC-1 downto 0);
-  signal filter_empty          : std_logic_vector(EPC-1 downto 0);
   signal filter_stai           : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal filter_endi           : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal filter_strb           : std_logic_vector(EPC-1 downto 0);
@@ -71,7 +70,7 @@ architecture test_case of KeyFilter_tc is
 
   signal out_ready             : std_logic;
   signal out_valid             : std_logic;
-  signal out_empty             : std_logic;
+  signal out_strb              : std_logic;
   signal out_dvalid            : std_logic;
   signal out_data              : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal out_last              : std_logic_vector(1 downto 0);
@@ -128,7 +127,6 @@ begin
       out_ready                 => rec_ready,
       out_strb                  => rec_strb,
       out_data                  => rec_vec,
-      out_empty                 => rec_empty,
       out_last                  => rec_last,
       out_stai                  => rec_stai,
       out_endi                  => rec_endi
@@ -148,7 +146,6 @@ begin
       in_valid                  => rec_valid,
       in_ready                  => rec_ready,
       in_data                   => rec_vec,
-      in_empty                  => rec_empty,
       in_strb                   => rec_strb,
       in_last                   => rec_last,
       matcher_str_valid         => matcher_str_valid,
@@ -162,7 +159,6 @@ begin
       out_valid                 => filter_valid,
       out_ready                 => filter_ready,
       out_data                  => filter_data,
-      out_empty                 => filter_empty,
       out_strb                  => filter_strb,
       out_stai                  => filter_stai,
       out_endi                  => filter_endi,
@@ -202,15 +198,14 @@ begin
       in_data                   => filter_data,
       in_last                   => filter_last,
       in_strb                   => filter_strb,
-      in_empty                  => filter_empty,
       out_data                  => out_data,
       out_valid                 => out_valid,
       out_ready                 => out_ready,
       out_last                  => out_last,
-      out_empty                 => out_empty
+      out_strb                  => out_strb
     );
 
-    out_dvalid <= not out_empty;
+    out_dvalid <= out_strb;
 
     out_sink: StreamSink_mdl
     generic map (

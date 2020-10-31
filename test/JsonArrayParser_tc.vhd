@@ -33,7 +33,6 @@ architecture test_case of JsonArrayParser_tc is
   signal out_valid        : std_logic;
   signal out_data         : std_logic_vector(63 downto 0);
   signal out_tag          : std_logic_vector(7 downto 0);
-  signal out_empty        : std_logic_vector(7 downto 0);
   signal out_stai         : std_logic_vector(2 downto 0);
   signal out_endi         : std_logic_vector(2 downto 0);
   signal aligned_data     : std_logic_vector(63 downto 0);
@@ -78,7 +77,6 @@ begin
       in_valid                  => in_valid,
       in_ready                  => in_ready,
       in_data                   => in_data,
-      out_empty                 => out_empty,
       in_strb                   => in_strb,
       out_data                  => out_data,
       out_stai                  => out_stai,

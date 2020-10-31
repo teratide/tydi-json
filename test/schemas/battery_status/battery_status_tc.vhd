@@ -40,8 +40,8 @@ architecture test_case of battery_status_tc is
 
   signal out_ready       : std_logic;
   signal out_valid       : std_logic;
-  signal out_empty       : std_logic;
   signal out_dvalid      : std_logic;
+  signal out_strb        : std_logic;
   signal out_data        : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal out_last        : std_logic_vector(2 downto 0);
 
@@ -98,10 +98,10 @@ begin
       out_valid                 => out_valid,
       out_ready                 => out_ready,
       out_last                  => out_last,
-      out_empty                 => out_empty
+      out_strb                  => out_strb
     );
 
-    out_dvalid <= not out_empty;
+    out_dvalid <= out_strb;
 
     out_sink: StreamSink_mdl
     generic map (

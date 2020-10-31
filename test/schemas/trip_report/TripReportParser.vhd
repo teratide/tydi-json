@@ -113,7 +113,6 @@ entity TripReportParser is
     in_ready                                : out std_logic;
     in_data                                 : in  std_logic_vector(8*EPC-1 downto 0);
     in_last                                 : in  std_logic_vector(2*EPC-1 downto 0);
-    in_empty                                : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
     in_stai                                 : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
     in_endi                                 : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
     in_strb                                 : in  std_logic_vector(EPC-1 downto 0);
@@ -124,7 +123,7 @@ entity TripReportParser is
     timezone_valid                          : out std_logic;
     timezone_ready                          : in  std_logic;
     timezone_data                           : out std_logic_vector(TIMEZONE_INT_WIDTH-1 downto 0);
-    timezone_empty                          : out std_logic;
+    timezone_strb                           : out std_logic;
     timezone_last                           : out std_logic_vector(1 downto 0);
 
     --    
@@ -133,31 +132,31 @@ entity TripReportParser is
     vin_valid                               : out std_logic;
     vin_ready                               : in  std_logic;
     vin_data                                : out std_logic_vector(VIN_INT_WIDTH-1 downto 0);
-    vin_empty                               : out std_logic;
+    vin_strb                                : out std_logic;
     vin_last                                : out std_logic_vector(1 downto 0);
 
     odometer_valid                          : out std_logic;
     odometer_ready                          : in  std_logic;
     odometer_data                           : out std_logic_vector(ODOMETER_INT_WIDTH-1 downto 0);
-    odometer_empty                          : out std_logic;
+    odometer_strb                           : out std_logic;
     odometer_last                           : out std_logic_vector(1 downto 0);
 
     avg_speed_valid                         : out std_logic;
     avg_speed_ready                         : in  std_logic;
     avg_speed_data                          : out std_logic_vector(AVG_SPEED_INT_WIDTH-1 downto 0);
-    avg_speed_empty                         : out std_logic;
+    avg_speed_strb                          : out std_logic;
     avg_speed_last                          : out std_logic_vector(1 downto 0);
 
     s_acc_dec_valid                         : out std_logic;
     s_acc_dec_ready                         : in  std_logic;
     s_acc_dec_data                          : out std_logic_vector(S_ACC_DEC_INT_WIDTH-1 downto 0);
-    s_acc_dec_empty                         : out std_logic;
+    s_acc_dec_strb                          : out std_logic;
     s_acc_dec_last                          : out std_logic_vector(1 downto 0);
 
     e_spd_chg_valid                         : out std_logic;
     e_spd_chg_ready                         : in  std_logic;
     e_spd_chg_data                          : out std_logic_vector(E_SPD_CHG_INT_WIDTH-1 downto 0);
-    e_spd_chg_empty                         : out std_logic;
+    e_spd_chg_strb                          : out std_logic;
     e_spd_chg_last                          : out std_logic_vector(1 downto 0);
 
     --    
@@ -166,13 +165,13 @@ entity TripReportParser is
     hyper_miling_valid                      : out std_logic;
     hyper_miling_ready                      : in  std_logic;
     hyper_miling_data                       : out std_logic;
-    hyper_miling_empty                      : out std_logic;
+    hyper_miling_strb                       : out std_logic;
     hyper_miling_last                       : out std_logic_vector(1 downto 0);
 
     orientation_valid                       : out std_logic;
     orientation_ready                       : in  std_logic;
     orientation_data                        : out std_logic;
-    orientation_empty                       : out std_logic;
+    orientation_strb                        : out std_logic;
     orientation_last                        : out std_logic_vector(1 downto 0);
 
     --    
@@ -181,69 +180,69 @@ entity TripReportParser is
     secs_in_b_valid                         : out std_logic;
     secs_in_b_ready                         : in  std_logic;
     secs_in_b_data                          : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    secs_in_b_empty                         : out std_logic;
+    secs_in_b_strb                          : out std_logic;
     secs_in_b_last                          : out std_logic_vector(2 downto 0);
 
     miles_in_time_valid                     : out std_logic;
     miles_in_time_ready                     : in  std_logic;
     miles_in_time_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    miles_in_time_empty                     : out std_logic;
+    miles_in_time_strb                      : out std_logic;
     miles_in_time_last                      : out std_logic_vector(2 downto 0);
 
 
     const_spd_m_in_b_valid                  : out std_logic;
     const_spd_m_in_b_ready                  : in  std_logic;
     const_spd_m_in_b_data                   : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    const_spd_m_in_b_empty                  : out std_logic;
+    const_spd_m_in_b_strb                   : out std_logic;
     const_spd_m_in_b_last                   : out std_logic_vector(2 downto 0);
 
 
     var_spd_m_in_b_valid                    : out std_logic;
     var_spd_m_in_b_ready                    : in  std_logic;
     var_spd_m_in_b_data                     : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    var_spd_m_in_b_empty                    : out std_logic;
+    var_spd_m_in_b_strb                     : out std_logic;
     var_spd_m_in_b_last                     : out std_logic_vector(2 downto 0);
 
 
     seconds_decel_valid                     : out std_logic;
     seconds_decel_ready                     : in  std_logic;
     seconds_decel_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    seconds_decel_empty                     : out std_logic;
+    seconds_decel_strb                      : out std_logic;
     seconds_decel_last                      : out std_logic_vector(2 downto 0);
 
 
     seconds_accel_valid                     : out std_logic;
     seconds_accel_ready                     : in  std_logic;
     seconds_accel_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    seconds_accel_empty                     : out std_logic;
+    seconds_accel_strb                      : out std_logic;
     seconds_accel_last                      : out std_logic_vector(2 downto 0);
 
 
     brk_m_t_10s_valid                       : out std_logic;
     brk_m_t_10s_ready                       : in  std_logic;
     brk_m_t_10s_data                        : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    brk_m_t_10s_empty                       : out std_logic;
+    brk_m_t_10s_strb                        : out std_logic;
     brk_m_t_10s_last                        : out std_logic_vector(2 downto 0);
 
 
     accel_m_t_10s_valid                     : out std_logic;
     accel_m_t_10s_ready                     : in  std_logic;
     accel_m_t_10s_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    accel_m_t_10s_empty                     : out std_logic;
+    accel_m_t_10s_strb                      : out std_logic;
     accel_m_t_10s_last                      : out std_logic_vector(2 downto 0);
 
 
     small_spd_v_m_valid                     : out std_logic;
     small_spd_v_m_ready                     : in  std_logic;
     small_spd_v_m_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    small_spd_v_m_empty                     : out std_logic;
+    small_spd_v_m_strb                      : out std_logic;
     small_spd_v_m_last                      : out std_logic_vector(2 downto 0);
 
 
     large_spd_v_m_valid                     : out std_logic;
     large_spd_v_m_ready                     : in  std_logic;
     large_spd_v_m_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    large_spd_v_m_empty                     : out std_logic;
+    large_spd_v_m_strb                      : out std_logic;
     large_spd_v_m_last                      : out std_logic_vector(2 downto 0);
 
     --    
@@ -253,7 +252,6 @@ entity TripReportParser is
     timestamp_ready                         : in  std_logic;
     timestamp_data                          : out std_logic_vector(8*EPC-1 downto 0);
     timestamp_last                          : out std_logic_vector(3*EPC-1 downto 0);
-    timestamp_empty                         : out std_logic_vector(EPC-1 downto 0) := (others => '0');
     timestamp_stai                          : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
     timestamp_endi                          : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
     timestamp_strb                          : out std_logic_vector(EPC-1 downto 0)
@@ -359,7 +357,6 @@ begin
       in_data                     => in_data,
       in_strb                     => in_strb,
       in_last                     => in_last,
-      in_empty                    => in_empty,
       in_stai                     => in_stai,
       in_endi                     => in_endi,
       out_data                    => rec_data,
@@ -368,8 +365,7 @@ begin
       out_ready                   => rec_ready,
       out_valid                   => rec_valid,
       out_strb                    => rec_strb,
-      out_last                    => rec_last,
-      out_empty                   => rec_empty
+      out_last                    => rec_last  
     );
 
   sync_i: StreamSync
@@ -441,13 +437,12 @@ begin
       in_ready              => timezone_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => timezone_valid,
       out_ready             => timezone_ready,
       out_data              => timezone_data,
-      out_empty             => timezone_empty,
-      out_last              => timezone_last
+      out_last              => timezone_last,
+      out_strb              => timezone_strb
     );
 
     vin_f_i: vin_f
@@ -465,12 +460,11 @@ begin
       in_ready              => vin_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => vin_valid,
       out_ready             => vin_ready,
       out_data              => vin_data,
-      out_empty             => vin_empty,
+      out_strb              => vin_strb,
       out_last              => vin_last
     );
 
@@ -489,12 +483,11 @@ begin
       in_ready              => odometer_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => odometer_valid,
       out_ready             => odometer_ready,
       out_data              => odometer_data,
-      out_empty             => odometer_empty,
+      out_strb              => odometer_strb,
       out_last              => odometer_last
     );
 
@@ -513,12 +506,11 @@ begin
       in_ready              => avg_speed_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => avg_speed_valid,
       out_ready             => avg_speed_ready,
       out_data              => avg_speed_data,
-      out_empty             => avg_speed_empty,
+      out_strb              => avg_speed_strb,
       out_last              => avg_speed_last
     );
 
@@ -537,12 +529,11 @@ begin
       in_ready              => s_acc_dec_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => s_acc_dec_valid,
       out_ready             => s_acc_dec_ready,
       out_data              => s_acc_dec_data,
-      out_empty             => s_acc_dec_empty,
+      out_strb              => s_acc_dec_strb,
       out_last              => s_acc_dec_last
     );
 
@@ -561,12 +552,11 @@ begin
       in_ready              => e_spd_chg_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => e_spd_chg_valid,
       out_ready             => e_spd_chg_ready,
       out_data              => e_spd_chg_data,
-      out_empty             => e_spd_chg_empty,
+      out_strb              => e_spd_chg_strb,
       out_last              => e_spd_chg_last
     );
 
@@ -583,12 +573,11 @@ begin
       in_ready              => hyper_miling_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => hyper_miling_valid,
       out_ready             => hyper_miling_ready,
       out_data              => hyper_miling_data,
-      out_empty             => hyper_miling_empty,
+      out_strb              => hyper_miling_strb,
       out_last              => hyper_miling_last
     );
 
@@ -605,12 +594,11 @@ begin
       in_ready              => orientation_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => orientation_valid,
       out_ready             => orientation_ready,
       out_data              => orientation_data,
-      out_empty             => orientation_empty,
+      out_strb              => orientation_strb,
       out_last              => orientation_last
     );
 
@@ -629,12 +617,11 @@ begin
       in_ready              => secs_in_b_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => secs_in_b_valid,
       out_ready             => secs_in_b_ready,
       out_data              => secs_in_b_data,
-      out_empty             => secs_in_b_empty,
+      out_strb              => secs_in_b_strb,
       out_last              => secs_in_b_last
     );
 
@@ -653,12 +640,11 @@ begin
       in_ready              => miles_in_time_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => miles_in_time_valid,
       out_ready             => miles_in_time_ready,
       out_data              => miles_in_time_data,
-      out_empty             => miles_in_time_empty,
+      out_strb              => miles_in_time_strb,
       out_last              => miles_in_time_last
     );
 
@@ -677,12 +663,11 @@ begin
       in_ready              => const_spd_m_in_b_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => const_spd_m_in_b_valid,
       out_ready             => const_spd_m_in_b_ready,
       out_data              => const_spd_m_in_b_data,
-      out_empty             => const_spd_m_in_b_empty,
+      out_strb              => const_spd_m_in_b_strb,
       out_last              => const_spd_m_in_b_last
     );
 
@@ -701,12 +686,11 @@ begin
       in_ready              => var_spd_m_in_b_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => var_spd_m_in_b_valid,
       out_ready             => var_spd_m_in_b_ready,
       out_data              => var_spd_m_in_b_data,
-      out_empty             => var_spd_m_in_b_empty,
+      out_strb              => var_spd_m_in_b_strb,
       out_last              => var_spd_m_in_b_last
     );
 
@@ -725,12 +709,11 @@ begin
       in_ready              => seconds_decel_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => seconds_decel_valid,
       out_ready             => seconds_decel_ready,
       out_data              => seconds_decel_data,
-      out_empty             => seconds_decel_empty,
+      out_strb              => seconds_decel_strb,
       out_last              => seconds_decel_last
     );
 
@@ -749,12 +732,11 @@ begin
       in_ready              => seconds_accel_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => seconds_accel_valid,
       out_ready             => seconds_accel_ready,
       out_data              => seconds_accel_data,
-      out_empty             => seconds_accel_empty,
+      out_strb              => seconds_accel_strb,
       out_last              => seconds_accel_last
     );
 
@@ -773,12 +755,11 @@ begin
       in_ready              => brk_m_t_10s_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => brk_m_t_10s_valid,
       out_ready             => brk_m_t_10s_ready,
       out_data              => brk_m_t_10s_data,
-      out_empty             => brk_m_t_10s_empty,
+      out_strb              => brk_m_t_10s_strb,
       out_last              => brk_m_t_10s_last
     );
 
@@ -797,12 +778,11 @@ begin
       in_ready              => accel_m_t_10s_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => accel_m_t_10s_valid,
       out_ready             => accel_m_t_10s_ready,
       out_data              => accel_m_t_10s_data,
-      out_empty             => accel_m_t_10s_empty,
+      out_strb              => accel_m_t_10s_strb,
       out_last              => accel_m_t_10s_last
     );
 
@@ -821,12 +801,11 @@ begin
       in_ready              => small_spd_v_m_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => small_spd_v_m_valid,
       out_ready             => small_spd_v_m_ready,
       out_data              => small_spd_v_m_data,
-      out_empty             => small_spd_v_m_empty,
+      out_strb              => small_spd_v_m_strb,
       out_last              => small_spd_v_m_last
     );
 
@@ -845,12 +824,11 @@ begin
       in_ready              => large_spd_v_m_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => large_spd_v_m_valid,
       out_ready             => large_spd_v_m_ready,
       out_data              => large_spd_v_m_data,
-      out_empty             => large_spd_v_m_empty,
+      out_strb              => large_spd_v_m_strb,
       out_last              => large_spd_v_m_last
     );
 
@@ -867,12 +845,10 @@ begin
       in_ready              => timestamp_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
-      in_empty              => rec_empty,
       in_strb               => rec_strb,
       out_valid             => timestamp_valid,
       out_ready             => timestamp_ready,
       out_data              => timestamp_data,
-      out_empty             => timestamp_empty,
       out_last              => timestamp_last,
       out_strb              => timestamp_strb,
       out_stai              => timestamp_stai,

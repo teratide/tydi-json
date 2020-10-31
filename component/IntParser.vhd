@@ -29,7 +29,6 @@ entity IntParser is
       in_ready              : out std_logic;
       in_data               : in  std_logic_vector(8*EPC-1 downto 0);
       in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
       in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
       in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
@@ -42,7 +41,7 @@ entity IntParser is
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
       out_data              : out std_logic_vector(BITWIDTH-1 downto 0);
-      out_empty             : out std_logic;
+      out_strb              : out  std_logic;
       out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
 
   );
@@ -54,7 +53,6 @@ architecture behavioral of IntParser is
     type in_type is record
       data  : std_logic_vector(7 downto 0);
       last  : std_logic_vector(NESTING_LEVEL downto 0);
-      empty : std_logic;
       strb  : std_logic;
     end record;
 
@@ -137,7 +135,6 @@ architecture behavioral of IntParser is
                 id(idx).data := in_data(8*idx+7 downto 8*idx);
                 id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
                 stai := unsigned(in_stai);
-                id(idx).empty := in_empty(idx);
                 id(idx).strb := in_strb(idx);
                 if idx < unsigned(in_stai) then
                   id(idx).strb := '0';
@@ -236,7 +233,7 @@ architecture behavioral of IntParser is
           out_valid <= pipeline_out_array(PIPELINE_STAGES-1).valid;
           out_data  <= pipeline_out_array(PIPELINE_STAGES-1).bin;
           out_last  <= pipeline_out_array(PIPELINE_STAGES-1).last;
-          out_empty <= pipeline_out_array(PIPELINE_STAGES-1).empty;
+          out_strb  <= not pipeline_out_array(PIPELINE_STAGES-1).empty;
         end if;  
       end process;
 

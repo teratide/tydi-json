@@ -22,7 +22,6 @@ entity KeyFilter is
       in_ready              : out std_logic;
       in_data               : in  std_logic_vector(8*EPC+EPC-1 downto 0);
       in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
       in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
       in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
@@ -41,7 +40,6 @@ entity KeyFilter is
       out_ready             : in  std_logic;
       out_data              : out std_logic_vector(EPC*8-1 downto 0);
       out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-      out_empty             : out std_logic_vector(EPC-1 downto 0) := (others => '0');
       out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
       out_endi              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
       out_strb              : out std_logic_vector(EPC-1 downto 0) := (others => '1')
@@ -58,17 +56,15 @@ architecture behavioral of KeyFilter is
   CONSTANT IN_TAG_ENDI          : integer := EPC*8+EPC-1;
   
   -- Index constants for packing input into a single vector.
-  constant BUFF_WIDTH            : integer := EPC*(3 + 8 + OUTER_NESTING_LEVEL+1);
+  constant BUFF_WIDTH            : integer := EPC*(2 + 8 + OUTER_NESTING_LEVEL+1);
   constant BUFF_DATA_STAI        : integer := 0;
   constant BUFF_DATA_ENDI        : integer := EPC*8-1;
   constant BUFF_TAG_STAI         : integer := EPC*8;
   constant BUFF_TAG_ENDI         : integer := EPC*8 + EPC -1;
-  constant BUFF_EMPTY_STAI       : integer := EPC*8 + EPC;
-  constant BUFF_EMPTY_ENDI       : integer := EPC*8 + 2*EPC -1;
-  constant BUFF_STRB_STAI        : integer := EPC*8 + 2*EPC;
-  constant BUFF_STRB_ENDI        : integer := EPC*8 + 3*EPC-1;
-  constant BUFF_LAST_STAI        : integer := EPC*8 + 3*EPC;
-  constant BUFF_LAST_ENDI        : integer := EPC*8 + 3*EPC + (OUTER_NESTING_LEVEL+1)*EPC-1;
+  constant BUFF_STRB_STAI        : integer := EPC*8 + EPC;
+  constant BUFF_STRB_ENDI        : integer := EPC*8 + 2*EPC-1;
+  constant BUFF_LAST_STAI        : integer := EPC*8 + 2*EPC;
+  constant BUFF_LAST_ENDI        : integer := EPC*8 + 2*EPC + (OUTER_NESTING_LEVEL+1)*EPC-1;
 
 
   signal matcher_match_valid_s   : std_logic;
@@ -84,6 +80,10 @@ architecture behavioral of KeyFilter is
   signal buff_out_data           : std_logic_vector(BUFF_WIDTH-1 downto 0);
 
   signal filter_ready            : std_logic;
+
+  signal idle : std_logic_vector(EPC-1 downto 0);
+  signal drop : std_logic_vector(EPC-1 downto 0);
+  signal match : std_logic_vector(EPC-1 downto 0);
 
   begin
 
@@ -120,7 +120,7 @@ architecture behavioral of KeyFilter is
         out_ready(2)            => filter_ready
       );
 
-    input_interfacing: process (in_data, in_last, in_empty, in_strb) is
+    input_interfacing: process (in_data, in_last, in_strb) is
       variable strb         :  std_logic_vector(EPC-1 downto 0);
       variable last         :  std_logic_vector(EPC-1 downto 0);
       variable in_data_f    :  std_logic_vector(EPC*8-1 downto 0);
@@ -143,12 +143,11 @@ architecture behavioral of KeyFilter is
       -- Pack buffer data.
       buff_in_data(BUFF_DATA_ENDI downto BUFF_DATA_STAI)    <= in_data_f;
       buff_in_data(BUFF_TAG_ENDI downto BUFF_TAG_STAI)      <= in_tag_f;
-      buff_in_data(BUFF_EMPTY_ENDI downto BUFF_EMPTY_STAI)  <= in_empty;
       buff_in_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI)    <= strb;
       buff_in_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI)    <= in_last;
 
       matcher_str_data <= to_stdlogicvector(to_bitvector(in_data(IN_DATA_ENDI downto IN_DATA_STAI))); -- Metavalue wanings fix. VERY DIRTY!!!
-      matcher_str_mask <= strb and (not in_tag_f) and (not in_empty);
+      matcher_str_mask <= strb and (not in_tag_f);
       matcher_str_last <= last and (not in_tag_f);
     end process;
 
@@ -161,7 +160,6 @@ architecture behavioral of KeyFilter is
         last  : std_logic_vector(OUTER_NESTING_LEVEL downto 0);
         match : std_logic;
         tag   : std_logic;
-        empty : std_logic;
         strb  : std_logic;
       end record;
     
@@ -180,7 +178,6 @@ architecture behavioral of KeyFilter is
       type out_type is record
         data  : std_logic_vector(7 downto 0);
         last  : std_logic_vector(OUTER_NESTING_LEVEL downto 0);
-        empty : std_logic;
         strb  : std_logic;
       end record;
   
@@ -199,6 +196,9 @@ architecture behavioral of KeyFilter is
     begin
     
       if rising_edge(clk) then
+        idle <= (others => '0');
+        match <= (others => '0');
+        drop <= (others => '0');
   
         -- Latch buffer input holding register.
         if to_x01(br) = '1' then
@@ -207,7 +207,6 @@ architecture behavioral of KeyFilter is
           for idx in 0 to EPC-1 loop
             id(idx).data  := buff_out_data(BUFF_DATA_STAI+idx*8+7 downto BUFF_DATA_STAI+idx*8);
             id(idx).tag   := buff_out_data(BUFF_TAG_STAI+idx);
-            id(idx).empty := buff_out_data(BUFF_EMPTY_STAI+idx);
             id(idx).strb  := buff_out_data(BUFF_STRB_STAI+idx);
             id(idx).last  := buff_out_data(BUFF_LAST_STAI+(OUTER_NESTING_LEVEL+1)*idx+OUTER_NESTING_LEVEL downto BUFF_LAST_STAI+(OUTER_NESTING_LEVEL+1)*idx);
 
@@ -235,7 +234,6 @@ architecture behavioral of KeyFilter is
             -- Default behavior.
             od(idx).data                                  := id(idx).data;
             od(idx).last(OUTER_NESTING_LEVEL downto 0)    := id(idx).last(OUTER_NESTING_LEVEL downto 1)  & "0";
-            --od(idx).empty                                 := id(idx).empty;
             od(idx).strb                                  := '0';
 
             -- Pass transfers that close out outer dimensions. 
@@ -243,15 +241,13 @@ architecture behavioral of KeyFilter is
               ov := '1';
             end if;
 
-
-            od(idx).empty := '0';
             case state is
               when STATE_IDLE =>
+              idle(idx) <= '1';
                 -- If we get an innermost last in a key, that's gonna trigger the matcher, so keep it.
                 if id(idx).last(0) = '1' and id(idx).tag = '0' then
                   bv := '1';
                   if to_x01(mv) = '1' then
-                    od(idx).empty := id(idx).match;
                     if to_x01(id(idx).match) = '1' then
                       bv := '0';
                       state := STATE_MATCH;
@@ -262,6 +258,7 @@ architecture behavioral of KeyFilter is
                   end if;
                 end if;
               when STATE_MATCH =>
+              match(idx) <= '1';
                 ov := '1';
                 od(idx).strb := id(idx).strb;
                 if id(idx).last(0) = '1' then
@@ -270,6 +267,7 @@ architecture behavioral of KeyFilter is
                   od(idx).last(0) := '1';
                 end if;
               when STATE_DROP =>
+              drop(idx) <= '1';
                 if id(idx).last(0) = '1' and id(idx).tag = '1' then
                   state := STATE_IDLE;
                 end if;
@@ -297,7 +295,6 @@ architecture behavioral of KeyFilter is
         for idx in 0 to EPC-1 loop
           out_data(8*idx+7 downto 8*idx) <= od(idx).data;
           out_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*idx) <= od(idx).last;
-          out_empty(idx) <= od(idx).empty;
           out_stai <= (others => '0');
           out_endi <= (others => '1');
           out_strb(idx) <= od(idx).strb;

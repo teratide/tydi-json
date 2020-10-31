@@ -29,7 +29,6 @@ entity IntParser is
       in_ready              : out std_logic;
       in_data               : in  std_logic_vector(8*EPC-1 downto 0);
       in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
       in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
       in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
@@ -42,7 +41,7 @@ entity IntParser is
       out_valid             : out std_logic;
       out_ready             : in  std_logic;
       out_data              : out std_logic_vector(BITWIDTH-1 downto 0);
-      out_empty             : out std_logic;
+      out_strb              : out  std_logic;
       out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
 
   );
@@ -54,7 +53,6 @@ architecture behavioral of IntParser is
     type in_type is record
       data  : std_logic_vector(7 downto 0);
       last  : std_logic_vector(NESTING_LEVEL downto 0);
-      empty : std_logic;
       strb  : std_logic;
     end record;
 
@@ -78,6 +76,9 @@ architecture behavioral of IntParser is
     type pipeline_reg_array_t is array (natural range <>) of dd_stage_t;
     signal pipeline_in_array : pipeline_reg_array_t(0 to PIPELINE_STAGES-1) := (others=>(dd_stage_t_init));
     signal pipeline_out_array : pipeline_reg_array_t(0 to PIPELINE_STAGES-1) := (others=>(dd_stage_t_init));
+
+    signal val_dbg : std_logic;
+    signal iv_dbg : std_logic;
 
     procedure dd_stage (
         signal    i         : in  dd_stage_t;
@@ -134,7 +135,6 @@ architecture behavioral of IntParser is
                 id(idx).data := in_data(8*idx+7 downto 8*idx);
                 id(idx).last := in_last((NESTING_LEVEL+1)*(idx+1)-1 downto (NESTING_LEVEL+1)*idx);
                 stai := unsigned(in_stai);
-                id(idx).empty := in_empty(idx);
                 id(idx).strb := in_strb(idx);
                 if idx < unsigned(in_stai) then
                   id(idx).strb := '0';
@@ -153,44 +153,45 @@ architecture behavioral of IntParser is
           end if;
 
           dd_in.last := (others => '0');
-          dd_in.empty := '0';
+          dd_in.empty := '1';
           dd_in.bcd := (others => '0');
           dd_in.bin := (others => '0');
 
           for idx in 0 to EPC-1 loop
-            if to_x01(dd_in.valid) = '0' and to_x01(id(idx).strb) = '1' then
+            if to_x01(iv) = '1' and to_x01(dd_in.valid) = '0' then
 
               dd_in.last := dd_in.last or id(idx).last(NESTING_LEVEL downto 1);
+              id(idx).last(NESTING_LEVEL downto 1) := (others => '0');
 
-              if or_reduce(dd_in.last) = '1' or to_x01(id(idx).empty) = '1' then
-                dd_in.empty := '1';
-              end if;
+              if to_x01(id(idx).strb) = '1' or id(idx).last(0) /= '0' then
 
-              if id(idx).data(7 downto 4) = X"3"
-                  and to_x01(id(idx).empty) = '0' then
-                dd_in.empty := '0';
-                in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
-              end if;
+                if id(idx).data(7 downto 4) = X"3" then
+                  in_shr := in_shr(in_shr'high-4 downto 0) & id(idx).data(3 downto 0);
+                end if;
 
-              if id(idx).last(0) /= '0'  then
-                dd_in.bcd := in_shr;
-                in_shr  := (others => '0');
-                dd_in.empty := '0';
-                dd_in.valid := '1';
+                if id(idx).last(0) /= '0'  then
+                  id(idx).last(0) := '0';
+                  dd_in.bcd       := in_shr;
+                  in_shr          := (others => '0');
+                  dd_in.empty     := '0';
+                  dd_in.valid     := '1';
+                end if;
               end if;
               id(idx).strb := '0';
             end if;
           end loop;
 
-          --iv := not and_reduce(processed);
-          iv := '0';
-          for lane in id'range loop
-            if id(lane).strb = '1' then
-              iv := '1';
-            end if;
-          end loop;
+          if to_x01(iv) = '1'then
+            iv := '0';
+            for lane in id'range loop
+              if id(lane).strb = '1' or or_reduce(id(lane).last(NESTING_LEVEL downto 1)) /= '0' then
+                iv := '1';
+              end if;
+            end loop;
+          end if;
 
-          if or_reduce(dd_in.last) and not iv then
+
+          if or_reduce(dd_in.last) then
             dd_in.valid := '1';
           end if;
 
@@ -205,34 +206,40 @@ architecture behavioral of IntParser is
           ir        := not iv;
           in_ready  <= ir;
           dd_in_s   <= dd_in;
+
+          val_dbg <= dd_in.valid;
+          iv_dbg <= iv;
         end if;
       end process;
 
       pipeline_reg_proc: process (clk) is
       begin
-        if to_x01(reset) /= '0' then
-          pipeline_in_array(0).valid   <= '0';
-        else
-          pipeline_in_array(0) <= dd_in_s;
-        end if;
-
-        pipeline_reg_gen: for i in 1 to PIPELINE_STAGES-1  loop
+        if rising_edge(clk) then
           if to_x01(reset) /= '0' then
-            pipeline_in_array(i).valid   <= '0';
+            pipeline_in_array(0).valid   <= '0';
           else
-            pipeline_in_array(i)    <= pipeline_out_array(i-1);
+            pipeline_in_array(0) <= dd_in_s;
           end if;
-        end loop pipeline_reg_gen;
 
-        -- Interfacing
-        out_valid <= pipeline_out_array(PIPELINE_STAGES-1).valid;
-        out_data  <= pipeline_out_array(PIPELINE_STAGES-1).bin;
-        out_last  <= pipeline_out_array(PIPELINE_STAGES-1).last;
-        out_empty <= pipeline_out_array(PIPELINE_STAGES-1).empty;
+          pipeline_reg_gen: for i in 1 to PIPELINE_STAGES-1  loop
+            if to_x01(reset) /= '0' then
+              pipeline_in_array(i).valid   <= '0';
+            else
+              pipeline_in_array(i)    <= pipeline_out_array(i-1);
+            end if;
+          end loop pipeline_reg_gen;
+
+          -- Interfacing
+          out_valid <= pipeline_out_array(PIPELINE_STAGES-1).valid;
+          out_data  <= pipeline_out_array(PIPELINE_STAGES-1).bin;
+          out_last  <= pipeline_out_array(PIPELINE_STAGES-1).last;
+          out_strb  <= not pipeline_out_array(PIPELINE_STAGES-1).empty;
+        end if;  
       end process;
 
       stage_gen: for i in 0 to PIPELINE_STAGES-1  generate
         dd_stage(pipeline_in_array(i), pipeline_out_array(i), BITWIDTH, BITWIDTH/PIPELINE_STAGES);
       end generate stage_gen;
+      
       
     end architecture;

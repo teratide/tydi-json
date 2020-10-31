@@ -29,7 +29,6 @@ entity JsonRecordParser is
       in_ready              : out std_logic;
       in_data               : in  std_logic_vector(8*EPC-1 downto 0);
       in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-      in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
       in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
       in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
       in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
@@ -47,7 +46,6 @@ entity JsonRecordParser is
       out_ready             : in  std_logic;
       out_data              : out std_logic_vector(8*EPC + EPC-1 downto 0);
       out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*EPC-1 downto 0) := (others => '0');
-      out_empty             : out std_logic_vector(EPC-1 downto 0) := (others => '0');
       out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
       out_endi              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
       out_strb              : out std_logic_vector(EPC-1 downto 0) := (others => '1')
@@ -69,7 +67,6 @@ begin
     type in_type is record
       data  : std_logic_vector(7 downto 0);
       last  : std_logic_vector(OUTER_NESTING_LEVEL-1 downto 0);
-      empty : std_logic;
       strb  : std_logic;
     end record;
 
@@ -83,7 +80,6 @@ begin
       data  : std_logic_vector(7 downto 0);
       tag   : std_logic;
       last  : std_logic_vector(OUTER_NESTING_LEVEL+1 downto 0);
-      empty : std_logic;
       strb  : std_logic;
     end record;
 
@@ -130,7 +126,6 @@ begin
         for idx in 0 to EPC-1 loop
           id(idx).data  := in_data(8*idx+7 downto 8*idx);
           id(idx).last  := in_last((OUTER_NESTING_LEVEL+1)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+1)*(idx)+1);
-          id(idx).empty := in_empty(idx);
           id(idx).strb  := in_strb(idx);
           if idx < unsigned(in_stai) then
             id(idx).strb := '0';
@@ -155,7 +150,6 @@ begin
           od(idx).data                                  := id(idx).data;
           od(idx).tag                                   := '0';
           od(idx).last(OUTER_NESTING_LEVEL+1 downto 0)  := id(idx).last & "00";
-          od(idx).empty                                 := id(idx).empty;
           od(idx).strb                                  := '0';
           end_ack_i                                     := '0';
           
@@ -164,10 +158,6 @@ begin
           -- Element-wise processing only when the lane is valid.
           if to_x01(id(idx).strb) = '1' then
 
-            if (id(idx).empty) = '1' then
-              od(idx).strb := '1';
-              ov := '1';
-            end if;
 
             -- Keep track of nesting.
             case id(idx).data is
@@ -188,7 +178,6 @@ begin
 
             case state is
               when STATE_IDLE =>
-              --od(idx).empty   := '1';
                 case id(idx).data is
                   when X"7B" => -- '{'
                     state := STATE_RECORD;
@@ -205,8 +194,7 @@ begin
                   when X"7D" => -- '}'
                     --od(idx).last(0) := '1';
                     od(idx).last(1) := '1';
-                    od(idx).empty   := '1';
-                    od(idx).strb    := '1';
+                    od(idx).strb    := '0';
                     ov              := '1'; 
                     if end_req_i = '1' then
                       end_ack_i := '1';
@@ -224,7 +212,7 @@ begin
                   when X"22" => -- '"'
                     state := STATE_RECORD;
                     od(idx).last(0) := '1';
-                    od(idx).empty   := '1';
+                    od(idx).strb   := '0';
                   when others =>
                     ov := '1';
                     state := STATE_KEY;
@@ -239,14 +227,14 @@ begin
                     if nesting_origo = '1' then
                       state := STATE_RECORD;
                       od(idx).last(0) := '1';
-                      od(idx).empty   := '1';
+                      od(idx).strb   := '0';
                     end if;
                   when X"7D" => -- '}'
                     if nesting_origo = '1' then
                       state := STATE_IDLE;   
                       od(idx).last(0) := '1';
                       od(idx).last(1) := '1';
-                      od(idx).empty   := '1';     
+                      od(idx).strb   := '0';     
                       if end_req_i = '1' then
                         end_ack_i := '1';
                         od(idx).last(2) := '1';
@@ -289,7 +277,6 @@ begin
         out_data(OUT_DATA_STAI+8*idx+7 downto OUT_DATA_STAI+8*idx) <= od(idx).data;
         out_data(OUT_TAG_STAI+idx) <= od(idx).tag;
         out_last((OUTER_NESTING_LEVEL+2)*(idx+1)-1 downto (OUTER_NESTING_LEVEL+2)*idx) <= od(idx).last;
-        out_empty(idx) <= od(idx).empty;
         out_stai <= (others => '0');--std_logic_vector(stai);
         out_endi <= (others => '1');--std_logic_vector(endi);
         out_strb(idx) <= od(idx).strb;

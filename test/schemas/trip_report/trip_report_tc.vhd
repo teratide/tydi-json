@@ -44,42 +44,42 @@ architecture test_case of trip_report_tc is
   --
   signal timezone_ready             : std_logic;
   signal timezone_valid             : std_logic;
-  signal timezone_empty             : std_logic;
   signal timezone_dvalid            : std_logic;
   signal timezone_data              : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal timezone_last              : std_logic_vector(1 downto 0);
+  signal timezone_strb              : std_logic;
 
   signal vin_ready                  : std_logic;
   signal vin_valid                  : std_logic;
-  signal vin_empty                  : std_logic;
+  signal vin_strb                   : std_logic;
   signal vin_dvalid                 : std_logic;
   signal vin_data                   : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal vin_last                   : std_logic_vector(1 downto 0);
 
   signal odometer_ready             : std_logic;
   signal odometer_valid             : std_logic;
-  signal odometer_empty             : std_logic;
+  signal odometer_strb              : std_logic;
   signal odometer_dvalid            : std_logic;
   signal odometer_data              : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal odometer_last              : std_logic_vector(1 downto 0);
 
   signal avg_speed_ready            : std_logic;
   signal avg_speed_valid            : std_logic;
-  signal avg_speed_empty            : std_logic;
+  signal avg_speed_strb             : std_logic;
   signal avg_speed_dvalid           : std_logic;
   signal avg_speed_data             : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal avg_speed_last             : std_logic_vector(1 downto 0);
 
   signal s_acc_dec_ready            : std_logic;
   signal s_acc_dec_valid            : std_logic;
-  signal s_acc_dec_empty            : std_logic;
+  signal s_acc_dec_strb             : std_logic;
   signal s_acc_dec_dvalid           : std_logic;
   signal s_acc_dec_data             : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal s_acc_dec_last             : std_logic_vector(1 downto 0);
 
   signal e_spd_chg_ready            : std_logic;
   signal e_spd_chg_valid            : std_logic;
-  signal e_spd_chg_empty            : std_logic;
+  signal e_spd_chg_strb             : std_logic;
   signal e_spd_chg_dvalid           : std_logic;
   signal e_spd_chg_data             : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal e_spd_chg_last             : std_logic_vector(1 downto 0);
@@ -90,14 +90,14 @@ architecture test_case of trip_report_tc is
   signal hyper_miling_valid         : std_logic;
   signal hyper_miling_ready         : std_logic;
   signal hyper_miling_data          : std_logic;
-  signal hyper_miling_empty         : std_logic;
+  signal hyper_miling_strb          : std_logic;
   signal hyper_miling_dvalid        : std_logic;
   signal hyper_miling_last          : std_logic_vector(1 downto 0);
 
   signal orientation_valid          : std_logic;
   signal orientation_ready          : std_logic;
   signal orientation_data           : std_logic;
-  signal orientation_empty          : std_logic;
+  signal orientation_strb           : std_logic;
   signal orientation_dvalid         : std_logic;
   signal orientation_last           : std_logic_vector(1 downto 0);
   
@@ -106,70 +106,70 @@ architecture test_case of trip_report_tc is
   --
   signal secs_in_b_ready            : std_logic;
   signal secs_in_b_valid            : std_logic;
-  signal secs_in_b_empty            : std_logic;
+  signal secs_in_b_strb             : std_logic;
   signal secs_in_b_dvalid           : std_logic;
   signal secs_in_b_data             : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal secs_in_b_last             : std_logic_vector(2 downto 0);
 
   signal miles_in_time_ready        : std_logic;
   signal miles_in_time_valid        : std_logic;
-  signal miles_in_time_empty        : std_logic;
+  signal miles_in_time_strb         : std_logic;
   signal miles_in_time_dvalid       : std_logic;
   signal miles_in_time_data         : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal miles_in_time_last         : std_logic_vector(2 downto 0);
 
   signal const_spd_m_in_b_ready     : std_logic;
   signal const_spd_m_in_b_valid     : std_logic;
-  signal const_spd_m_in_b_empty     : std_logic;
+  signal const_spd_m_in_b_strb      : std_logic;
   signal const_spd_m_in_b_dvalid    : std_logic;
   signal const_spd_m_in_b_data      : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal const_spd_m_in_b_last      : std_logic_vector(2 downto 0);
 
   signal var_spd_m_in_b_ready       : std_logic;
   signal var_spd_m_in_b_valid       : std_logic;
-  signal var_spd_m_in_b_empty       : std_logic;
+  signal var_spd_m_in_b_strb        : std_logic;
   signal var_spd_m_in_b_dvalid      : std_logic;
   signal var_spd_m_in_b_data        : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal var_spd_m_in_b_last        : std_logic_vector(2 downto 0);
 
   signal seconds_decel_ready        : std_logic;
   signal seconds_decel_valid        : std_logic;
-  signal seconds_decel_empty        : std_logic;
+  signal seconds_decel_strb         : std_logic;
   signal seconds_decel_dvalid       : std_logic;
   signal seconds_decel_data         : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal seconds_decel_last         : std_logic_vector(2 downto 0);
 
   signal seconds_accel_ready        : std_logic;
   signal seconds_accel_valid        : std_logic;
-  signal seconds_accel_empty        : std_logic;
+  signal seconds_accel_strb         : std_logic;
   signal seconds_accel_dvalid       : std_logic;
   signal seconds_accel_data         : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal seconds_accel_last         : std_logic_vector(2 downto 0);
 
   signal brk_m_t_10s_ready          : std_logic;
   signal brk_m_t_10s_valid          : std_logic;
-  signal brk_m_t_10s_empty          : std_logic;
+  signal brk_m_t_10s_strb           : std_logic;
   signal brk_m_t_10s_dvalid         : std_logic;
   signal brk_m_t_10s_data           : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal brk_m_t_10s_last           : std_logic_vector(2 downto 0);
 
   signal accel_m_t_10s_ready        : std_logic;
   signal accel_m_t_10s_valid        : std_logic;
-  signal accel_m_t_10s_empty        : std_logic;
+  signal accel_m_t_10s_strb         : std_logic;
   signal accel_m_t_10s_dvalid       : std_logic;
   signal accel_m_t_10s_data         : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal accel_m_t_10s_last         : std_logic_vector(2 downto 0);
 
   signal small_spd_v_m_ready        : std_logic;
   signal small_spd_v_m_valid        : std_logic;
-  signal small_spd_v_m_empty        : std_logic;
+  signal small_spd_v_m_strb         : std_logic;
   signal small_spd_v_m_dvalid       : std_logic;
   signal small_spd_v_m_data         : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal small_spd_v_m_last         : std_logic_vector(2 downto 0);
 
   signal large_spd_v_m_ready        : std_logic;
   signal large_spd_v_m_valid        : std_logic;
-  signal large_spd_v_m_empty        : std_logic;
+  signal large_spd_v_m_strb         : std_logic;
   signal large_spd_v_m_dvalid       : std_logic;
   signal large_spd_v_m_data         : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal large_spd_v_m_last         : std_logic_vector(2 downto 0);
@@ -181,7 +181,6 @@ architecture test_case of trip_report_tc is
   signal timestamp_ready            : std_logic;
   signal timestamp_data             : std_logic_vector(8*EPC-1 downto 0);
   signal timestamp_last             : std_logic_vector(3*EPC-1 downto 0);
-  signal timestamp_empty            : std_logic_vector(EPC-1 downto 0) := (others => '0');
   signal timestamp_stai             : std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
   signal timestamp_endi             : std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
   signal timestamp_strb             : std_logic_vector(EPC-1 downto 0);
@@ -315,116 +314,115 @@ begin
       timezone_valid                            => timezone_valid,
       timezone_ready                            => timezone_ready,
       timezone_last                             => timezone_last,
-      timezone_empty                            => timezone_empty,
+      timezone_strb                             => timezone_strb,
 
       vin_data                                  => vin_data,
       vin_valid                                 => vin_valid,
       vin_ready                                 => vin_ready,
       vin_last                                  => vin_last,
-      vin_empty                                 => vin_empty,
+      vin_strb                                  => vin_strb,
 
       odometer_data                             => odometer_data,
       odometer_valid                            => odometer_valid,
       odometer_ready                            => odometer_ready,
       odometer_last                             => odometer_last,
-      odometer_empty                            => odometer_empty,
+      odometer_strb                             => odometer_strb,
 
       avg_speed_data                            => avg_speed_data,
       avg_speed_valid                           => avg_speed_valid,
       avg_speed_ready                           => avg_speed_ready,
       avg_speed_last                            => avg_speed_last,
-      avg_speed_empty                           => avg_speed_empty,
+      avg_speed_strb                            => avg_speed_strb,
 
       s_acc_dec_data                            => s_acc_dec_data,
       s_acc_dec_valid                           => s_acc_dec_valid,
       s_acc_dec_ready                           => s_acc_dec_ready,
       s_acc_dec_last                            => s_acc_dec_last,
-      s_acc_dec_empty                           => s_acc_dec_empty,
+      s_acc_dec_strb                            => s_acc_dec_strb,
 
       e_spd_chg_data                            => e_spd_chg_data,
       e_spd_chg_valid                           => e_spd_chg_valid,
       e_spd_chg_ready                           => e_spd_chg_ready,
       e_spd_chg_last                            => e_spd_chg_last,
-      e_spd_chg_empty                           => e_spd_chg_empty,
+      e_spd_chg_strb                            => e_spd_chg_strb,
 
       hyper_miling_data                         => hyper_miling_data,
       hyper_miling_valid                        => hyper_miling_valid,
       hyper_miling_ready                        => hyper_miling_ready,
       hyper_miling_last                         => hyper_miling_last,
-      hyper_miling_empty                        => hyper_miling_empty,
+      hyper_miling_strb                         => hyper_miling_strb,
 
       orientation_data                          => orientation_data,
       orientation_valid                         => orientation_valid,
       orientation_ready                         => orientation_ready,
       orientation_last                          => orientation_last,
-      orientation_empty                         => orientation_empty,
+      orientation_strb                          => orientation_strb,
 
       secs_in_b_data                            => secs_in_b_data,
       secs_in_b_valid                           => secs_in_b_valid,
       secs_in_b_ready                           => secs_in_b_ready,
       secs_in_b_last                            => secs_in_b_last,
-      secs_in_b_empty                           => secs_in_b_empty,
+      secs_in_b_strb                            => secs_in_b_strb,
 
       miles_in_time_data                        => miles_in_time_data,
       miles_in_time_valid                       => miles_in_time_valid,
       miles_in_time_ready                       => miles_in_time_ready,
       miles_in_time_last                        => miles_in_time_last,
-      miles_in_time_empty                       => miles_in_time_empty,
+      miles_in_time_strb                        => miles_in_time_strb,
 
       const_spd_m_in_b_data                     => const_spd_m_in_b_data,
       const_spd_m_in_b_valid                    => const_spd_m_in_b_valid,
       const_spd_m_in_b_ready                    => const_spd_m_in_b_ready,
       const_spd_m_in_b_last                     => const_spd_m_in_b_last,
-      const_spd_m_in_b_empty                    => const_spd_m_in_b_empty,
+      const_spd_m_in_b_strb                     => const_spd_m_in_b_strb,
 
       var_spd_m_in_b_data                       => var_spd_m_in_b_data,
       var_spd_m_in_b_valid                      => var_spd_m_in_b_valid,
       var_spd_m_in_b_ready                      => var_spd_m_in_b_ready,
       var_spd_m_in_b_last                       => var_spd_m_in_b_last,
-      var_spd_m_in_b_empty                      => var_spd_m_in_b_empty,
+      var_spd_m_in_b_strb                       => var_spd_m_in_b_strb,
 
       seconds_decel_data                        => seconds_decel_data,
       seconds_decel_valid                       => seconds_decel_valid,
       seconds_decel_ready                       => seconds_decel_ready,
       seconds_decel_last                        => seconds_decel_last,
-      seconds_decel_empty                       => seconds_decel_empty,
+      seconds_decel_strb                        => seconds_decel_strb,
 
       seconds_accel_data                        => seconds_accel_data,
       seconds_accel_valid                       => seconds_accel_valid,
       seconds_accel_ready                       => seconds_accel_ready,
       seconds_accel_last                        => seconds_accel_last,
-      seconds_accel_empty                       => seconds_accel_empty,
+      seconds_accel_strb                        => seconds_accel_strb,
 
       brk_m_t_10s_data                          => brk_m_t_10s_data,
       brk_m_t_10s_valid                         => brk_m_t_10s_valid,
       brk_m_t_10s_ready                         => brk_m_t_10s_ready,
       brk_m_t_10s_last                          => brk_m_t_10s_last,
-      brk_m_t_10s_empty                         => brk_m_t_10s_empty,
+      brk_m_t_10s_strb                          => brk_m_t_10s_strb,
 
       accel_m_t_10s_data                        => accel_m_t_10s_data,
       accel_m_t_10s_valid                       => accel_m_t_10s_valid,
       accel_m_t_10s_ready                       => accel_m_t_10s_ready,
       accel_m_t_10s_last                        => accel_m_t_10s_last,
-      accel_m_t_10s_empty                       => accel_m_t_10s_empty,
+      accel_m_t_10s_strb                        => accel_m_t_10s_strb,
 
       small_spd_v_m_data                        => small_spd_v_m_data,
       small_spd_v_m_valid                       => small_spd_v_m_valid,
       small_spd_v_m_ready                       => small_spd_v_m_ready,
       small_spd_v_m_last                        => small_spd_v_m_last,
-      small_spd_v_m_empty                       => small_spd_v_m_empty,
+      small_spd_v_m_strb                        => small_spd_v_m_strb,
 
       large_spd_v_m_data                        => large_spd_v_m_data,
       large_spd_v_m_valid                       => large_spd_v_m_valid,
       large_spd_v_m_ready                       => large_spd_v_m_ready,
       large_spd_v_m_last                        => large_spd_v_m_last,
-      large_spd_v_m_empty                       => large_spd_v_m_empty,
+      large_spd_v_m_strb                        => large_spd_v_m_strb,
 
       timestamp_data                            => timestamp_data,
       timestamp_valid                           => timestamp_valid,
       timestamp_ready                           => timestamp_ready,
-      timestamp_last                            => timestamp_last,
-      timestamp_empty                           => timestamp_empty
-    );
+      timestamp_last                            => timestamp_last
+      );
 
     -- String fields are not tested currently
     timestamp_ready <= '1';
@@ -432,32 +430,32 @@ begin
     -- 
     -- INTEGER FIELDS
     --
-    timezone_dvalid <= not timezone_empty;
-    vin_dvalid <= not vin_empty;
-    odometer_dvalid <= not odometer_empty;
-    avg_speed_dvalid <= not avg_speed_empty;
-    s_acc_dec_dvalid <= not s_acc_dec_empty;
-    e_spd_chg_dvalid <= not e_spd_chg_empty;
+    timezone_dvalid <= timezone_strb;
+    vin_dvalid <= vin_strb;
+    odometer_dvalid <= odometer_strb;
+    avg_speed_dvalid <= avg_speed_strb;
+    s_acc_dec_dvalid <= s_acc_dec_strb;
+    e_spd_chg_dvalid <= e_spd_chg_strb;
 
     -- 
     -- BOOLEAN FIELDS
     --
-    hyper_miling_dvalid <= not hyper_miling_empty;
-    orientation_dvalid <= not orientation_empty;
+    hyper_miling_dvalid <= hyper_miling_strb;
+    orientation_dvalid <= orientation_strb;
 
     -- 
     -- INTEGER ARRAY FIELDS
     --
-    secs_in_b_dvalid <= not secs_in_b_empty;
-    miles_in_time_dvalid <= not miles_in_time_empty;
-    const_spd_m_in_b_dvalid <= not const_spd_m_in_b_empty;
-    var_spd_m_in_b_dvalid <= not var_spd_m_in_b_empty;
-    seconds_decel_dvalid <= not seconds_decel_empty;
-    seconds_accel_dvalid <= not seconds_accel_empty;
-    brk_m_t_10s_dvalid <= not brk_m_t_10s_empty;
-    accel_m_t_10s_dvalid <= not accel_m_t_10s_empty;
-    small_spd_v_m_dvalid <= not small_spd_v_m_empty;
-    large_spd_v_m_dvalid <= not large_spd_v_m_empty;
+    secs_in_b_dvalid <= secs_in_b_strb;
+    miles_in_time_dvalid <= miles_in_time_strb;
+    const_spd_m_in_b_dvalid <= const_spd_m_in_b_strb;
+    var_spd_m_in_b_dvalid <= var_spd_m_in_b_strb;
+    seconds_decel_dvalid <= seconds_decel_strb;
+    seconds_accel_dvalid <= seconds_accel_strb;
+    brk_m_t_10s_dvalid <= brk_m_t_10s_strb;
+    accel_m_t_10s_dvalid <= accel_m_t_10s_strb;
+    small_spd_v_m_dvalid <= small_spd_v_m_strb;
+    large_spd_v_m_dvalid <= large_spd_v_m_strb;
 
 
     -- 

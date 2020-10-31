@@ -29,7 +29,6 @@ package Json_pkg is
             in_ready              : out std_logic;
             in_data               : in  std_logic_vector(8*EPC-1 downto 0);
             in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-            in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
             in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
             in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
             in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
@@ -48,7 +47,6 @@ package Json_pkg is
             out_ready             : in  std_logic;
             out_data              : out std_logic_vector(8*EPC + EPC-1 downto 0);
             out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*EPC-1 downto 0) := (others => '0');
-            out_empty             : out std_logic_vector(EPC-1 downto 0) := (others => '0');
             out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
             out_endi              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
             out_strb              : out std_logic_vector(EPC-1 downto 0) := (others => '1')
@@ -77,7 +75,6 @@ package Json_pkg is
             in_ready              : out std_logic;
             in_data               : in  std_logic_vector(8*EPC-1 downto 0);
             in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-            in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
             in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
             in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
             in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
@@ -92,7 +89,6 @@ package Json_pkg is
             out_ready             : in  std_logic;
             out_data              : out std_logic_vector(8*EPC-1 downto 0);
             out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+2)*EPC-1 downto 0) := (others => '0');
-            out_empty             : out  std_logic_vector(EPC-1 downto 0) := (others => '0');
             out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
             out_endi              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
             out_strb              : out std_logic_vector(EPC-1 downto 0) := (others => '1')
@@ -119,7 +115,6 @@ package Json_pkg is
         in_ready              : out std_logic;
         in_data               : in  std_logic_vector(8*EPC+EPC-1 downto 0);
         in_last               : in  std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-        in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
         in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
         in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
         in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
@@ -138,7 +133,6 @@ package Json_pkg is
         out_ready             : in  std_logic;
         out_data              : out std_logic_vector(EPC*8-1 downto 0);
         out_last              : out std_logic_vector((OUTER_NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-        out_empty             : out std_logic_vector(EPC-1 downto 0) := (others => '0');
         out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
         out_endi              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
         out_strb              : out std_logic_vector(EPC-1 downto 0) := (others => '1')
@@ -164,7 +158,6 @@ package Json_pkg is
           in_ready              : out std_logic;
           in_data               : in  std_logic_vector(8*EPC-1 downto 0);
           in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-          in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
           in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
           in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
           in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
@@ -177,7 +170,7 @@ package Json_pkg is
           out_valid             : out std_logic;
           out_ready             : in  std_logic;
           out_data              : out std_logic;
-          out_empty             : out std_logic;
+          out_strb              : out std_logic;
           out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
       );
     end component;
@@ -204,7 +197,6 @@ package Json_pkg is
           in_ready              : out std_logic;
           in_data               : in  std_logic_vector(8*EPC-1 downto 0);
           in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
-          in_empty              : in  std_logic_vector(EPC-1 downto 0) := (others => '0');
           in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
           in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
           in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
@@ -217,7 +209,7 @@ package Json_pkg is
           out_valid             : out std_logic;
           out_ready             : in  std_logic;
           out_data              : out std_logic_vector(BITWIDTH-1 downto 0);
-          out_empty             : out std_logic;
+          out_strb              : out std_logic;
           out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
       );
     end component;

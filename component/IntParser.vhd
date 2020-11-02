@@ -178,10 +178,7 @@ architecture behavioral of IntParser is
           -- Clear output holding register if transfer was accepted.
           if to_x01(dd_in_ready) = '1' then
             dd_in_valid := '0';
-            dd_in.last := (others => '0');
-            dd_in.empty := '1';
-            dd_in.bcd := (others => '0');
-            dd_in.bin := (others => '0');
+            dd_in := dd_stage_t_init;
           end if;
 
           

@@ -105,7 +105,6 @@ architecture behavioral of IntParser is
     procedure dd_stage (
         signal    i         : in  dd_stage_t;
         signal    o         : out dd_stage_t;
-        signal    iv        : in std_logic;
         constant  BW        : in natural;
         constant  STEPS     : in natural
       ) is
@@ -115,17 +114,15 @@ architecture behavioral of IntParser is
       -- Use the double-dabble alogorithm to convert BCD to binary.
       bcd_shr := i.bcd;
       bin_shr := i.bin;
-      if iv = '1' then 
-        for j in 0 to STEPS-1 loop
-          bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
-          bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
-          for idx in 0 to (BW+(BW-4)/3)/4-1 loop
-            if unsigned(bcd_shr(idx*4+3 downto idx*4)) >= 8 then
-              bcd_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(bcd_shr(idx*4+3 downto idx*4)) - 3));
-            end if;
-          end loop;
+      for j in 0 to STEPS-1 loop
+        bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
+        bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
+        for idx in 0 to (BW+(BW-4)/3)/4-1 loop
+          if unsigned(to_01(bcd_shr(idx*4+3 downto idx*4))) >= 8 then
+            bcd_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(bcd_shr(idx*4+3 downto idx*4)) - 3));
+          end if;
         end loop;
-      end if;
+      end loop;
       o.bcd   <= bcd_shr;
       o.bin   <= bin_shr;
       o.last  <= i.last;
@@ -238,27 +235,29 @@ architecture behavioral of IntParser is
         end if;
       end process;
 
+      -- Interfacing
+      dd_stage_data_in(0) <= dd_in_s;
 
-      
+      dd_in_ready <= slice_ready(0);
+      slice_valid(0) <= dd_in_valid_s;
 
       stage_gen: for i in 0 to PIPELINE_STAGES-1  generate
-
         dd_stage(dd_stage_data_in(i),
                 dd_stage_data_out(i),
-                slice_valid(i),
                 BITWIDTH,
                 BITWIDTH/PIPELINE_STAGES);
 
+        -- Pack slice data vector
         slice_data_in(i)(DD_BCD_ENDI   downto DD_BCD_STAI)     <= dd_stage_data_out(i).bcd;
         slice_data_in(i)(DD_BIN_ENDI   downto DD_BIN_STAI)     <= dd_stage_data_out(i).bin;
         slice_data_in(i)(DD_LAST_ENDI  downto DD_LAST_STAI)    <= dd_stage_data_out(i).last;
         slice_data_in(i)(DD_EMPTY_I)                           <= dd_stage_data_out(i).empty;
 
+        -- Unpack slice data vector
         dd_stage_data_in(i+1).bcd   <= slice_data_out(i)(DD_BCD_ENDI   downto DD_BCD_STAI);
         dd_stage_data_in(i+1).bin   <= slice_data_out(i)(DD_BIN_ENDI   downto DD_BIN_STAI);
         dd_stage_data_in(i+1).last  <= slice_data_out(i)(DD_LAST_ENDI  downto DD_LAST_STAI);
         dd_stage_data_in(i+1).empty <= slice_data_out(i)(DD_EMPTY_I);
-
       end generate stage_gen;
 
       gen_slices : for i in 0 to PIPELINE_STAGES-1 generate
@@ -281,12 +280,8 @@ architecture behavioral of IntParser is
         );
       end generate;
 
+      
       -- Interfacing
-      dd_stage_data_in(0) <= dd_in_s;
-
-      dd_in_ready <= slice_ready(0);
-      slice_valid(0) <= dd_in_valid_s;
-     
       slice_ready(PIPELINE_STAGES) <= out_ready;
       out_valid <= slice_valid(PIPELINE_STAGES);
       out_data  <= dd_stage_data_in(PIPELINE_STAGES).bin;

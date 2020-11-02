@@ -80,7 +80,7 @@ architecture behavioral of IntParser is
 
     constant dd_stage_t_init : dd_stage_t := (  bcd => (others => '0'),
                                                 bin => (others => '0'),
-                                                empty => '0',
+                                                empty => '1',
                                                 last => (others => '0'));
 
     signal dd_in_s  : dd_stage_t := dd_stage_t_init;
@@ -92,15 +92,19 @@ architecture behavioral of IntParser is
     type slice_handshake_t        is array (0 to PIPELINE_STAGES) of std_logic;
     type slice_data_t             is array (0 to PIPELINE_STAGES) of std_logic_vector(SLICE_WIDTH-1 downto 0);
 
+
     signal slice_data_in    : slice_data_t;
     signal slice_data_out   : slice_data_t;
     signal slice_ready      : slice_handshake_t;
     signal slice_valid      : slice_handshake_t;
 
+    signal bcd    : std_logic_vector(BCD_WIDTH-1 downto 0);
+
     type stage_data_t is array (0 to PIPELINE_STAGES) of dd_stage_t;
 
     signal dd_stage_data_in : stage_data_t := (others => dd_stage_t_init);
     signal dd_stage_data_out : stage_data_t := (others => dd_stage_t_init);
+    
 
     procedure dd_stage (
         signal    i         : in  dd_stage_t;
@@ -174,12 +178,13 @@ architecture behavioral of IntParser is
           -- Clear output holding register if transfer was accepted.
           if to_x01(dd_in_ready) = '1' then
             dd_in_valid := '0';
+            dd_in.last := (others => '0');
+            dd_in.empty := '1';
+            dd_in.bcd := (others => '0');
+            dd_in.bin := (others => '0');
           end if;
 
-          dd_in.last := (others => '0');
-          dd_in.empty := '1';
-          dd_in.bcd := (others => '0');
-          dd_in.bin := (others => '0');
+          
 
           for idx in 0 to EPC-1 loop
             if to_x01(iv) = '1' and to_x01(dd_in_valid) = '0' then
@@ -231,6 +236,7 @@ architecture behavioral of IntParser is
           in_ready      <= ir;
           dd_in_s       <= dd_in;
           dd_in_valid_s <= dd_in_valid;
+          bcd <= dd_in.bcd;
 
         end if;
       end process;

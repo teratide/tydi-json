@@ -129,10 +129,15 @@ begin
     b.initialize("b");
 
     a.push_str("{""values"" : [11 , 22 ]} {""valuessss"": [33 , 44 ]}{""values"" : [55 , 66]}{""values"" : [77 , 88, 99 ]}");
+
+    --a.set_total_cyc(0, 20);
+    b.set_valid_cyc(0, 20);
+    b.set_total_cyc(0, 20);
+
     a.transmit;
     b.unblock;
 
-    tc_wait_for(2 us);
+    tc_wait_for(10 us);
 
     tc_check(b.pq_ready, true);
     tc_check(b.cq_get_d_nat, 11, "11");

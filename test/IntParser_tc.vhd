@@ -112,7 +112,7 @@ begin
     b.initialize("b");
 
     a.push_str("1234");
-    a.set_total_cyc(0, 10);
+    --a.set_total_cyc(0, 10);
     b.set_valid_cyc(0, 10);
     b.set_total_cyc(0, 10);
 

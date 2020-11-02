@@ -192,14 +192,13 @@ begin
                   when X"3A" => -- ':'
                     state := STATE_VALUE;
                   when X"7D" => -- '}'
-                    --od(idx).last(0) := '1';
                     od(idx).last(1) := '1';
                     od(idx).strb    := '0';
                     ov              := '1'; 
                     if end_req_i = '1' then
                       end_ack_i := '1';
                     end if;
-                    --state := STATE_IDLE;
+                    state := STATE_IDLE;
                   when others =>
                     state := STATE_RECORD;
                 end case;

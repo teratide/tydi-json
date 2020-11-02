@@ -96,7 +96,7 @@ architecture behavioral of IntParser is
         bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
         bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
         for idx in 0 to (BW+(BW-4)/3)/4-1 loop
-          if unsigned(to_01(bcd_shr(idx*4+3 downto idx*4))) >= 8 then
+          if unsigned(bcd_shr(idx*4+3 downto idx*4)) >= 8 then
             bcd_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(bcd_shr(idx*4+3 downto idx*4)) - 3));
           end if;
         end loop;
@@ -191,7 +191,7 @@ architecture behavioral of IntParser is
           end if;
 
 
-          if or_reduce(dd_in.last) then
+          if or_reduce(dd_in.last) = '1' then
             dd_in.valid := '1';
           end if;
 
@@ -240,6 +240,5 @@ architecture behavioral of IntParser is
       stage_gen: for i in 0 to PIPELINE_STAGES-1  generate
         dd_stage(pipeline_in_array(i), pipeline_out_array(i), BITWIDTH, BITWIDTH/PIPELINE_STAGES);
       end generate stage_gen;
-      
       
     end architecture;

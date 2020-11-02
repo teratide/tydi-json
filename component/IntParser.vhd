@@ -66,7 +66,8 @@ architecture behavioral of IntParser is
       last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
     end record;
 
-    constant BCD_WIDTH    : integer := BITWIDTH+(BITWIDTH-4)/3; 
+    constant BCD_WIDTH    : integer := BITWIDTH+(BITWIDTH-4)/3;
+    constant SLICE_WIDTH  : integer := BCD_WIDTH + BITWIDTH + NESTING_LEVEL + 1;
 
     constant DD_BCD_STAI  : integer := 0;
     constant DD_BCD_ENDI  : integer := BCD_WIDTH-1;
@@ -85,33 +86,26 @@ architecture behavioral of IntParser is
     signal dd_in_s  : dd_stage_t := dd_stage_t_init;
     signal dd_out_s : dd_stage_t := dd_stage_t_init;
 
-    signal dd_in_valid   : std_logic;
     signal dd_in_valid_s : std_logic;
-
     signal dd_in_ready   : std_logic;
 
-    type slice_handshake_signals        is array (0 to PIPELINE_STAGES) of std_logic;
-    type slice_data_signals             is array (0 to PIPELINE_STAGES) of std_logic_vector(BCD_WIDTH + BITWIDTH + NESTING_LEVEL downto 0);
+    type slice_handshake_t        is array (0 to PIPELINE_STAGES) of std_logic;
+    type slice_data_t             is array (0 to PIPELINE_STAGES) of std_logic_vector(SLICE_WIDTH-1 downto 0);
 
-    signal slice_data_in    : slice_data_signals;
-    signal slice_data_out   : slice_data_signals;
-    signal slice_ready      : slice_handshake_signals;
-    signal slice_valid      : slice_handshake_signals;
+    signal slice_data_in    : slice_data_t;
+    signal slice_data_out   : slice_data_t;
+    signal slice_ready      : slice_handshake_t;
+    signal slice_valid      : slice_handshake_t;
 
-    type pipeline_reg_array_t is array (0 to PIPELINE_STAGES) of dd_stage_t;
+    type stage_data_t is array (0 to PIPELINE_STAGES) of dd_stage_t;
 
-    signal pipeline_data_array : pipeline_reg_array_t;
-    signal pipeline_data_proc_array : pipeline_reg_array_t;
-
-    signal stage_in  : dd_stage_t;
-    signal stage_out : dd_stage_t;
-
-    signal val_dbg : std_logic;
-    signal iv_dbg : std_logic;
+    signal dd_stage_data_in : stage_data_t := (others => dd_stage_t_init);
+    signal dd_stage_data_out : stage_data_t := (others => dd_stage_t_init);
 
     procedure dd_stage (
         signal    i         : in  dd_stage_t;
         signal    o         : out dd_stage_t;
+        signal    iv        : in std_logic;
         constant  BW        : in natural;
         constant  STEPS     : in natural
       ) is
@@ -121,15 +115,17 @@ architecture behavioral of IntParser is
       -- Use the double-dabble alogorithm to convert BCD to binary.
       bcd_shr := i.bcd;
       bin_shr := i.bin;
-      for j in 0 to STEPS-1 loop
-        bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
-        bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
-        for idx in 0 to (BW+(BW-4)/3)/4-1 loop
-          if unsigned(bcd_shr(idx*4+3 downto idx*4)) >= 8 then
-            bcd_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(bcd_shr(idx*4+3 downto idx*4)) - 3));
-          end if;
+      if iv = '1' then 
+        for j in 0 to STEPS-1 loop
+          bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
+          bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
+          for idx in 0 to (BW+(BW-4)/3)/4-1 loop
+            if unsigned(bcd_shr(idx*4+3 downto idx*4)) >= 8 then
+              bcd_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(bcd_shr(idx*4+3 downto idx*4)) - 3));
+            end if;
+          end loop;
         end loop;
-      end loop;
+      end if;
       o.bcd   <= bcd_shr;
       o.bin   <= bin_shr;
       o.last  <= i.last;
@@ -138,7 +134,7 @@ architecture behavioral of IntParser is
 
     begin
         in_stage: process (clk) is
-          constant IDXW : natural := log2ceil(EPC);
+          
           type in_array is array (natural range <>) of in_type;
           variable id   : in_array(0 to EPC-1);
           variable stai : unsigned(log2ceil(EPC)-1 downto 0);
@@ -239,8 +235,6 @@ architecture behavioral of IntParser is
           dd_in_s       <= dd_in;
           dd_in_valid_s <= dd_in_valid;
 
-          val_dbg <= dd_in_valid;
-          iv_dbg <= iv;
         end if;
       end process;
 
@@ -249,24 +243,28 @@ architecture behavioral of IntParser is
 
       stage_gen: for i in 0 to PIPELINE_STAGES-1  generate
 
-        dd_stage(pipeline_data_array(i), pipeline_data_proc_array(i), BITWIDTH, BITWIDTH/PIPELINE_STAGES);
+        dd_stage(dd_stage_data_in(i),
+                dd_stage_data_out(i),
+                slice_valid(i),
+                BITWIDTH,
+                BITWIDTH/PIPELINE_STAGES);
 
-        slice_data_in(i)(DD_BCD_ENDI   downto DD_BCD_STAI)     <= pipeline_data_proc_array(i).bcd;
-        slice_data_in(i)(DD_BIN_ENDI   downto DD_BIN_STAI)     <= pipeline_data_proc_array(i).bin;
-        slice_data_in(i)(DD_LAST_ENDI  downto DD_LAST_STAI)    <= pipeline_data_proc_array(i).last;
-        slice_data_in(i)(DD_EMPTY_I)                           <= pipeline_data_proc_array(i).empty;
+        slice_data_in(i)(DD_BCD_ENDI   downto DD_BCD_STAI)     <= dd_stage_data_out(i).bcd;
+        slice_data_in(i)(DD_BIN_ENDI   downto DD_BIN_STAI)     <= dd_stage_data_out(i).bin;
+        slice_data_in(i)(DD_LAST_ENDI  downto DD_LAST_STAI)    <= dd_stage_data_out(i).last;
+        slice_data_in(i)(DD_EMPTY_I)                           <= dd_stage_data_out(i).empty;
 
-        pipeline_data_array(i+1).bcd   <= slice_data_out(i)(DD_BCD_ENDI   downto DD_BCD_STAI);
-        pipeline_data_array(i+1).bin   <= slice_data_out(i)(DD_BIN_ENDI   downto DD_BIN_STAI);
-        pipeline_data_array(i+1).last  <= slice_data_out(i)(DD_LAST_ENDI  downto DD_LAST_STAI);
-        pipeline_data_array(i+1).empty <= slice_data_out(i)(DD_EMPTY_I);
+        dd_stage_data_in(i+1).bcd   <= slice_data_out(i)(DD_BCD_ENDI   downto DD_BCD_STAI);
+        dd_stage_data_in(i+1).bin   <= slice_data_out(i)(DD_BIN_ENDI   downto DD_BIN_STAI);
+        dd_stage_data_in(i+1).last  <= slice_data_out(i)(DD_LAST_ENDI  downto DD_LAST_STAI);
+        dd_stage_data_in(i+1).empty <= slice_data_out(i)(DD_EMPTY_I);
 
       end generate stage_gen;
 
       gen_slices : for i in 0 to PIPELINE_STAGES-1 generate
       slice : StreamSlice 
         generic map (
-          DATA_WIDTH          => BCD_WIDTH + BITWIDTH + NESTING_LEVEL + 1
+          DATA_WIDTH          => SLICE_WIDTH
         )
         port map(
           clk          => clk,
@@ -284,17 +282,15 @@ architecture behavioral of IntParser is
       end generate;
 
       -- Interfacing
-      pipeline_data_array(0) <= dd_in_s;
+      dd_stage_data_in(0) <= dd_in_s;
 
-      slice_valid(0) <= dd_in_valid_s;
       dd_in_ready <= slice_ready(0);
-
-      out_valid <= slice_valid(PIPELINE_STAGES);
+      slice_valid(0) <= dd_in_valid_s;
+     
       slice_ready(PIPELINE_STAGES) <= out_ready;
-      
-
-      out_data  <= pipeline_data_array(PIPELINE_STAGES).bin;
-      out_last  <= pipeline_data_array(PIPELINE_STAGES).last;
-      out_strb  <= not pipeline_data_array(PIPELINE_STAGES).empty;
+      out_valid <= slice_valid(PIPELINE_STAGES);
+      out_data  <= dd_stage_data_in(PIPELINE_STAGES).bin;
+      out_last  <= dd_stage_data_in(PIPELINE_STAGES).last;
+      out_strb  <= not dd_stage_data_in(PIPELINE_STAGES).empty;
       
     end architecture;

@@ -122,7 +122,7 @@ architecture behavioral of IntParser is
         bin_shr := bcd_shr(0) & bin_shr(bin_shr'left downto 1);
         bcd_shr := '0' & bcd_shr(bcd_shr'high downto 1);
         for idx in 0 to (BW+(BW-4)/3)/4-1 loop
-          if unsigned(to_01(bcd_shr(idx*4+3 downto idx*4))) >= 8 then
+          if to_01(unsigned(bcd_shr(idx*4+3 downto idx*4))) >= 8 then
             bcd_shr(idx*4+3 downto idx*4) := std_logic_vector(unsigned(unsigned(bcd_shr(idx*4+3 downto idx*4)) - 3));
           end if;
         end loop;

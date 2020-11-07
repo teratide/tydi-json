@@ -24,7 +24,7 @@ architecture test_case of battery_status_tc is
 
   constant EPC                   : integer := 2;
   constant INTEGER_WIDTH         : integer := 64;
-  constant INT_P_PIPELINE_STAGES : integer := 1;
+  constant INT_P_PIPELINE_STAGES : integer := 4;
 
   signal in_valid         : std_logic;
   signal in_ready         : std_logic;

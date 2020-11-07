@@ -181,7 +181,7 @@ package Json_pkg is
           NESTING_LEVEL         : natural := 1;
           BITWIDTH              : natural := 8;
           SIGNED                : boolean := false; -- Signed is not supported yet!
-          PIPELINE_STAGES       : natural := 1
+          PIPELINE_STAGES       : natural := 2
           );
       port (
           clk                   : in  std_logic;

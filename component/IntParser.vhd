@@ -83,12 +83,12 @@ architecture behavioral of IntParser is
     signal stage_in_array : pipeline_reg_array_t(0 to PIPELINE_STAGES-1) := (others=>(dd_stage_t_init));
     signal stage_out_array : pipeline_reg_array_t(0 to PIPELINE_STAGES-1) := (others=>(dd_stage_t_init));
 
-    signal bcd    : std_logic_vector(BCD_WIDTH-1 downto 0);
-
     type stage_data_t is array (0 to PIPELINE_STAGES) of dd_stage_t;
 
     signal dd_stage_data_in : stage_data_t := (others => dd_stage_t_init);
     signal dd_stage_data_out : stage_data_t := (others => dd_stage_t_init);
+
+    signal dd_ready : std_logic;
     
 
     procedure dd_stage (
@@ -159,7 +159,7 @@ architecture behavioral of IntParser is
           end if;
     
           -- Clear output holding register if transfer was accepted.
-          if to_x01(out_ready) = '1' then
+          if to_x01(dd_ready) = '1' then
             if dd_in.valid = '1' then
               dd_in := dd_stage_t_init;
             end if;
@@ -215,33 +215,68 @@ architecture behavioral of IntParser is
           ir        := not iv;
           in_ready      <= ir;
           dd_in_s       <= dd_in;
-          bcd <= dd_in.bcd;
+          --bcd <=dd_in.bcd;
 
         end if;
       end process;
 
       pipeline_reg_proc: process (clk) is
+        variable out_reg  : dd_stage_t := dd_stage_t_init;
+        variable skid_reg : dd_stage_t := dd_stage_t_init;
+        variable pr   : std_logic := '0';
+        variable skid : std_logic := '0';
         begin
+
           if rising_edge(clk) then
+
             if to_x01(reset) /= '0' then
-              stage_in_array(0).valid   <= '0';
-            else
-            stage_in_array(0) <= dd_in_s;
+              pr := '0';
+              skid := '0';
             end if;
   
+            if out_ready = '1' then
+              out_reg.valid := '0';
+            end if;
+
+            pr := not out_reg.valid;
+
+            if pr = '0' then
+              if skid = '0' then
+                skid_reg := dd_in_s;
+                skid := '1';
+              end if;
+            end if;
+
+            if to_x01(reset) /= '0' then
+              stage_in_array(0).valid   <= '0';
+            elsif pr = '1' then
+              if skid = '0' then
+                stage_in_array(0) <= dd_in_s;
+              else
+                stage_in_array(0) <= skid_reg;
+                skid := '0';
+              end if;
+            end if;
+
             pipeline_reg_gen: for i in 1 to PIPELINE_STAGES-1  loop
               if to_x01(reset) /= '0' then
                 stage_in_array(i).valid   <= '0';
-              elsif (out_ready) then
+              elsif pr = '1' then
                 stage_in_array(i)    <= stage_out_array(i-1);
               end if;
             end loop pipeline_reg_gen;
+            
+            if pr = '1' then
+              out_reg := stage_out_array(PIPELINE_STAGES-1);
+            end if;
 
             -- Interfacing
-            out_valid <= stage_out_array(PIPELINE_STAGES-1).valid;
-            out_data  <= stage_out_array(PIPELINE_STAGES-1).bin;
-            out_last  <= stage_out_array(PIPELINE_STAGES-1).last;
-            out_strb  <= not stage_out_array(PIPELINE_STAGES-1).empty;
+            dd_ready <= pr;
+
+            out_valid <= out_reg.valid;
+            out_data  <= out_reg.bin;
+            out_last  <= out_reg.last;
+            out_strb  <= not out_reg.empty;
           end if;  
         end process;
   

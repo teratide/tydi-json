@@ -144,8 +144,8 @@ architecture behavioral of IntParser is
     
           variable in_shr  : std_logic_vector(BITWIDTH+(BITWIDTH-4)/3-1 downto 0) := (others => '0');
 
-          variable dd_in  : dd_stage_t;
-          variable dd_out : dd_stage_t;
+          variable dd_in  : dd_stage_t := dd_stage_t_init;
+          variable dd_out : dd_stage_t := dd_stage_t_init;
 
           variable dd_in_valid   : std_logic;
 

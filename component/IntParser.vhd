@@ -145,7 +145,6 @@ architecture behavioral of IntParser is
           variable in_shr  : std_logic_vector(BITWIDTH+(BITWIDTH-4)/3-1 downto 0) := (others => '0');
 
           variable dd_in  : dd_stage_t := dd_stage_t_init;
-          variable dd_out : dd_stage_t := dd_stage_t_init;
 
           variable dd_in_valid   : std_logic;
 
@@ -226,6 +225,7 @@ architecture behavioral of IntParser is
           -- Handle reset.
           if to_x01(reset) /= '0' then
             iv            := '0';
+            dd_in         := dd_stage_t_init;
             dd_in_valid   := '0';
             in_shr        := (others => '0');
           end if;

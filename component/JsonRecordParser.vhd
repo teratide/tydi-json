@@ -178,6 +178,10 @@ begin
 
             case state is
               when STATE_IDLE =>
+                od(idx).strb    := '0';
+                if or_reduce(od(idx).last) = '1' then
+                  ov := '1';
+                end if;
                 case id(idx).data is
                   when X"7B" => -- '{'
                     state := STATE_RECORD;

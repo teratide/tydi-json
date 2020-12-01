@@ -173,5 +173,4 @@ begin
     out_strb                  => out_strb
   );
   
-
 end arch;

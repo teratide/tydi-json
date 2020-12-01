@@ -139,48 +139,83 @@ begin
 
     tc_wait_for(10 us);
 
-    -- tc_check(b.pq_ready, true);
-    -- tc_check(b.cq_get_d_nat, 11, "11");
-    -- b.cq_next;
-    -- while not b.cq_get_dvalid loop
-    --   b.cq_next;
-    -- end loop;
-    -- tc_check(b.cq_get_d_nat, 22, "22");
-    -- b.cq_next;
-    -- while not b.cq_get_dvalid loop
-    --   b.cq_next;
-    -- end loop;
-    -- tc_check(b.cq_get_d_nat, 33, "33");
-    -- b.cq_next;
-    -- while not b.cq_get_dvalid loop
-    --   b.cq_next;
-    -- end loop;
-    -- tc_check(b.cq_get_d_nat, 44, "44");
-    -- b.cq_next;
-    -- while not b.cq_get_dvalid loop
-    --   b.cq_next;
-    -- end loop;
-    -- tc_check(b.cq_get_d_nat, 55, "55");
-    -- b.cq_next;
-    -- while not b.cq_get_dvalid loop
-    --   b.cq_next;
-    -- end loop;
-    -- tc_check(b.cq_get_d_nat, 66, "66");
-    -- b.cq_next;
-    -- while not b.cq_get_dvalid loop
-    --   b.cq_next;
-    -- end loop;
-    -- tc_check(b.cq_get_d_nat, 77, "77");
-    -- b.cq_next;
-    -- while not b.cq_get_dvalid loop
-    --   b.cq_next;
-    -- end loop;
-    -- tc_check(b.cq_get_d_nat, 88, "88");
-    -- b.cq_next;
-    -- while not b.cq_get_dvalid loop
-    --   b.cq_next;
-    -- end loop;
-    -- tc_check(b.cq_get_d_nat, 99, "99");
+    tc_check(b.pq_ready, true);
+    tc_check(b.cq_get_d_nat, 1128, "1128");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1213, "1213");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1850, "1850");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 429, "429");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1770, "1770");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1683, "1683");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1483, "1483");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 478, "478");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 545, "545");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1555, "1555");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 867, "867");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1495, "1495");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1398, "1398");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1380, "1380");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 1753, "1753");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    --tc_check(b.cq_get_d_nat, 43811111111, "43811111111");
 
     tc_pass;
     wait;

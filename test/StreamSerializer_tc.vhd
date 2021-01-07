@@ -20,7 +20,7 @@ architecture test_case of StreamSerializer_tc is
   signal clk              : std_logic;
   signal reset            : std_logic;
 
-  constant EPC            : integer := 2;
+  constant EPC            : integer := 3;
 
   signal in_valid         : std_logic;
   signal in_ready         : std_logic;
@@ -37,6 +37,9 @@ architecture test_case of StreamSerializer_tc is
   signal out_valid        : std_logic;
   signal out_data         : std_logic_vector(7 downto 0);
   signal out_last         : std_logic;
+  signal out_strb         : std_logic;
+
+  signal adv_last         : std_logic_vector(EPC-1 downto 0);
 
 begin
 
@@ -67,6 +70,9 @@ begin
     
     in_strb <= element_mask(in_count, in_dvalid, EPC); 
     in_endi <= std_logic_vector(unsigned(in_count) - 1);
+
+    -- TODO: Is there a cleaner solution? It's getting late :(
+      adv_last(EPC-1 downto 0) <=  std_logic_vector(shift_left(resize(unsigned'("0" & in_last),EPC), to_integer((unsigned(in_endi)))));
     
     dut: StreamSerializer
     generic map (
@@ -80,11 +86,12 @@ begin
       in_valid                  => in_valid,
       in_ready                  => in_ready,
       in_data                   => in_data,
-      in_last(0)                => in_last,
+      in_last                   => adv_last,
       in_strb                   => in_strb,
       out_data                  => out_data,
       out_valid                 => out_valid,
       out_ready                 => out_ready,
+      out_strb                  => out_strb,
       out_last(0)               => out_last
     );
 
@@ -101,6 +108,7 @@ begin
       valid                     => out_valid,
       ready                     => out_ready,
       data                      => out_data,
+    --  dvalid                    => out_strb,
       last                      => out_last
     );
 

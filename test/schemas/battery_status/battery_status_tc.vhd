@@ -130,9 +130,9 @@ begin
 
     a.push_str("{""voltage"":[1128,1213,1850,429,1770,1683,1483,478,545,1555,867,1495,1398,1380,1753,43811111111]}\n");
 
-    --a.set_total_cyc(0, 20);
-    b.set_valid_cyc(0, 20);
-    b.set_total_cyc(0, 20);
+    a.set_total_cyc(0, 20);
+     b.set_valid_cyc(0, 20);
+     b.set_total_cyc(0, 20);
 
     a.transmit;
     b.unblock;

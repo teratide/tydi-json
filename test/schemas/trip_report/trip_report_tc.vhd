@@ -845,7 +845,7 @@ begin
     src.push_str(" ""accel more than 10s"" : [147, 845, 923],");
     src.push_str(" ""small speed var miles"" : [867, 1460, 1661],");
     src.push_str(" ""large speed var miles"" : [1580, 1387, 1713],");
-    src.push_str(" }");
+    src.push_str(" }\n");
 
     src.push_str("{ ");
     src.push_str(" ""timezone"" : 68,");
@@ -867,7 +867,7 @@ begin
     src.push_str(" ""accel more than 10s"" : [254, 1223, 1427],");
     src.push_str(" ""small speed var miles"" : [1291, 1631, 410],");
     src.push_str(" ""large speed var miles"" : [360, 1837, 92],");
-    src.push_str(" }");
+    src.push_str(" }\n");
 
     
     

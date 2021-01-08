@@ -213,41 +213,6 @@ package Json_pkg is
           out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
       );
     end component;
-
-    component StreamSerializer is
-      generic (
-          EPC                   : natural := 1;
-          DATA_WIDTH            : natural := 8;
-          DIMENSIONALITY        : natural := 1
-          );
-      port (
-          clk                   : in  std_logic;
-          reset                 : in  std_logic;
-    
-          -- Stream(
-          --     Bits(DATA_WIDTH),
-          --     t=EPC,
-          --     c=8
-          -- )
-          in_valid              : in  std_logic;
-          in_ready              : out std_logic;
-          in_data               : in  std_logic_vector(DATA_WIDTH*EPC-1 downto 0);
-          in_last               : in  std_logic_vector(DIMENSIONALITY*EPC-1 downto 0) := (others => '0');
-          in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
-          in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
-          in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
-    
-          -- Stream(
-          --     Bits(DATA_WIDTH),
-          --     c=2
-          -- )
-          out_valid             : out std_logic;
-          out_ready             : in  std_logic;
-          out_data              : out std_logic_vector(DATA_WIDTH-1 downto 0);
-          out_strb              : out std_logic;
-          out_last              : out std_logic_vector(DIMENSIONALITY-1 downto 0)
-      );
-    end component;
 end Json_pkg;
 
 

@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity s_acc_dec_f_m_tb is
-end s_acc_dec_f_m_tb;
+entity accel_decel_f_m_tb is
+end accel_decel_f_m_tb;
 
-architecture Testbench of s_acc_dec_f_m_tb is
+architecture Testbench of accel_decel_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -82,7 +82,7 @@ begin
     wait;
   end process;
 
-  uut: entity work.s_acc_dec_f_m
+  uut: entity work.accel_decel_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

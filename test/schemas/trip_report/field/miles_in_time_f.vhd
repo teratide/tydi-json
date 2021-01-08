@@ -11,7 +11,7 @@ use work.tr_field_pkg.all;
 use work.Json_pkg.all;
 
 
-entity miles_in_time_f is
+entity miles_in_time_range_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -39,7 +39,7 @@ entity miles_in_time_f is
     );
 end entity;
 
-architecture arch of miles_in_time_f is
+architecture arch of miles_in_time_range_f is
 
   constant BUFF_WIDTH          : integer := EPC*(1 + 8 + OUTER_NESTING_LEVEL+2);
   constant BUFF_DATA_STAI      : integer := 0;
@@ -117,7 +117,7 @@ begin
     out_last                  => filter_last
   );
 
-  matcher_i: miles_in_time_f_m
+  matcher_i: miles_in_time_range_f_m
   generic map (
     BPC                       => EPC
   )

@@ -11,7 +11,7 @@ use work.tr_field_pkg.all;
 use work.Json_pkg.all;
 
 
-entity accel_m_t_10s_f is
+entity accel_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -39,7 +39,7 @@ entity accel_m_t_10s_f is
     );
 end entity;
 
-architecture arch of accel_m_t_10s_f is
+architecture arch of accel_f is
 
   constant BUFF_WIDTH          : integer := EPC*(1 + 8 + OUTER_NESTING_LEVEL+2);
   constant BUFF_DATA_STAI      : integer := 0;
@@ -117,7 +117,7 @@ begin
     out_last                  => filter_last
   );
 
-  matcher_i: accel_m_t_10s_f_m
+  matcher_i: accel_f_m
   generic map (
     BPC                       => EPC
   )

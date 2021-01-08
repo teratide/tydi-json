@@ -95,7 +95,7 @@ package tr_field_pkg is
       );
   end component;
 
-  component avg_speed_f is
+  component avgspeed_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -124,7 +124,7 @@ package tr_field_pkg is
       );
   end component;
 
-  component s_acc_dec_f is
+  component accel_decel_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -153,7 +153,7 @@ package tr_field_pkg is
       );
   end component;
 
-  component e_spd_chg_f is
+  component speed_changes_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -182,7 +182,7 @@ package tr_field_pkg is
       );
   end component;
 
-  component hyper_miling_f is
+  component hypermiling_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -236,7 +236,7 @@ package tr_field_pkg is
       );
   end component;
 
-  component secs_in_b_f is
+  component sec_in_band_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -264,7 +264,7 @@ package tr_field_pkg is
     );
   end component;
 
-  component miles_in_time_f is
+  component miles_in_time_range_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -292,7 +292,7 @@ package tr_field_pkg is
     );
   end component;
 
-  component const_spd_m_in_b_f is
+  component const_speed_miles_in_band_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -320,7 +320,7 @@ package tr_field_pkg is
     );
   end component;
 
-  component var_spd_m_in_b_f is
+  component vary_speed_miles_in_band_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -348,7 +348,7 @@ package tr_field_pkg is
     );
   end component;
 
-  component seconds_decel_f is
+  component sec_decel_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -376,7 +376,7 @@ package tr_field_pkg is
     );
   end component;
 
-  component seconds_accel_f is
+  component sec_accel_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -404,7 +404,7 @@ package tr_field_pkg is
     );
   end component;
 
-  component brk_m_t_10s_f is
+  component braking_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -432,7 +432,7 @@ package tr_field_pkg is
     );
   end component;
 
-  component accel_m_t_10s_f is
+  component accel_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -460,7 +460,7 @@ package tr_field_pkg is
     );
   end component;
 
-  component small_spd_v_m_f is
+  component small_speed_var_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -488,7 +488,7 @@ package tr_field_pkg is
     );
   end component;
 
-  component large_spd_v_m_f is
+  component large_speed_var_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;

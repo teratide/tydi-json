@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity hyper_miling_f_m_tb is
-end hyper_miling_f_m_tb;
+entity hypermiling_f_m_tb is
+end hypermiling_f_m_tb;
 
-architecture Testbench of hyper_miling_f_m_tb is
+architecture Testbench of hypermiling_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -82,7 +82,7 @@ begin
     wait;
   end process;
 
-  uut: entity work.hyper_miling_f_m
+  uut: entity work.hypermiling_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

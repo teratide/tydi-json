@@ -11,7 +11,7 @@ use work.tr_field_pkg.all;
 use work.Json_pkg.all;
 
 
-entity hyper_miling_f is
+entity hypermiling_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -37,7 +37,7 @@ entity hyper_miling_f is
     );
 end entity;
 
-architecture arch of hyper_miling_f is
+architecture arch of hypermiling_f is
 
   constant BUFF_WIDTH          : integer := EPC*(1 + 8 + OUTER_NESTING_LEVEL+1);
   constant BUFF_DATA_STAI      : integer := 0;
@@ -106,7 +106,7 @@ begin
     out_last                  => filter_last
   );
 
-  matcher_i: hyper_miling_f_m
+  matcher_i: hypermiling_f_m
   generic map (
     BPC                       => EPC
   )

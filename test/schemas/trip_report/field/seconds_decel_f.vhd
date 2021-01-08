@@ -11,7 +11,7 @@ use work.tr_field_pkg.all;
 use work.Json_pkg.all;
 
 
-entity seconds_decel_f is
+entity sec_decel_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -39,7 +39,7 @@ entity seconds_decel_f is
     );
 end entity;
 
-architecture arch of seconds_decel_f is
+architecture arch of sec_decel_f is
 
   constant BUFF_WIDTH          : integer := EPC*(1 + 8 + OUTER_NESTING_LEVEL+2);
   constant BUFF_DATA_STAI      : integer := 0;
@@ -117,7 +117,7 @@ begin
     out_last                  => filter_last
   );
 
-  matcher_i: seconds_decel_f_m
+  matcher_i: sec_decel_f_m
   generic map (
     BPC                       => EPC
   )

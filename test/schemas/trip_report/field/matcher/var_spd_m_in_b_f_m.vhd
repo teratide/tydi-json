@@ -28,7 +28,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity var_spd_m_in_b_f_m is
+entity vary_speed_miles_in_band_f_m is
   generic (
 
     ----------------------------------------------------------------------------
@@ -128,9 +128,9 @@ entity var_spd_m_in_b_f_m is
     out_xerror                  : out std_logic_vector(BPC-1 downto 0)
 
   );
-end var_spd_m_in_b_f_m;
+end vary_speed_miles_in_band_f_m;
 
-architecture Behavioral of var_spd_m_in_b_f_m is
+architecture Behavioral of vary_speed_miles_in_band_f_m is
 
   -- This constant resolves to 'U' in simulation and '0' in synthesis. It's
   -- used as a value for stuff that's supposed to be invalid.

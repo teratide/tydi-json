@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity avg_speed_f_m_tb is
-end avg_speed_f_m_tb;
+entity avgspeed_f_m_tb is
+end avgspeed_f_m_tb;
 
-architecture Testbench of avg_speed_f_m_tb is
+architecture Testbench of avgspeed_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -82,7 +82,7 @@ begin
     wait;
   end process;
 
-  uut: entity work.avg_speed_f_m
+  uut: entity work.avgspeed_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

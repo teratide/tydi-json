@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity e_spd_chg_f_m_tb is
-end e_spd_chg_f_m_tb;
+entity speed_changes_f_m_tb is
+end speed_changes_f_m_tb;
 
-architecture Testbench of e_spd_chg_f_m_tb is
+architecture Testbench of speed_changes_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -82,7 +82,7 @@ begin
     wait;
   end process;
 
-  uut: entity work.e_spd_chg_f_m
+  uut: entity work.speed_changes_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity const_spd_m_in_b_f_m_tb is
-end const_spd_m_in_b_f_m_tb;
+entity const_speed_miles_in_band_f_m_tb is
+end const_speed_miles_in_band_f_m_tb;
 
-architecture Testbench of const_spd_m_in_b_f_m_tb is
+architecture Testbench of const_speed_miles_in_band_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -82,7 +82,7 @@ begin
     wait;
   end process;
 
-  uut: entity work.const_spd_m_in_b_f_m
+  uut: entity work.const_speed_miles_in_band_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

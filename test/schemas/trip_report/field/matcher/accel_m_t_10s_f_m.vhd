@@ -28,7 +28,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity accel_m_t_10s_f_m is
+entity accel_f_m is
   generic (
 
     ----------------------------------------------------------------------------
@@ -128,9 +128,9 @@ entity accel_m_t_10s_f_m is
     out_xerror                  : out std_logic_vector(BPC-1 downto 0)
 
   );
-end accel_m_t_10s_f_m;
+end accel_f_m;
 
-architecture Behavioral of accel_m_t_10s_f_m is
+architecture Behavioral of accel_f_m is
 
   -- This constant resolves to 'U' in simulation and '0' in synthesis. It's
   -- used as a value for stuff that's supposed to be invalid.

@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity small_spd_v_m_f_m_tb is
-end small_spd_v_m_f_m_tb;
+entity small_speed_var_f_m_tb is
+end small_speed_var_f_m_tb;
 
-architecture Testbench of small_spd_v_m_f_m_tb is
+architecture Testbench of small_speed_var_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -82,7 +82,7 @@ begin
     wait;
   end process;
 
-  uut: entity work.small_spd_v_m_f_m
+  uut: entity work.small_speed_var_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

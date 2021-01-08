@@ -11,7 +11,7 @@ use work.tr_field_pkg.all;
 use work.Json_pkg.all;
 
 
-entity e_spd_chg_f is
+entity speed_changes_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -39,7 +39,7 @@ entity e_spd_chg_f is
     );
 end entity;
 
-architecture arch of e_spd_chg_f is
+architecture arch of speed_changes_f is
 
   constant BUFF_WIDTH          : integer := EPC*(2 + 8 + OUTER_NESTING_LEVEL+1);
   constant BUFF_DATA_STAI      : integer := 0;
@@ -108,7 +108,7 @@ begin
     out_last                  => filter_last
   );
 
-  matcher_i: e_spd_chg_f_m
+  matcher_i: speed_changes_f_m
   generic map (
     BPC                       => EPC
   )

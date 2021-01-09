@@ -68,7 +68,7 @@ architecture behavioral of BooleanParser is
         variable oe : std_logic := '1';
         variable ol : std_logic_vector(NESTING_LEVEL-1 downto 0) := (others => '0');
 
-        variable val : boolean;
+        variable val : std_logic;
     
       begin
         if rising_edge(clk) then
@@ -109,19 +109,19 @@ architecture behavioral of BooleanParser is
                     when X"66" => -- 'f'
                         ov := '1';
                         oe := '0';
-                        val:= false;
+                        val:= '0';
                     when X"46" => -- 'F'
                         ov := '1';
                         oe := '0';
-                        val:= false;
+                        val:= '0';
                     when X"74" => -- 't'
                         ov := '1';
                         oe := '0';    
-                        val:= true;
+                        val:= '1';
                     when X"54" => -- 'T'
                         ov := '1';
                         oe := '0';
-                        val:= true;
+                        val:= '1';
                     when others =>
                         ov := '0';
                   end case;
@@ -138,7 +138,7 @@ architecture behavioral of BooleanParser is
             end loop;
           end if;
 
-          if or_reduce(ol) and not iv then
+          if or_reduce(ol) and iv = '0' then
             ov := '1';
           end if;
     
@@ -152,7 +152,7 @@ architecture behavioral of BooleanParser is
           ir := not iv and not reset;
           in_ready <= ir and not reset;
           out_valid <= to_x01(ov);
-          out_data <= '1' when val else '0';
+          out_data <= val;
           out_last <= ol;
           out_strb <= not oe;
         end if;

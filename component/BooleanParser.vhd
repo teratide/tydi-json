@@ -138,7 +138,7 @@ architecture behavioral of BooleanParser is
             end loop;
           end if;
 
-          if or_reduce(ol) and iv = '0' then
+          if or_reduce(ol) = '1' and iv = '0' then
             ov := '1';
           end if;
     

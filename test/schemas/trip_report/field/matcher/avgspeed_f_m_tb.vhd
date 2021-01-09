@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity small_speed_var_f_m_tb is
-end small_speed_var_f_m_tb;
+entity avgspeed_f_m_tb is
+end avgspeed_f_m_tb;
 
-architecture Testbench of small_speed_var_f_m_tb is
+architecture Testbench of avgspeed_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -78,11 +78,11 @@ begin
     wait until falling_edge(clk);
     reset <= '0';
     wait until falling_edge(clk);
-    x(X"736D616C6C20737065656420766172206D696C6573");
+    x(X"6176677370656564");
     wait;
   end process;
 
-  uut: entity work.small_speed_var_f_m
+  uut: entity work.avgspeed_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

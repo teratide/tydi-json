@@ -105,7 +105,7 @@ entity miles_in_time_range_f_m is
 
     -- Outgoing match stream for one-string-per-cycle systems. match indicates
     -- which of the following regexs matched:
-    --  - 0: /miles in time range/
+    --  - 0: /miles_in_time_range/
     -- error indicates that a UTF-8 decoding error occured. Only the following
     -- decode errors are detected:
     --  - multi-byte sequence interrupted by last flag or a new sequence
@@ -567,7 +567,7 @@ architecture Behavioral of miles_in_time_range_f_m is
     -- Code point subrange stream. Each flag signal represents one contiguous
     -- range of code points that does not cross a 64-CP boundary.
     valid                       : std_logic;
-      b00000f40t40              : std_logic; --  
+      b00001f37t37              : std_logic; -- _
       b00001f41t41              : std_logic; -- a
       b00001f45t45              : std_logic; -- e
       b00001f47t47              : std_logic; -- g
@@ -605,7 +605,7 @@ architecture Behavioral of miles_in_time_range_f_m is
 
     -- Pass through control signals and decode range signals.
     o.valid         := i.valid;
-    o.b00000f40t40  := i.oh3( 0) and i.oh2( 0) and i.oh1( 0) and i.th0(31) and not i.th0(32); --  
+    o.b00001f37t37  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(30) and not i.th0(31); -- _
     o.b00001f41t41  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(32) and not i.th0(33); -- a
     o.b00001f45t45  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(36) and not i.th0(37); -- e
     o.b00001f47t47  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(38) and not i.th0(39); -- g
@@ -622,7 +622,7 @@ architecture Behavioral of miles_in_time_range_f_m is
     -- In simulation, make signals undefined when their value is meaningless.
     -- pragma translate_off
     if to_X01(o.valid) /= '1' then
-      o.b00000f40t40 := 'U';
+      o.b00001f37t37 := 'U';
       o.b00001f41t41 := 'U';
       o.b00001f45t45 := 'U';
       o.b00001f47t47 := 'U';
@@ -676,17 +676,17 @@ architecture Behavioral of miles_in_time_range_f_m is
 
     -- Pass through control signals and decode range signals by default.
     o.valid       := i.valid;
-    o.match(  0)  := i.b00001f56t56; -- n
-    o.match(  1)  := i.b00001f45t45; -- e
-    o.match(  2)  := i.b00000f40t40; --  
-    o.match(  3)  := i.b00001f55t55; -- m
-    o.match(  4)  := i.b00001f54t54; -- l
-    o.match(  5)  := i.b00001f51t51; -- i
-    o.match(  6)  := i.b00001f62t62; -- r
-    o.match(  7)  := i.b00001f63t63; -- s
-    o.match(  8)  := i.b00001f47t47; -- g
+    o.match(  0)  := i.b00001f55t55; -- m
+    o.match(  1)  := i.b00001f51t51; -- i
+    o.match(  2)  := i.b00001f47t47; -- g
+    o.match(  3)  := i.b00001f56t56; -- n
+    o.match(  4)  := i.b00001f37t37; -- _
+    o.match(  5)  := i.b00001f62t62; -- r
+    o.match(  6)  := i.b00001f54t54; -- l
+    o.match(  7)  := i.b00001f45t45; -- e
+    o.match(  8)  := i.b00001f41t41; -- a
     o.match(  9)  := i.b00001f64t64; -- t
-    o.match( 10)  := i.b00001f41t41; -- a
+    o.match( 10)  := i.b00001f63t63; -- s
     o.last        := i.last;
     o.error       := i.error;
 
@@ -711,7 +711,7 @@ architecture Behavioral of miles_in_time_range_f_m is
 
   type s5s_array is array (natural range <>) of s5s_type;
 
-  constant S5S_RESET            : s5s_type := "00000000000000001000";
+  constant S5S_RESET            : s5s_type := "00000000000000010000";
 
   ------------------------------------------------------------------------------
   -- Stage 5 output record
@@ -754,32 +754,32 @@ architecture Behavioral of miles_in_time_range_f_m is
     -- Transition to the next state if there is an incoming character.
     if i.valid = '1' then
       si := s;
-      s(  0) := (si(  9) and i.match(  0));
-      s(  1) := (si( 14) and i.match(  1));
-      s(  2) := (si(  0) and i.match(  2));
-      s(  3) := '0';
-      s(  4) := (si( 12) and i.match(  2));
-      s(  5) := (si( 17) and i.match(  3));
-      s(  6) := (si( 11) and i.match(  4));
-      s(  7) := (si(  3) and i.match(  3));
-      s(  8) := (si( 18) and i.match(  0));
-      s(  9) := (si(  4) and i.match(  5));
-      s( 10) := (si( 19) and i.match(  6));
-      s( 11) := (si(  7) and i.match(  5));
-      s( 12) := (si( 13) and i.match(  7));
-      s( 13) := (si(  6) and i.match(  1));
-      s( 14) := (si(  8) and i.match(  8));
-      s( 15) := (si(  5) and i.match(  1));
-      s( 16) := (si(  2) and i.match(  9));
-      s( 17) := (si( 16) and i.match(  5));
-      s( 18) := (si( 10) and i.match( 10));
-      s( 19) := (si( 15) and i.match(  2));
+      s(  0) := (si(  4) and i.match(  0));
+      s(  1) := (si(  0) and i.match(  1));
+      s(  2) := (si( 14) and i.match(  0));
+      s(  3) := (si( 11) and i.match(  2));
+      s(  4) := '0';
+      s(  5) := (si( 18) and i.match(  3));
+      s(  6) := (si( 10) and i.match(  4));
+      s(  7) := (si(  6) and i.match(  5));
+      s(  8) := (si(  5) and i.match(  4));
+      s(  9) := (si(  1) and i.match(  6));
+      s( 10) := (si(  2) and i.match(  7));
+      s( 11) := (si( 12) and i.match(  3));
+      s( 12) := (si(  7) and i.match(  8));
+      s( 13) := (si(  8) and i.match(  9));
+      s( 14) := (si( 13) and i.match(  1));
+      s( 15) := (si( 17) and i.match(  4));
+      s( 16) := (si(  9) and i.match(  7));
+      s( 17) := (si( 16) and i.match( 10));
+      s( 18) := (si( 15) and i.match(  1));
+      s( 19) := (si(  3) and i.match(  7));
     end if;
 
     -- Save whether the next state will be a final state to determine whether
     -- a regex is matching or not. The timing of this corresponds to the last
     -- signal.
-    o.match(0) := s(  1);
+    o.match(0) := s( 19);
 
     -- Reset the state when we're resetting or receiving the last character.
     if reset = '1' or i.last = '1' then

@@ -28,7 +28,7 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity sec_accel_f_m is
+entity vary_speed_miles_in_band_f_m is
   generic (
 
     ----------------------------------------------------------------------------
@@ -105,7 +105,7 @@ entity sec_accel_f_m is
 
     -- Outgoing match stream for one-string-per-cycle systems. match indicates
     -- which of the following regexs matched:
-    --  - 0: /seconds accel/
+    --  - 0: /vary_speed_miles_in_band/
     -- error indicates that a UTF-8 decoding error occured. Only the following
     -- decode errors are detected:
     --  - multi-byte sequence interrupted by last flag or a new sequence
@@ -128,9 +128,9 @@ entity sec_accel_f_m is
     out_xerror                  : out std_logic_vector(BPC-1 downto 0)
 
   );
-end sec_accel_f_m;
+end vary_speed_miles_in_band_f_m;
 
-architecture Behavioral of sec_accel_f_m is
+architecture Behavioral of vary_speed_miles_in_band_f_m is
 
   -- This constant resolves to 'U' in simulation and '0' in synthesis. It's
   -- used as a value for stuff that's supposed to be invalid.
@@ -567,15 +567,20 @@ architecture Behavioral of sec_accel_f_m is
     -- Code point subrange stream. Each flag signal represents one contiguous
     -- range of code points that does not cross a 64-CP boundary.
     valid                       : std_logic;
-      b00000f40t40              : std_logic; --  
+      b00001f37t37              : std_logic; -- _
       b00001f41t41              : std_logic; -- a
-      b00001f43t43              : std_logic; -- c
+      b00001f42t42              : std_logic; -- b
       b00001f44t44              : std_logic; -- d
       b00001f45t45              : std_logic; -- e
+      b00001f51t51              : std_logic; -- i
       b00001f54t54              : std_logic; -- l
+      b00001f55t55              : std_logic; -- m
       b00001f56t56              : std_logic; -- n
-      b00001f57t57              : std_logic; -- o
+      b00001f60t60              : std_logic; -- p
+      b00001f62t62              : std_logic; -- r
       b00001f63t63              : std_logic; -- s
+      b00001f66t66              : std_logic; -- v
+      b00001f71t71              : std_logic; -- y
 
     -- Copy of s23.last/error.
     last                        : std_logic;
@@ -603,30 +608,40 @@ architecture Behavioral of sec_accel_f_m is
 
     -- Pass through control signals and decode range signals.
     o.valid         := i.valid;
-    o.b00000f40t40  := i.oh3( 0) and i.oh2( 0) and i.oh1( 0) and i.th0(31) and not i.th0(32); --  
+    o.b00001f37t37  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(30) and not i.th0(31); -- _
     o.b00001f41t41  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(32) and not i.th0(33); -- a
-    o.b00001f43t43  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(34) and not i.th0(35); -- c
+    o.b00001f42t42  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(33) and not i.th0(34); -- b
     o.b00001f44t44  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(35) and not i.th0(36); -- d
     o.b00001f45t45  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(36) and not i.th0(37); -- e
+    o.b00001f51t51  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(40) and not i.th0(41); -- i
     o.b00001f54t54  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(43) and not i.th0(44); -- l
+    o.b00001f55t55  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(44) and not i.th0(45); -- m
     o.b00001f56t56  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(45) and not i.th0(46); -- n
-    o.b00001f57t57  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(46) and not i.th0(47); -- o
+    o.b00001f60t60  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(47) and not i.th0(48); -- p
+    o.b00001f62t62  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(49) and not i.th0(50); -- r
     o.b00001f63t63  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(50) and not i.th0(51); -- s
+    o.b00001f66t66  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(53) and not i.th0(54); -- v
+    o.b00001f71t71  := i.oh3( 0) and i.oh2( 0) and i.oh1( 1) and i.th0(56) and not i.th0(57); -- y
     o.last          := i.last;
     o.error         := i.error;
 
     -- In simulation, make signals undefined when their value is meaningless.
     -- pragma translate_off
     if to_X01(o.valid) /= '1' then
-      o.b00000f40t40 := 'U';
+      o.b00001f37t37 := 'U';
       o.b00001f41t41 := 'U';
-      o.b00001f43t43 := 'U';
+      o.b00001f42t42 := 'U';
       o.b00001f44t44 := 'U';
       o.b00001f45t45 := 'U';
+      o.b00001f51t51 := 'U';
       o.b00001f54t54 := 'U';
+      o.b00001f55t55 := 'U';
       o.b00001f56t56 := 'U';
-      o.b00001f57t57 := 'U';
+      o.b00001f60t60 := 'U';
+      o.b00001f62t62 := 'U';
       o.b00001f63t63 := 'U';
+      o.b00001f66t66 := 'U';
+      o.b00001f71t71 := 'U';
     end if;
     if to_X01(o.last) /= '1' then
       o.error := INVALID;
@@ -643,7 +658,7 @@ architecture Behavioral of sec_accel_f_m is
     -- Code point range stream. Each flag signal represents a set of code
     -- points as used by a transition in the NFAEs.
     valid                       : std_logic;
-      match                     : std_logic_vector(8 downto 0);
+      match                     : std_logic_vector(13 downto 0);
 
     -- Copy of s23.last/error.
     last                        : std_logic;
@@ -670,15 +685,20 @@ architecture Behavioral of sec_accel_f_m is
 
     -- Pass through control signals and decode range signals by default.
     o.valid       := i.valid;
-    o.match(  0)  := i.b00001f57t57; -- o
-    o.match(  1)  := i.b00001f41t41; -- a
-    o.match(  2)  := i.b00000f40t40; --  
-    o.match(  3)  := i.b00001f45t45; -- e
-    o.match(  4)  := i.b00001f56t56; -- n
-    o.match(  5)  := i.b00001f54t54; -- l
-    o.match(  6)  := i.b00001f63t63; -- s
-    o.match(  7)  := i.b00001f44t44; -- d
-    o.match(  8)  := i.b00001f43t43; -- c
+    o.match(  0)  := i.b00001f62t62; -- r
+    o.match(  1)  := i.b00001f37t37; -- _
+    o.match(  2)  := i.b00001f54t54; -- l
+    o.match(  3)  := i.b00001f63t63; -- s
+    o.match(  4)  := i.b00001f71t71; -- y
+    o.match(  5)  := i.b00001f45t45; -- e
+    o.match(  6)  := i.b00001f41t41; -- a
+    o.match(  7)  := i.b00001f55t55; -- m
+    o.match(  8)  := i.b00001f56t56; -- n
+    o.match(  9)  := i.b00001f44t44; -- d
+    o.match( 10)  := i.b00001f42t42; -- b
+    o.match( 11)  := i.b00001f51t51; -- i
+    o.match( 12)  := i.b00001f66t66; -- v
+    o.match( 13)  := i.b00001f60t60; -- p
     o.last        := i.last;
     o.error       := i.error;
 
@@ -699,11 +719,11 @@ architecture Behavioral of sec_accel_f_m is
   ------------------------------------------------------------------------------
   -- There is one bit for every NFAE state, which indicates whether the NFAE
   -- can be in that state.
-  subtype s5s_type is std_logic_vector(13 downto 0);
+  subtype s5s_type is std_logic_vector(24 downto 0);
 
   type s5s_array is array (natural range <>) of s5s_type;
 
-  constant S5S_RESET            : s5s_type := "00000000000001";
+  constant S5S_RESET            : s5s_type := "0100000000000000000000000";
 
   ------------------------------------------------------------------------------
   -- Stage 5 output record
@@ -746,26 +766,37 @@ architecture Behavioral of sec_accel_f_m is
     -- Transition to the next state if there is an incoming character.
     if i.valid = '1' then
       si := s;
-      s(  0) := '0';
-      s(  1) := (si( 12) and i.match(  0));
-      s(  2) := (si(  3) and i.match(  1));
-      s(  3) := (si(  9) and i.match(  2));
-      s(  4) := (si( 10) and i.match(  3));
-      s(  5) := (si(  1) and i.match(  4));
-      s(  6) := (si(  4) and i.match(  5));
-      s(  7) := (si(  0) and i.match(  6));
-      s(  8) := (si(  5) and i.match(  7));
-      s(  9) := (si(  8) and i.match(  6));
-      s( 10) := (si( 13) and i.match(  8));
-      s( 11) := (si(  7) and i.match(  3));
-      s( 12) := (si( 11) and i.match(  8));
-      s( 13) := (si(  2) and i.match(  8));
+      s(  0) := (si( 24) and i.match(  0));
+      s(  1) := (si(  3) and i.match(  1));
+      s(  2) := (si( 17) and i.match(  2));
+      s(  3) := (si( 14) and i.match(  3));
+      s(  4) := (si(  0) and i.match(  4));
+      s(  5) := (si( 21) and i.match(  5));
+      s(  6) := (si( 13) and i.match(  6));
+      s(  7) := (si( 10) and i.match(  7));
+      s(  8) := (si(  6) and i.match(  8));
+      s(  9) := (si(  4) and i.match(  1));
+      s( 10) := (si( 20) and i.match(  1));
+      s( 11) := (si(  8) and i.match(  9));
+      s( 12) := (si(  5) and i.match(  5));
+      s( 13) := (si( 18) and i.match( 10));
+      s( 14) := (si(  2) and i.match(  5));
+      s( 15) := (si( 16) and i.match(  8));
+      s( 16) := (si(  1) and i.match( 11));
+      s( 17) := (si(  7) and i.match( 11));
+      s( 18) := (si( 15) and i.match(  1));
+      s( 19) := (si( 23) and i.match( 12));
+      s( 20) := (si( 12) and i.match(  9));
+      s( 21) := (si( 22) and i.match( 13));
+      s( 22) := (si(  9) and i.match(  3));
+      s( 23) := '0';
+      s( 24) := (si( 19) and i.match(  6));
     end if;
 
     -- Save whether the next state will be a final state to determine whether
     -- a regex is matching or not. The timing of this corresponds to the last
     -- signal.
-    o.match(0) := s(  6);
+    o.match(0) := s( 11);
 
     -- Reset the state when we're resetting or receiving the last character.
     if reset = '1' or i.last = '1' then

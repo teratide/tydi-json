@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity accel_f_m_tb is
-end accel_f_m_tb;
+entity vary_speed_miles_in_band_f_m_tb is
+end vary_speed_miles_in_band_f_m_tb;
 
-architecture Testbench of accel_f_m_tb is
+architecture Testbench of vary_speed_miles_in_band_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -78,11 +78,11 @@ begin
     wait until falling_edge(clk);
     reset <= '0';
     wait until falling_edge(clk);
-    x(X"616363656C206D6F7265207468616E20313073");
+    x(X"766172795F73706565645F6D696C65735F696E5F62616E64");
     wait;
   end process;
 
-  uut: entity work.accel_f_m
+  uut: entity work.vary_speed_miles_in_band_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

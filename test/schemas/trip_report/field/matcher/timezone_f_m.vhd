@@ -664,13 +664,13 @@ architecture Behavioral of timezone_f_m is
 
     -- Pass through control signals and decode range signals by default.
     o.valid       := i.valid;
-    o.match(  0)  := i.b00001f56t56; -- n
-    o.match(  1)  := i.b00001f72t72; -- z
+    o.match(  0)  := i.b00001f64t64; -- t
+    o.match(  1)  := i.b00001f51t51; -- i
     o.match(  2)  := i.b00001f45t45; -- e
-    o.match(  3)  := i.b00001f51t51; -- i
-    o.match(  4)  := i.b00001f55t55; -- m
-    o.match(  5)  := i.b00001f64t64; -- t
-    o.match(  6)  := i.b00001f57t57; -- o
+    o.match(  3)  := i.b00001f57t57; -- o
+    o.match(  4)  := i.b00001f56t56; -- n
+    o.match(  5)  := i.b00001f72t72; -- z
+    o.match(  6)  := i.b00001f55t55; -- m
     o.last        := i.last;
     o.error       := i.error;
 
@@ -695,7 +695,7 @@ architecture Behavioral of timezone_f_m is
 
   type s5s_array is array (natural range <>) of s5s_type;
 
-  constant S5S_RESET            : s5s_type := "010000000";
+  constant S5S_RESET            : s5s_type := "000010000";
 
   ------------------------------------------------------------------------------
   -- Stage 5 output record
@@ -738,21 +738,21 @@ architecture Behavioral of timezone_f_m is
     -- Transition to the next state if there is an incoming character.
     if i.valid = '1' then
       si := s;
-      s(  0) := (si(  8) and i.match(  0));
-      s(  1) := (si(  5) and i.match(  1));
-      s(  2) := (si(  0) and i.match(  2));
-      s(  3) := (si(  6) and i.match(  3));
-      s(  4) := (si(  3) and i.match(  4));
-      s(  5) := (si(  4) and i.match(  2));
-      s(  6) := (si(  7) and i.match(  5));
-      s(  7) := '0';
+      s(  0) := (si(  4) and i.match(  0));
+      s(  1) := (si(  0) and i.match(  1));
+      s(  2) := (si(  8) and i.match(  2));
+      s(  3) := (si(  7) and i.match(  3));
+      s(  4) := '0';
+      s(  5) := (si(  6) and i.match(  2));
+      s(  6) := (si(  3) and i.match(  4));
+      s(  7) := (si(  2) and i.match(  5));
       s(  8) := (si(  1) and i.match(  6));
     end if;
 
     -- Save whether the next state will be a final state to determine whether
     -- a regex is matching or not. The timing of this corresponds to the last
     -- signal.
-    o.match(0) := s(  2);
+    o.match(0) := s(  5);
 
     -- Reset the state when we're resetting or receiving the last character.
     if reset = '1' or i.last = '1' then

@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity sec_in_band_f_m_tb is
-end sec_in_band_f_m_tb;
+entity hypermiling_f_m_tb is
+end hypermiling_f_m_tb;
 
-architecture Testbench of sec_in_band_f_m_tb is
+architecture Testbench of hypermiling_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -78,11 +78,11 @@ begin
     wait until falling_edge(clk);
     reset <= '0';
     wait until falling_edge(clk);
-    x(X"7365636F6E647320696E2062616E64");
+    x(X"68797065726D696C696E67");
     wait;
   end process;
 
-  uut: entity work.sec_in_band_f_m
+  uut: entity work.hypermiling_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

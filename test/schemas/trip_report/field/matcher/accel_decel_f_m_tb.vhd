@@ -28,10 +28,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity hypermiling_f_m_tb is
-end hypermiling_f_m_tb;
+entity accel_decel_f_m_tb is
+end accel_decel_f_m_tb;
 
-architecture Testbench of hypermiling_f_m_tb is
+architecture Testbench of accel_decel_f_m_tb is
   signal clk                    : std_logic := '1';
   signal reset                  : std_logic := '1';
   signal in_valid               : std_logic;
@@ -78,11 +78,11 @@ begin
     wait until falling_edge(clk);
     reset <= '0';
     wait until falling_edge(clk);
-    x(X"68797065722D6D696C696E67");
+    x(X"616363656C5F646563656C");
     wait;
   end process;
 
-  uut: entity work.hypermiling_f_m
+  uut: entity work.accel_decel_f_m
     port map (
       clk                       => clk,
       reset                     => reset,

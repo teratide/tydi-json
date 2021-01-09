@@ -81,6 +81,7 @@ architecture behavioral of KeyFilter is
   signal buff_out_data           : std_logic_vector(BUFF_WIDTH-1 downto 0);
 
   signal filter_ready            : std_logic;
+  signal filter_valid            : std_logic;
 
   begin
 
@@ -112,6 +113,7 @@ architecture behavioral of KeyFilter is
         in_ready(0)             => in_ready,
         out_valid(0)            => buff_in_valid,
         out_valid(1)            => matcher_str_valid,
+        out_valid(2)            => filter_valid,
         out_ready(0)            => buff_in_ready,
         out_ready(1)            => matcher_str_ready,
         out_ready(2)            => filter_ready

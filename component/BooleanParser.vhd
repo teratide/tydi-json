@@ -102,9 +102,9 @@ architecture behavioral of BooleanParser is
             for idx in 0 to EPC-1 loop
               -- Element-wise processing only when the lane is valid.
 
-              if to_x01(id(idx).strb) = '1' and to_x01(ov) /= '1' then
-
-                ol := ol or id(idx).last(NESTING_LEVEL downto 1);
+              ol := ol or id(idx).last(NESTING_LEVEL downto 1);
+              if to_x01(ov) /= '1' then
+                if to_x01(id(idx).strb) = '1' then
                   case id(idx).data is
                     when X"66" => -- 'f'
                         ov := '1';
@@ -125,6 +125,7 @@ architecture behavioral of BooleanParser is
                     when others =>
                         ov := '0';
                   end case;
+                end if;
                 id(idx).strb := '0';
              end if;
 

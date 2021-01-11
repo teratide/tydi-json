@@ -202,7 +202,6 @@ architecture behavioral of KeyFilter is
         -- Latch buffer input holding register.
         if to_x01(br) = '1' then
           bv := buff_out_valid;
-          fv := buff_out_valid;
           for idx in 0 to EPC-1 loop
             id(idx).data  := buff_out_data(BUFF_DATA_STAI+idx*8+7 downto BUFF_DATA_STAI+idx*8);
             id(idx).tag   := buff_out_data(BUFF_TAG_STAI+idx);
@@ -214,6 +213,7 @@ architecture behavioral of KeyFilter is
 
         if to_x01(mr) = '1' then
           mv := matcher_match_valid;
+          fv := matcher_match_valid;
           for idx in 0 to EPC-1 loop
             id(idx).match := matcher_match(idx);
           end loop;
@@ -257,6 +257,7 @@ architecture behavioral of KeyFilter is
                 end if;
               when STATE_MATCH =>
                 ov := '1';
+                fv := '1';
                 od(idx).strb := id(idx).strb;
                 if id(idx).last(0) = '1' and id(idx).tag = '1' then
                   state := STATE_IDLE;

@@ -870,8 +870,11 @@ begin
     src.push_str(" }\n");
 
     
-    
-    
+    src.set_total_cyc(0, 20);
+    const_speed_miles_in_band_sink.set_valid_cyc(0, 20);
+    const_speed_miles_in_band_sink.set_total_cyc(0, 20);
+
+
     src.transmit;
     
     -- 
@@ -905,7 +908,7 @@ begin
     large_speed_var_sink.unblock;
     
 
-    tc_wait_for(10 us);
+    tc_wait_for(100 us);
 
     -- 
     -- INTEGER FIELDS

@@ -235,6 +235,10 @@ begin
     a.initialize("a");
     b.initialize("b");
 
+    --a.set_total_cyc(0, 10);
+    b.set_valid_cyc(0, 40);
+    b.set_total_cyc(0, 40);
+
     a.push_str("{ ");
     a.push_str(" ""voltage"" : 11");
     a.push_str(" ,}");
@@ -254,7 +258,7 @@ begin
     a.transmit;
     b.unblock;
 
-    tc_wait_for(5 us);
+    tc_wait_for(60 us);
 
     tc_check(b.pq_ready, true);
     tc_check(b.cq_get_d_nat, 11, "11");

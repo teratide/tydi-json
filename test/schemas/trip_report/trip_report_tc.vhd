@@ -19,7 +19,7 @@ end trip_report_tc;
 
 architecture test_case of trip_report_tc is
 
-  constant EPC                   : integer := 2;
+  constant EPC                   : integer := 8;
   constant INTEGER_WIDTH         : integer := 64;
   constant INT_P_PIPELINE_STAGES : integer := 4;
 
@@ -844,7 +844,7 @@ begin
     src.push_str(" ""braking"" : [1678, 1880, 308],");
     src.push_str(" ""accel"" : [147, 845, 923],");
     src.push_str(" ""small_speed_var"" : [867, 1460, 1661],");
-    src.push_str(" ""large_speed_var"" : [1580, 1387, 1713],");
+    src.push_str(" ""large_speed_var"" : [1580, 1387, 1713]");
     src.push_str(" }\n");
 
     src.push_str("{ ");
@@ -866,13 +866,13 @@ begin
     src.push_str(" ""braking"" : [1065, 1541, 717],");
     src.push_str(" ""accel"" : [254, 1223, 1427],");
     src.push_str(" ""small_speed_var"" : [1291, 1631, 410],");
-    src.push_str(" ""large_speed_var"" : [360, 1837, 92],");
+    src.push_str(" ""large_speed_var"" : [360, 1837, 92]");
     src.push_str(" }\n");
 
     
     src.set_total_cyc(0, 20);
-    const_speed_miles_in_band_sink.set_valid_cyc(0, 20);
-    const_speed_miles_in_band_sink.set_total_cyc(0, 20);
+    miles_in_time_range_sink.set_valid_cyc(0, 20);
+    miles_in_time_range_sink.set_total_cyc(0, 20);
 
 
     src.transmit;
@@ -908,7 +908,7 @@ begin
     large_speed_var_sink.unblock;
     
 
-    tc_wait_for(100 us);
+    tc_wait_for(50 us);
 
     -- 
     -- INTEGER FIELDS

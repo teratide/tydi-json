@@ -103,6 +103,7 @@ architecture behavioral of BooleanParser is
               -- Element-wise processing only when the lane is valid.
               if to_x01(ov) /= '1' then
                 ol := ol or id(idx).last(NESTING_LEVEL downto 1);
+                id(idx).last(NESTING_LEVEL downto 1) := (others => '0');
                 if to_x01(id(idx).strb) = '1' then
                   case id(idx).data is
                     when X"66" => -- 'f'

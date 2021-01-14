@@ -101,6 +101,21 @@ architecture behavioral of KeyFilter is
         out_data                => buff_out_data
       );
 
+      matcher_slice: StreamSlice
+      generic map (
+        DATA_WIDTH              => EPC
+      )
+      port map (
+        clk                     => clk,
+        reset                   => reset,
+        in_valid                => matcher_match_valid,
+        in_ready                => matcher_match_ready,
+        in_data                 => matcher_match,
+        out_valid               => matcher_match_valid_s,
+        out_ready               => matcher_match_ready_s,
+        out_data                => matcher_match_s
+      );
+
     in_sync: StreamSync
       generic map (
         NUM_INPUTS              => 1,
@@ -145,7 +160,6 @@ architecture behavioral of KeyFilter is
       buff_in_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI)    <= strb;
       buff_in_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI)    <= in_last;
 
-
       matcher_str_data <= to_stdlogicvector(to_bitvector(in_data(IN_DATA_ENDI downto IN_DATA_STAI))); -- Metavalue wanings fix. VERY DIRTY!!!
       matcher_str_mask <= strb and (not in_tag_f);
       matcher_str_last <= last and (not in_tag_f);
@@ -174,7 +188,6 @@ architecture behavioral of KeyFilter is
       variable mr : std_logic := '0';
       variable fr : std_logic := '0';
       
-
   
       -- Output holding register.
       type out_type is record
@@ -203,31 +216,30 @@ architecture behavioral of KeyFilter is
         if to_x01(br) = '1' then
           bv := buff_out_valid;
           fv := buff_out_valid;
+
           for idx in 0 to EPC-1 loop
             id(idx).data  := buff_out_data(BUFF_DATA_STAI+idx*8+7 downto BUFF_DATA_STAI+idx*8);
             id(idx).tag   := buff_out_data(BUFF_TAG_STAI+idx);
             id(idx).strb  := buff_out_data(BUFF_STRB_STAI+idx);
             id(idx).last  := buff_out_data(BUFF_LAST_STAI+(OUTER_NESTING_LEVEL+1)*idx+OUTER_NESTING_LEVEL downto BUFF_LAST_STAI+(OUTER_NESTING_LEVEL+1)*idx);
-
           end loop;
         end if;
 
         if to_x01(mr) = '1' then
-          mv := matcher_match_valid;
+          mv := matcher_match_valid_s;
           for idx in 0 to EPC-1 loop
-            id(idx).match := matcher_match(idx);
+            id(idx).match := matcher_match_s(idx);
           end loop;
         end if;
   
         -- Clear output holding register if transfer was accepted.
         if to_x01(out_ready) = '1' then
           ov := '0';
+          fv := '0';
         end if;
         
         -- Do processing when both registers are ready.
         if to_x01(bv) = '1' and to_x01(ov) = '0' then
-          bv := '0';
-          fv := '0';
           for idx in 0 to EPC-1 loop
   
             -- Default behavior.
@@ -237,7 +249,9 @@ architecture behavioral of KeyFilter is
 
             -- Pass transfers that close out outer dimensions. 
             if or_reduce(id(idx).last(OUTER_NESTING_LEVEL downto 1)) = '1' then
+              id(idx).last(OUTER_NESTING_LEVEL downto 1) := (others => '0');
               ov := '1';
+              bv := '0';
             end if;
 
             case state is
@@ -248,14 +262,17 @@ architecture behavioral of KeyFilter is
                   if to_x01(mv) = '1' then
                     if to_x01(id(idx).match) = '1' then
                       bv := '0';
+                      mv := '0';
                       state := STATE_MATCH;
                     else
                       bv := '0';
+                      mv := '0';
                       state := STATE_DROP;
                     end if;
                   end if;
                 end if;
               when STATE_MATCH =>
+                bv := '0';
                 ov := '1';
                 od(idx).strb := id(idx).strb;
                 if id(idx).last(0) = '1' and id(idx).tag = '1' then
@@ -264,18 +281,19 @@ architecture behavioral of KeyFilter is
                   od(idx).last(0) := '1';
                 end if;
               when STATE_DROP =>
+                bv := '0';
                 if id(idx).last(0) = '1' and id(idx).tag = '1' then
                   state := STATE_IDLE;
                 end if;
             end case;
           end loop;
-          mv := '0';
         end if;
   
         -- Handle reset.
         if to_x01(reset) /= '0' then
           br    := '0';
           mr    := '0';
+          fr    := '0';
           ov    := '0';
           state := STATE_IDLE;
         end if;
@@ -286,7 +304,7 @@ architecture behavioral of KeyFilter is
         mr := not mv and not reset;
         fr := not fv and not reset;
         buff_out_ready <= br;
-        matcher_match_ready <= mr;
+        matcher_match_ready_s <= mr;
         filter_ready <= fr;
         for idx in 0 to EPC-1 loop
           out_data(8*idx+7 downto 8*idx) <= od(idx).data;

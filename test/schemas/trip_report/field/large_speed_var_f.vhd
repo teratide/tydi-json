@@ -11,15 +11,15 @@ use work.tr_field_pkg.all;
 use work.Json_pkg.all;
 
 
-entity sec_in_band_f is
+entity large_speed_var_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
       INT_WIDTH                           : natural := 16;
       INT_P_PIPELINE_STAGES               : natural := 1;
       BUFER_DEPTH                         : natural := 1
-    );              
-    port (              
+    );
+    port (
       clk                                 : in  std_logic;
       reset                               : in  std_logic;
 
@@ -39,11 +39,12 @@ entity sec_in_band_f is
     );
 end entity;
 
-architecture arch of sec_in_band_f is
+architecture arch of large_speed_var_f is
 
   constant BUFF_WIDTH          : integer := EPC*(1 + 8 + OUTER_NESTING_LEVEL+2);
   constant BUFF_DATA_STAI      : integer := 0;
   constant BUFF_DATA_ENDI      : integer := EPC*8-1;
+
   constant BUFF_STRB_STAI      : integer := EPC*8;
   constant BUFF_STRB_ENDI      : integer := EPC*8 + EPC -1;
   constant BUFF_LAST_STAI      : integer := EPC*8 + EPC;
@@ -57,6 +58,7 @@ architecture arch of sec_in_band_f is
 
   signal matcher_match_valid   : std_logic;
   signal matcher_match_ready   : std_logic;
+  signal matcher_match_strb    : std_logic_vector(EPC-1 downto 0);
   signal matcher_match         : std_logic_vector(EPC-1 downto 0);
 
   signal filter_ready          : std_logic;
@@ -108,6 +110,7 @@ begin
     matcher_str_last          => matcher_str_last,
     matcher_match_valid       => matcher_match_valid,
     matcher_match_ready       => matcher_match_ready,
+    matcher_match_strb        => matcher_match_strb,
     matcher_match             => matcher_match,
     out_valid                 => filter_valid,
     out_ready                 => filter_ready,
@@ -116,7 +119,7 @@ begin
     out_last                  => filter_last
   );
 
-  matcher_i: sec_in_band_f_m
+  matcher_i: large_speed_var_f_m
   generic map (
     BPC                       => EPC
   )
@@ -130,13 +133,14 @@ begin
     in_xlast                  => matcher_str_last,
     out_valid                 => matcher_match_valid,
     out_ready                 => matcher_match_ready,
+    out_xmask                 => matcher_match_strb,
     out_xmatch                => matcher_match
   );
 
   --Buffer interface packing and unpacking
   buff_in_data(BUFF_DATA_ENDI downto BUFF_DATA_STAI)    <= array_data;
   buff_in_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI)    <= array_strb;
-  buff_in_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI)    <= array_last; 
+  buff_in_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI)    <= array_last;
 
   parser_in_data  <= buff_out_data(BUFF_DATA_ENDI downto BUFF_DATA_STAI);
   parser_in_strb  <= buff_out_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI);
@@ -203,6 +207,6 @@ begin
       out_last                  => out_last,
       out_strb                  => out_strb
     );
-  
+
 
 end arch;

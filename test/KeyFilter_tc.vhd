@@ -235,7 +235,7 @@ begin
     a.initialize("a");
     b.initialize("b");
 
-    --a.set_total_cyc(0, 10);
+    a.set_total_cyc(0, 10);
     b.set_valid_cyc(0, 40);
     b.set_total_cyc(0, 40);
 

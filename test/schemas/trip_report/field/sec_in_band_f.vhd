@@ -11,7 +11,7 @@ use work.tr_field_pkg.all;
 use work.Json_pkg.all;
 
 
-entity const_speed_miles_in_band_f is
+entity sec_in_band_f is
     generic (
       EPC                                 : natural := 8;
       OUTER_NESTING_LEVEL                 : natural := 2;
@@ -39,7 +39,7 @@ entity const_speed_miles_in_band_f is
     );
 end entity;
 
-architecture arch of const_speed_miles_in_band_f is
+architecture arch of sec_in_band_f is
 
   constant BUFF_WIDTH          : integer := EPC*(1 + 8 + OUTER_NESTING_LEVEL+2);
   constant BUFF_DATA_STAI      : integer := 0;
@@ -58,6 +58,7 @@ architecture arch of const_speed_miles_in_band_f is
 
   signal matcher_match_valid   : std_logic;
   signal matcher_match_ready   : std_logic;
+  signal matcher_match_strb    : std_logic_vector(EPC-1 downto 0);
   signal matcher_match         : std_logic_vector(EPC-1 downto 0);
 
   signal filter_ready          : std_logic;
@@ -109,6 +110,7 @@ begin
     matcher_str_last          => matcher_str_last,
     matcher_match_valid       => matcher_match_valid,
     matcher_match_ready       => matcher_match_ready,
+    matcher_match_strb        => matcher_match_strb,
     matcher_match             => matcher_match,
     out_valid                 => filter_valid,
     out_ready                 => filter_ready,
@@ -117,7 +119,7 @@ begin
     out_last                  => filter_last
   );
 
-  matcher_i: const_speed_miles_in_band_f_m
+  matcher_i: sec_in_band_f_m
   generic map (
     BPC                       => EPC
   )
@@ -131,6 +133,7 @@ begin
     in_xlast                  => matcher_str_last,
     out_valid                 => matcher_match_valid,
     out_ready                 => matcher_match_ready,
+    out_xmask                 => matcher_match_strb,
     out_xmatch                => matcher_match
   );
 
@@ -202,7 +205,7 @@ begin
       out_valid                 => out_valid,
       out_ready                 => out_ready,
       out_last                  => out_last,
-      out_strb                 => out_strb
+      out_strb                  => out_strb
     );
 
 

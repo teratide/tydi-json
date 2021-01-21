@@ -850,8 +850,8 @@ begin
     src.push_str("{ ");
     src.push_str(" ""timezone"" : 68,");
     src.push_str(" ""timestamp"" : ""2005-09-09T11:59:06-11:00"",");
-    src.push_str(" ""vin"" : 125,");
     src.push_str(" ""odometer"" : 76000,");
+    src.push_str("""vin"" : 125,");
     src.push_str(" ""avgspeed"" : 62,");
     src.push_str(" ""accel_decel"" : 4561,");
     src.push_str(" ""speed_changes"" : 111,");
@@ -870,9 +870,9 @@ begin
     src.push_str(" }\n");
 
     
-    src.set_total_cyc(0, 20);
-    miles_in_time_range_sink.set_valid_cyc(0, 20);
-    miles_in_time_range_sink.set_total_cyc(0, 20);
+    --src.set_total_cyc(5, 20);
+    miles_in_time_range_sink.set_valid_cyc(0, 40);
+    miles_in_time_range_sink.set_total_cyc(0, 40);
 
 
     src.transmit;

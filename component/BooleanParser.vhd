@@ -145,7 +145,7 @@ architecture behavioral of BooleanParser is
           -- Forward output holding register.
           ir := not iv and not reset;
           in_ready <= ir and not reset;
-          out_valid <= to_x01(ov);
+          out_valid <= to_x01(ov) and not reset;
           out_data <= val;
           out_last <= ol;
           out_strb <= not oe;

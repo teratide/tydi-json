@@ -119,7 +119,7 @@ begin
     out_last                  => filter_last
   );
 
-  matcher_i: sec_accel_f_m
+  matcher_i: sec_in_band_f_m
   generic map (
     BPC                       => EPC
   )

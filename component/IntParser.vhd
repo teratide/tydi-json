@@ -231,7 +231,7 @@ architecture behavioral of IntParser is
           end if;
     
           -- Assign input ready and forward data to the next stage.
-          ir        := not iv;
+          ir            := not iv;
           in_ready      <= ir;
           dd_in_s       <= dd_in;
           dd_in_valid_s <= dd_in_valid;

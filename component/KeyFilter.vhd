@@ -68,14 +68,16 @@ architecture behavioral of KeyFilter is
   constant BUFF_LAST_ENDI        : integer := EPC*8 + 2*EPC + (OUTER_NESTING_LEVEL+1)*EPC-1;
 
 
-  signal matcher_match_masked    : std_logic_vector(EPC-1 downto 0);
+  signal matcher_slice_in        : std_logic_vector(2*EPC-1 downto 0);
+  signal matcher_slice_out       : std_logic_vector(2*EPC-1 downto 0);
 
   signal matcher_match_valid_s   : std_logic;
   signal matcher_match_ready_s   : std_logic;
+  signal matcher_match_strb_s    : std_logic_vector(EPC-1 downto 0);
   signal matcher_match_s         : std_logic_vector(EPC-1 downto 0);
 
   signal buff_in_valid           : std_logic;
-  signal buff_in_valid_t          : std_logic;
+  signal buff_in_valid_t         : std_logic;
   signal buff_in_ready           : std_logic;
   signal buff_in_data            : std_logic_vector(BUFF_WIDTH-1 downto 0);
 
@@ -102,21 +104,25 @@ architecture behavioral of KeyFilter is
         out_data                => buff_out_data
       );
 
-      matcher_match_masked <= matcher_match and matcher_match_strb;
+      matcher_slice_in(EPC-1 downto 0)     <= matcher_match;
+      matcher_slice_in(2*EPC-1 downto EPC) <= matcher_match_strb;
 
+      matcher_match_s      <= matcher_slice_out(EPC-1 downto 0);
+      matcher_match_strb_s <= matcher_slice_out(2*EPC-1 downto EPC);
+      
       matcher_slice: StreamSlice
       generic map (
-        DATA_WIDTH              => EPC
+        DATA_WIDTH                  => EPC*2
       )
       port map (
         clk                     => clk,
         reset                   => reset,
         in_valid                => matcher_match_valid,
         in_ready                => matcher_match_ready,
-        in_data                 => matcher_match_masked,
+        in_data                 => matcher_slice_in,
         out_valid               => matcher_match_valid_s,
         out_ready               => matcher_match_ready_s,
-        out_data                => matcher_match_s
+        out_data                => matcher_slice_out
       );
 
     in_sync: StreamSync
@@ -173,11 +179,12 @@ architecture behavioral of KeyFilter is
   
       -- Input holding register.
       type in_type is record
-        data  : std_logic_vector(7 downto 0);
-        last  : std_logic_vector(OUTER_NESTING_LEVEL downto 0);
-        match : std_logic;
-        tag   : std_logic;
-        strb  : std_logic;
+        data       : std_logic_vector(7 downto 0);
+        last       : std_logic_vector(OUTER_NESTING_LEVEL downto 0);
+        match      : std_logic;
+        match_strb : std_logic;
+        tag        : std_logic;
+        strb       : std_logic;
       end record;
     
       type in_array is array (natural range <>) of in_type;
@@ -229,7 +236,8 @@ architecture behavioral of KeyFilter is
         if to_x01(mr) = '1' then
           mv := matcher_match_valid_s;
           for idx in 0 to EPC-1 loop
-            id(idx).match := matcher_match_s(idx);
+            id(idx).match      := matcher_match_s(idx);
+            id(idx).match_strb := matcher_match_strb_s(idx);
           end loop;
         end if;
   
@@ -270,7 +278,7 @@ architecture behavioral of KeyFilter is
                     if outer_last = '1' or match_last = '1'then
                       ov := '1';
                     end if;
-                    if to_x01(id(idx).match) = '1' then
+                    if to_x01(id(idx).match) = '1' and to_x01(id(idx).match_strb) = '1' then
                       bv := '0';
                       state := STATE_MATCH;
                     else
@@ -301,8 +309,8 @@ architecture behavioral of KeyFilter is
   
         -- Handle reset.
         if to_x01(reset) /= '0' then
-          br    := '0';
-          mr    := '0';
+          bv    := '0';
+          mv    := '0';
           ov    := '0';
           state := STATE_IDLE;
         end if;

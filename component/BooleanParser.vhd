@@ -138,14 +138,14 @@ architecture behavioral of BooleanParser is
     
           -- Handle reset.
           if to_x01(reset) /= '0' then
-            ir    := '0';
+            iv    := '0';
             ov    := '0';
           end if;
     
           -- Forward output holding register.
           ir := not iv and not reset;
           in_ready <= ir and not reset;
-          out_valid <= to_x01(ov) and not reset;
+          out_valid <= to_x01(ov);
           out_data <= val;
           out_last <= ol;
           out_strb <= not oe;

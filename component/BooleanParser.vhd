@@ -138,7 +138,7 @@ architecture behavioral of BooleanParser is
     
           -- Handle reset.
           if to_x01(reset) /= '0' then
-            ir    := '0';
+            iv    := '0';
             ov    := '0';
           end if;
     

@@ -68,7 +68,7 @@ architecture behavioral of BooleanParser is
         variable oe : std_logic := '1';
         variable ol : std_logic_vector(NESTING_LEVEL-1 downto 0) := (others => '0');
 
-        variable val : boolean;
+        variable val : std_logic;
     
       begin
         if rising_edge(clk) then
@@ -94,57 +94,51 @@ architecture behavioral of BooleanParser is
             ov := '0';
           end if;
 
-          ol := (others => '0');
-          oe := '1';
-
           -- Do processing when both registers are ready.
-          if to_x01(iv) = '1' then
+          if to_x01(iv) = '1' and to_x01(ov) /= '1' then
+            oe := '1';
+            ol := (others => '0');
             for idx in 0 to EPC-1 loop
-              -- Element-wise processing only when the lane is valid.
-
+              ol := ol or id(idx).last(NESTING_LEVEL downto 1);
+              id(idx).last(NESTING_LEVEL downto 1) := (others => '0');
               if to_x01(id(idx).strb) = '1' and to_x01(ov) /= '1' then
-
-                ol := ol or id(idx).last(NESTING_LEVEL downto 1);
-                  case id(idx).data is
-                    when X"66" => -- 'f'
-                        ov := '1';
-                        oe := '0';
-                        val:= false;
-                    when X"46" => -- 'F'
-                        ov := '1';
-                        oe := '0';
-                        val:= false;
-                    when X"74" => -- 't'
-                        ov := '1';
-                        oe := '0';    
-                        val:= true;
-                    when X"54" => -- 'T'
-                        ov := '1';
-                        oe := '0';
-                        val:= true;
-                    when others =>
-                        ov := '0';
-                  end case;
-                id(idx).strb := '0';
-             end if;
-
+                case id(idx).data is
+                  when X"66" => -- 'f'
+                      ov := '1';
+                      oe := '0';
+                      val:= '0';
+                  when X"46" => -- 'F'
+                      ov := '1';
+                      oe := '0';
+                      val:= '0';
+                  when X"74" => -- 't'
+                      ov := '1';
+                      oe := '0';    
+                      val:= '1';
+                  when X"54" => -- 'T'
+                      ov := '1';
+                      oe := '0';
+                      val:= '1';
+                  when others =>
+                      ov := '0';
+                end case;
+              end if;
+              id(idx).strb := '0';
             end loop;
-
             iv := '0';
             for idx in id'range loop
-              if id(idx).strb = '1' then
+              if id(idx).strb = '1' or or_reduce(id(idx).last(NESTING_LEVEL downto 1)) = '1' then
                 iv := '1';
               end if;
             end loop;
-          end if;
-
-          if or_reduce(ol) and not iv then
-            ov := '1';
+            if or_reduce(ol) = '1' and iv = '0' then
+              ov := '1';
+            end if;
           end if;
     
           -- Handle reset.
           if to_x01(reset) /= '0' then
-            ir    := '0';
+            iv    := '0';
             ov    := '0';
           end if;
     
@@ -152,7 +146,7 @@ architecture behavioral of BooleanParser is
           ir := not iv and not reset;
           in_ready <= ir and not reset;
           out_valid <= to_x01(ov);
-          out_data <= '1' when val else '0';
+          out_data <= val;
           out_last <= ol;
           out_strb <= not oe;
         end if;

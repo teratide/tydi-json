@@ -12,249 +12,249 @@ use work.tr_field_pkg.all;
 
 entity TripReportParser is
   generic (
-    EPC                                     : natural := 8;
-    
+    EPC                                              : natural := 8;
+        
     -- 
     -- INTEGER FIELDS
     --
-    TIMEZONE_INT_WIDTH                      : natural := 16;
-    TIMEZONE_INT_P_PIPELINE_STAGES          : natural := 1;
-    TIMEZONE_BUFFER_D                       : natural := 1;
+    TIMEZONE_INT_WIDTH                               : natural := 16;
+    TIMEZONE_INT_P_PIPELINE_STAGES                   : natural := 1;
+    TIMEZONE_BUFFER_D                                : natural := 1;
 
-    VIN_INT_WIDTH                           : natural := 16;
-    VIN_INT_P_PIPELINE_STAGES               : natural := 1;
-    VIN_BUFFER_D                            : natural := 1;
+    VIN_INT_WIDTH                                    : natural := 16;
+    VIN_INT_P_PIPELINE_STAGES                        : natural := 1;
+    VIN_BUFFER_D                                     : natural := 1;
 
-    ODOMETER_INT_WIDTH                      : natural := 16;
-    ODOMETER_INT_P_PIPELINE_STAGES          : natural := 1;
-    ODOMETER_BUFFER_D                       : natural := 1;
+    ODOMETER_INT_WIDTH                               : natural := 16;
+    ODOMETER_INT_P_PIPELINE_STAGES                   : natural := 1;
+    ODOMETER_BUFFER_D                                : natural := 1;
 
-    AVG_SPEED_INT_WIDTH                     : natural := 16;
-    AVG_SPEED_INT_P_PIPELINE_STAGES         : natural := 1;
-    AVG_SPEED_BUFFER_D                      : natural := 1;
+    AVGSPEED_INT_WIDTH                               : natural := 16;
+    AVGSPEED_INT_P_PIPELINE_STAGES                   : natural := 1;
+    AVGSPEED_BUFFER_D                                : natural := 1;
 
-    S_ACC_DEC_INT_WIDTH                     : natural := 16;
-    S_ACC_DEC_INT_P_PIPELINE_STAGES         : natural := 1;
-    S_ACC_DEC_BUFFER_D                      : natural := 1;
+    ACCEL_DECEL_INT_WIDTH                            : natural := 16;
+    ACCEL_DECEL_INT_P_PIPELINE_STAGES                : natural := 1;
+    ACCEL_DECEL_BUFFER_D                             : natural := 1;
 
-    E_SPD_CHG_INT_WIDTH                     : natural := 16;
-    E_SPD_CHG_INT_P_PIPELINE_STAGES         : natural := 1;
-    E_SPD_CHG_BUFFER_D                      : natural := 1;
+    SPEED_CHANGES_INT_WIDTH                          : natural := 16;
+    SPEED_CHANGES_INT_P_PIPELINE_STAGES              : natural := 1;
+    SPEED_CHANGES_BUFFER_D                           : natural := 1;
 
     -- 
     -- BOOLEAN FIELDS
     --
-    HYPER_MILING_BUFFER_D                   : natural := 1;
-    ORIENTATION_BUFFER_D                    : natural := 1;
+    HYPERMILING_BUFFER_D                              : natural := 1;
+    ORIENTATION_BUFFER_D                              : natural := 1;
 
     -- 
     -- INTEGER ARRAY FIELDS
     --
-    SECS_IN_B_INT_WIDTH                     : natural := 16;
-    SECS_IN_B_INT_P_PIPELINE_STAGES         : natural := 1;
-    SECS_IN_B_BUFFER_D                      : natural := 1;
+    SEC_IN_BAND_INT_WIDTH                             : natural := 16;
+    SEC_IN_BAND_INT_P_PIPELINE_STAGES                 : natural := 1;
+    SEC_IN_BAND_BUFFER_D                              : natural := 1;
 
-    MILES_IN_TIME_INT_WIDTH                 : natural := 16;
-    MILES_IN_TIME_INT_P_PIPELINE_STAGES     : natural := 1; 
-    MILES_IN_TIME_BUFFER_D                  : natural := 1; 
-
-
-    CONST_SPD_M_IN_B_INT_WIDTH              : natural := 16;
-    CONST_SPD_M_IN_B_INT_P_PIPELINE_STAGES  : natural := 1; 
-    CONST_SPD_M_IN_B_BUFFER_D               : natural := 1; 
+    MILES_IN_TIME_RANGE_INT_WIDTH                     : natural := 16;
+    MILES_IN_TIME_RANGE_INT_P_PIPELINE_STAGES         : natural := 1; 
+    MILES_IN_TIME_RANGE_BUFFER_D                      : natural := 1; 
 
 
-    VAR_SPD_M_IN_B_INT_WIDTH                : natural := 16;
-    VAR_SPD_M_IN_B_INT_P_PIPELINE_STAGES    : natural := 1; 
-    VAR_SPD_M_IN_B_BUFFER_D                 : natural := 1; 
+    CONST_SPEED_MILES_IN_BAND_INT_WIDTH               : natural := 16;
+    CONST_SPEED_MILES_IN_BAND_INT_P_PIPELINE_STAGES   : natural := 1; 
+    CONST_SPEED_MILES_IN_BAND_BUFFER_D                : natural := 1; 
 
 
-    SECONDS_DECEL_INT_WIDTH                 : natural := 16;
-    SECONDS_DECEL_INT_P_PIPELINE_STAGES     : natural := 1; 
-    SECONDS_DECEL_BUFFER_D                  : natural := 1; 
+    VARY_SPEED_MILES_IN_BAND_INT_WIDTH                : natural := 16;
+    VARY_SPEED_MILES_IN_BAND_INT_P_PIPELINE_STAGES    : natural := 1; 
+    VARY_SPEED_MILES_IN_BAND_BUFFER_D                 : natural := 1; 
 
 
-    SECONDS_ACCEL_INT_WIDTH                 : natural := 16;
-    SECONDS_ACCEL_INT_P_PIPELINE_STAGES     : natural := 1; 
-    SECONDS_ACCEL_BUFFER_D                  : natural := 1; 
+    SEC_DECEL_INT_WIDTH                               : natural := 16;
+    SEC_DECEL_INT_P_PIPELINE_STAGES                   : natural := 1; 
+    SEC_DECEL_BUFFER_D                                : natural := 1; 
+                  
+                  
+    SEC_ACCEL_INT_WIDTH                               : natural := 16;
+    SEC_ACCEL_INT_P_PIPELINE_STAGES                   : natural := 1; 
+    SEC_ACCEL_BUFFER_D                                : natural := 1; 
+                  
+                  
+    BRAKING_INT_WIDTH                                 : natural := 16;
+    BRAKING_INT_P_PIPELINE_STAGES                     : natural := 1; 
+    BRAKING_BUFFER_D                                  : natural := 1; 
 
 
-    BRK_M_T_10S_INT_WIDTH                   : natural := 16;
-    BRK_M_T_10S_INT_P_PIPELINE_STAGES       : natural := 1; 
-    BRK_M_T_10S_BUFFER_D                    : natural := 1; 
+    ACCEL_INT_WIDTH                                   : natural := 16;
+    ACCEL_INT_P_PIPELINE_STAGES                       : natural := 1; 
+    ACCEL_BUFFER_D                                    : natural := 1; 
 
 
-    ACCEL_M_T_10S_INT_WIDTH                 : natural := 16;
-    ACCEL_M_T_10S_INT_P_PIPELINE_STAGES     : natural := 1; 
-    ACCEL_M_T_10S_BUFFER_D                  : natural := 1; 
+    SMALL_SPEED_VAR_INT_WIDTH                         : natural := 16;
+    SMALL_SPEED_VAR_INT_P_PIPELINE_STAGES             : natural := 1; 
+    SMALL_SPEED_VAR_BUFFER_D                          : natural := 1; 
 
 
-    SMALL_SPD_V_M_INT_WIDTH                 : natural := 16;
-    SMALL_SPD_V_M_INT_P_PIPELINE_STAGES     : natural := 1; 
-    SMALL_SPD_V_M_BUFFER_D                  : natural := 1; 
-
-
-    LARGE_SPD_V_M_INT_WIDTH                 : natural := 16;
-    LARGE_SPD_V_M_INT_P_PIPELINE_STAGES     : natural := 1; 
-    LARGE_SPD_V_M_BUFFER_D                  : natural := 1;
+    LARGE_SPEED_VAR_INT_WIDTH                         : natural := 16;
+    LARGE_SPEED_VAR_INT_P_PIPELINE_STAGES             : natural := 1; 
+    LARGE_SPEED_VAR_BUFFER_D                          : natural := 1;
 
     -- 
     -- STRING FIELDS
     --
-    TIMESTAMP_BUFFER_D                      : natural := 1;
+    TIMESTAMP_BUFFER_D                          : natural := 1;
 
-    END_REQ_EN                              : boolean := false
-  );              
-  port (              
-    clk                                     : in  std_logic;
-    reset                                   : in  std_logic;
-
-    in_valid                                : in  std_logic;
-    in_ready                                : out std_logic;
-    in_data                                 : in  std_logic_vector(8*EPC-1 downto 0);
-    in_last                                 : in  std_logic_vector(2*EPC-1 downto 0);
-    in_stai                                 : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
-    in_endi                                 : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
-    in_strb                                 : in  std_logic_vector(EPC-1 downto 0);
-
-    end_req                                 : in  std_logic := '0';
-    end_ack                                 : out std_logic;
-
-    timezone_valid                          : out std_logic;
-    timezone_ready                          : in  std_logic;
-    timezone_data                           : out std_logic_vector(TIMEZONE_INT_WIDTH-1 downto 0);
-    timezone_strb                           : out std_logic;
-    timezone_last                           : out std_logic_vector(1 downto 0);
+    END_REQ_EN                                  : boolean := false
+    );              
+    port (              
+    clk                                         : in  std_logic;
+    reset                                       : in  std_logic;
+    
+    in_valid                                    : in  std_logic;
+    in_ready                                    : out std_logic;
+    in_data                                     : in  std_logic_vector(8*EPC-1 downto 0);
+    in_last                                     : in  std_logic_vector(2*EPC-1 downto 0);
+    in_stai                                     : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+    in_endi                                     : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+    in_strb                                     : in  std_logic_vector(EPC-1 downto 0);
+    
+    end_req                                     : in  std_logic := '0';
+    end_ack                                     : out std_logic;
+    
+    timezone_valid                              : out std_logic;
+    timezone_ready                              : in  std_logic;
+    timezone_strb                               : out std_logic;
+    timezone_data                               : out std_logic_vector(TIMEZONE_INT_WIDTH-1 downto 0);
+    timezone_last                               : out std_logic_vector(1 downto 0);
 
     --    
     -- INTEGER FIELDS   
     --    
-    vin_valid                               : out std_logic;
-    vin_ready                               : in  std_logic;
-    vin_data                                : out std_logic_vector(VIN_INT_WIDTH-1 downto 0);
-    vin_strb                                : out std_logic;
-    vin_last                                : out std_logic_vector(1 downto 0);
+    vin_valid                                   : out std_logic;
+    vin_ready                                   : in  std_logic;
+    vin_data                                    : out std_logic_vector(VIN_INT_WIDTH-1 downto 0);
+    vin_strb                                    : out std_logic;
+    vin_last                                    : out std_logic_vector(1 downto 0);
+        
+    odometer_valid                              : out std_logic;
+    odometer_ready                              : in  std_logic;
+    odometer_data                               : out std_logic_vector(ODOMETER_INT_WIDTH-1 downto 0);
+    odometer_strb                               : out std_logic;
+    odometer_last                               : out std_logic_vector(1 downto 0);
 
-    odometer_valid                          : out std_logic;
-    odometer_ready                          : in  std_logic;
-    odometer_data                           : out std_logic_vector(ODOMETER_INT_WIDTH-1 downto 0);
-    odometer_strb                           : out std_logic;
-    odometer_last                           : out std_logic_vector(1 downto 0);
+    avgspeed_valid                              : out std_logic;
+    avgspeed_ready                              : in  std_logic;
+    avgspeed_data                               : out std_logic_vector(AVGSPEED_INT_WIDTH-1 downto 0);
+    avgspeed_strb                               : out std_logic;
+    avgspeed_last                               : out std_logic_vector(1 downto 0);
 
-    avg_speed_valid                         : out std_logic;
-    avg_speed_ready                         : in  std_logic;
-    avg_speed_data                          : out std_logic_vector(AVG_SPEED_INT_WIDTH-1 downto 0);
-    avg_speed_strb                          : out std_logic;
-    avg_speed_last                          : out std_logic_vector(1 downto 0);
+    accel_decel_valid                           : out std_logic;
+    accel_decel_ready                           : in  std_logic;
+    accel_decel_data                            : out std_logic_vector(ACCEL_DECEL_INT_WIDTH-1 downto 0);
+    accel_decel_strb                            : out std_logic;
+    accel_decel_last                            : out std_logic_vector(1 downto 0);
 
-    s_acc_dec_valid                         : out std_logic;
-    s_acc_dec_ready                         : in  std_logic;
-    s_acc_dec_data                          : out std_logic_vector(S_ACC_DEC_INT_WIDTH-1 downto 0);
-    s_acc_dec_strb                          : out std_logic;
-    s_acc_dec_last                          : out std_logic_vector(1 downto 0);
-
-    e_spd_chg_valid                         : out std_logic;
-    e_spd_chg_ready                         : in  std_logic;
-    e_spd_chg_data                          : out std_logic_vector(E_SPD_CHG_INT_WIDTH-1 downto 0);
-    e_spd_chg_strb                          : out std_logic;
-    e_spd_chg_last                          : out std_logic_vector(1 downto 0);
+    speed_changes_valid                         : out std_logic;
+    speed_changes_ready                         : in  std_logic;
+    speed_changes_data                          : out std_logic_vector(SPEED_CHANGES_INT_WIDTH-1 downto 0);
+    speed_changes_strb                          : out std_logic;
+    speed_changes_last                          : out std_logic_vector(1 downto 0);
 
     --    
     -- BOOLEAN FIELDS   
     --    
-    hyper_miling_valid                      : out std_logic;
-    hyper_miling_ready                      : in  std_logic;
-    hyper_miling_data                       : out std_logic;
-    hyper_miling_strb                       : out std_logic;
-    hyper_miling_last                       : out std_logic_vector(1 downto 0);
+    hypermiling_valid                           : out std_logic;
+    hypermiling_ready                           : in  std_logic;
+    hypermiling_data                            : out std_logic;
+    hypermiling_strb                            : out std_logic;
+    hypermiling_last                            : out std_logic_vector(1 downto 0);
 
-    orientation_valid                       : out std_logic;
-    orientation_ready                       : in  std_logic;
-    orientation_data                        : out std_logic;
-    orientation_strb                        : out std_logic;
-    orientation_last                        : out std_logic_vector(1 downto 0);
+    orientation_valid                           : out std_logic;
+    orientation_ready                           : in  std_logic;
+    orientation_data                            : out std_logic;
+    orientation_strb                            : out std_logic;
+    orientation_last                            : out std_logic_vector(1 downto 0);
 
     --    
     -- INTEGER ARRAY FIELDS   
     --    
-    secs_in_b_valid                         : out std_logic;
-    secs_in_b_ready                         : in  std_logic;
-    secs_in_b_data                          : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    secs_in_b_strb                          : out std_logic;
-    secs_in_b_last                          : out std_logic_vector(2 downto 0);
+    sec_in_band_valid                           : out std_logic;
+    sec_in_band_ready                           : in  std_logic;
+    sec_in_band_data                            : out std_logic_vector(SEC_IN_BAND_INT_WIDTH-1 downto 0);
+    sec_in_band_strb                            : out std_logic;
+    sec_in_band_last                            : out std_logic_vector(2 downto 0);
 
-    miles_in_time_valid                     : out std_logic;
-    miles_in_time_ready                     : in  std_logic;
-    miles_in_time_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    miles_in_time_strb                      : out std_logic;
-    miles_in_time_last                      : out std_logic_vector(2 downto 0);
-
-
-    const_spd_m_in_b_valid                  : out std_logic;
-    const_spd_m_in_b_ready                  : in  std_logic;
-    const_spd_m_in_b_data                   : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    const_spd_m_in_b_strb                   : out std_logic;
-    const_spd_m_in_b_last                   : out std_logic_vector(2 downto 0);
+    miles_in_time_range_valid                   : out std_logic;
+    miles_in_time_range_ready                   : in  std_logic;
+    miles_in_time_range_data                    : out std_logic_vector(MILES_IN_TIME_RANGE_INT_WIDTH-1 downto 0);
+    miles_in_time_range_strb                    : out std_logic;
+    miles_in_time_range_last                    : out std_logic_vector(2 downto 0);
 
 
-    var_spd_m_in_b_valid                    : out std_logic;
-    var_spd_m_in_b_ready                    : in  std_logic;
-    var_spd_m_in_b_data                     : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    var_spd_m_in_b_strb                     : out std_logic;
-    var_spd_m_in_b_last                     : out std_logic_vector(2 downto 0);
+    const_speed_miles_in_band_valid             : out std_logic;
+    const_speed_miles_in_band_ready             : in  std_logic;
+    const_speed_miles_in_band_data              : out std_logic_vector(CONST_SPEED_MILES_IN_BAND_INT_WIDTH-1 downto 0);
+    const_speed_miles_in_band_strb              : out std_logic;
+    const_speed_miles_in_band_last              : out std_logic_vector(2 downto 0);
 
 
-    seconds_decel_valid                     : out std_logic;
-    seconds_decel_ready                     : in  std_logic;
-    seconds_decel_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    seconds_decel_strb                      : out std_logic;
-    seconds_decel_last                      : out std_logic_vector(2 downto 0);
+    vary_speed_miles_in_band_valid              : out std_logic;
+    vary_speed_miles_in_band_ready              : in  std_logic;
+    vary_speed_miles_in_band_data               : out std_logic_vector(VARY_SPEED_MILES_IN_BAND_INT_WIDTH-1 downto 0);
+    vary_speed_miles_in_band_strb               : out std_logic;
+    vary_speed_miles_in_band_last               : out std_logic_vector(2 downto 0);
 
 
-    seconds_accel_valid                     : out std_logic;
-    seconds_accel_ready                     : in  std_logic;
-    seconds_accel_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    seconds_accel_strb                      : out std_logic;
-    seconds_accel_last                      : out std_logic_vector(2 downto 0);
+    sec_decel_valid                             : out std_logic;
+    sec_decel_ready                             : in  std_logic;
+    sec_decel_data                              : out std_logic_vector(SEC_DECEL_INT_WIDTH-1 downto 0);
+    sec_decel_strb                              : out std_logic;
+    sec_decel_last                              : out std_logic_vector(2 downto 0);
+      
+      
+    sec_accel_valid                             : out std_logic;
+    sec_accel_ready                             : in  std_logic;
+    sec_accel_data                              : out std_logic_vector(SEC_ACCEL_INT_WIDTH-1 downto 0);
+    sec_accel_strb                              : out std_logic;
+    sec_accel_last                              : out std_logic_vector(2 downto 0);
+      
+      
+    braking_valid                               : out std_logic;
+    braking_ready                               : in  std_logic;
+    braking_data                                : out std_logic_vector(BRAKING_INT_WIDTH-1 downto 0);
+    braking_strb                                : out std_logic;
+    braking_last                                : out std_logic_vector(2 downto 0);
 
 
-    brk_m_t_10s_valid                       : out std_logic;
-    brk_m_t_10s_ready                       : in  std_logic;
-    brk_m_t_10s_data                        : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    brk_m_t_10s_strb                        : out std_logic;
-    brk_m_t_10s_last                        : out std_logic_vector(2 downto 0);
+    accel_valid                                 : out std_logic;
+    accel_ready                                 : in  std_logic;
+    accel_data                                  : out std_logic_vector(ACCEL_INT_WIDTH-1 downto 0);
+    accel_strb                                  : out std_logic;
+    accel_last                                  : out std_logic_vector(2 downto 0);
 
 
-    accel_m_t_10s_valid                     : out std_logic;
-    accel_m_t_10s_ready                     : in  std_logic;
-    accel_m_t_10s_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    accel_m_t_10s_strb                      : out std_logic;
-    accel_m_t_10s_last                      : out std_logic_vector(2 downto 0);
+    small_speed_var_valid                       : out std_logic;
+    small_speed_var_ready                       : in  std_logic;
+    small_speed_var_data                        : out std_logic_vector(SMALL_SPEED_VAR_INT_WIDTH-1 downto 0);
+    small_speed_var_strb                        : out std_logic;
+    small_speed_var_last                        : out std_logic_vector(2 downto 0);
 
 
-    small_spd_v_m_valid                     : out std_logic;
-    small_spd_v_m_ready                     : in  std_logic;
-    small_spd_v_m_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    small_spd_v_m_strb                      : out std_logic;
-    small_spd_v_m_last                      : out std_logic_vector(2 downto 0);
-
-
-    large_spd_v_m_valid                     : out std_logic;
-    large_spd_v_m_ready                     : in  std_logic;
-    large_spd_v_m_data                      : out std_logic_vector(SECS_IN_B_INT_WIDTH-1 downto 0);
-    large_spd_v_m_strb                      : out std_logic;
-    large_spd_v_m_last                      : out std_logic_vector(2 downto 0);
+    large_speed_var_valid                       : out std_logic;
+    large_speed_var_ready                       : in  std_logic;
+    large_speed_var_data                        : out std_logic_vector(LARGE_SPEED_VAR_INT_WIDTH-1 downto 0);
+    large_speed_var_strb                        : out std_logic;
+    large_speed_var_last                        : out std_logic_vector(2 downto 0);
 
     --    
     -- STRING FIELDS   
     -- 
-    timestamp_valid                         : out std_logic;
-    timestamp_ready                         : in  std_logic;
-    timestamp_data                          : out std_logic_vector(8*EPC-1 downto 0);
-    timestamp_last                          : out std_logic_vector(3*EPC-1 downto 0);
-    timestamp_stai                          : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
-    timestamp_endi                          : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
-    timestamp_strb                          : out std_logic_vector(EPC-1 downto 0)
+    timestamp_valid                             : out std_logic;
+    timestamp_ready                             : in  std_logic;
+    timestamp_data                              : out std_logic_vector(8*EPC-1 downto 0);
+    timestamp_last                              : out std_logic_vector(3*EPC-1 downto 0);
+    timestamp_stai                              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+    timestamp_endi                              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+    timestamp_strb                              : out std_logic_vector(EPC-1 downto 0)
   );
 end TripReportParser;
 
@@ -277,29 +277,29 @@ architecture arch of TripReportParser is
   -- 
   -- INTEGER FIELDS
   --
-  signal timezone_i_valid  : std_logic;
-  signal timezone_i_ready  : std_logic;
+  signal timezone_i_valid      : std_logic;
+  signal timezone_i_ready      : std_logic;
 
-  signal vin_i_valid       : std_logic;
-  signal vin_i_ready       : std_logic;
+  signal vin_i_valid           : std_logic;
+  signal vin_i_ready           : std_logic;
 
-  signal odometer_i_valid  : std_logic;
-  signal odometer_i_ready  : std_logic;
+  signal odometer_i_valid      : std_logic;
+  signal odometer_i_ready      : std_logic;
 
-  signal avg_speed_i_valid : std_logic;
-  signal avg_speed_i_ready : std_logic;
+  signal avgspeed_i_valid      : std_logic;
+  signal avgspeed_i_ready      : std_logic;
 
-  signal s_acc_dec_i_valid : std_logic;
-  signal s_acc_dec_i_ready : std_logic;
+  signal accel_decel_i_valid   : std_logic;
+  signal accel_decel_i_ready   : std_logic;
 
-  signal e_spd_chg_i_valid : std_logic;
-  signal e_spd_chg_i_ready : std_logic;
+  signal speed_changes_i_valid : std_logic;
+  signal speed_changes_i_ready : std_logic;
 
   -- 
   -- BOOLEAN FIELDS
   --
-  signal hyper_miling_i_valid  : std_logic;
-  signal hyper_miling_i_ready  : std_logic;
+  signal hypermiling_i_valid   : std_logic;
+  signal hypermiling_i_ready   : std_logic;
 
   signal orientation_i_valid   : std_logic;
   signal orientation_i_ready   : std_logic;
@@ -307,35 +307,35 @@ architecture arch of TripReportParser is
   -- 
   -- INTEGER ARRAY FIELDS
   --
-  signal secs_in_b_i_valid        : std_logic;
-  signal secs_in_b_i_ready        : std_logic;
+  signal sec_in_band_i_valid                : std_logic;
+  signal sec_in_band_i_ready                : std_logic;
 
-  signal miles_in_time_i_valid    : std_logic;
-  signal miles_in_time_i_ready    : std_logic;
+  signal miles_in_time_range_i_valid        : std_logic;
+  signal miles_in_time_range_i_ready        : std_logic;
 
-  signal const_spd_m_in_b_i_valid : std_logic;
-  signal const_spd_m_in_b_i_ready : std_logic;
+  signal const_speed_miles_in_band_i_valid  : std_logic;
+  signal const_speed_miles_in_band_i_ready  : std_logic;
 
-  signal var_spd_m_in_b_i_valid   : std_logic;
-  signal var_spd_m_in_b_i_ready   : std_logic;
+  signal vary_speed_miles_in_band_i_valid   : std_logic;
+  signal vary_speed_miles_in_band_i_ready   : std_logic;
 
-  signal seconds_decel_i_valid    : std_logic;
-  signal seconds_decel_i_ready    : std_logic;
+  signal sec_decel_i_valid                  : std_logic;
+  signal sec_decel_i_ready                  : std_logic;
 
-  signal seconds_accel_i_valid    : std_logic;
-  signal seconds_accel_i_ready    : std_logic;
+  signal sec_accel_i_valid                  : std_logic;
+  signal sec_accel_i_ready                  : std_logic;
 
-  signal brk_m_t_10s_i_valid      : std_logic;
-  signal brk_m_t_10s_i_ready      : std_logic;
+  signal braking_i_valid                    : std_logic;
+  signal braking_i_ready                    : std_logic;
 
-  signal accel_m_t_10s_i_valid    : std_logic;
-  signal accel_m_t_10s_i_ready    : std_logic;
+  signal accel_i_valid                      : std_logic;
+  signal accel_i_ready                      : std_logic;
 
-  signal small_spd_v_m_i_valid    : std_logic;
-  signal small_spd_v_m_i_ready    : std_logic;
+  signal small_speed_var_i_valid            : std_logic;
+  signal small_speed_var_i_ready            : std_logic;
 
-  signal large_spd_v_m_i_valid    : std_logic;
-  signal large_spd_v_m_i_ready    : std_logic;
+  signal large_speed_var_i_valid            : std_logic;
+  signal large_speed_var_i_ready            : std_logic;
 
   -- 
   -- STRING FIELDS
@@ -389,42 +389,42 @@ begin
       out_valid(0)            => timezone_i_valid,
       out_valid(1)            => vin_i_valid,
       out_valid(2)            => odometer_i_valid,
-      out_valid(3)            => avg_speed_i_valid,
-      out_valid(4)            => s_acc_dec_i_valid,
-      out_valid(5)            => e_spd_chg_i_valid,
-      out_valid(6)            => hyper_miling_i_valid,
+      out_valid(3)            => avgspeed_i_valid,
+      out_valid(4)            => accel_decel_i_valid,
+      out_valid(5)            => speed_changes_i_valid,
+      out_valid(6)            => hypermiling_i_valid,
       out_valid(7)            => orientation_i_valid,
-      out_valid(8)            => secs_in_b_i_valid,
-      out_valid(9)            => miles_in_time_i_valid,
-      out_valid(10)           => const_spd_m_in_b_i_valid,
-      out_valid(11)           => var_spd_m_in_b_i_valid,
-      out_valid(12)           => seconds_decel_i_valid,
-      out_valid(13)           => seconds_accel_i_valid,
-      out_valid(14)           => brk_m_t_10s_i_valid,
-      out_valid(15)           => accel_m_t_10s_i_valid,
-      out_valid(16)           => small_spd_v_m_i_valid,
-      out_valid(17)           => large_spd_v_m_i_valid,
+      out_valid(8)            => sec_in_band_i_valid,
+      out_valid(9)            => miles_in_time_range_i_valid,
+      out_valid(10)           => const_speed_miles_in_band_i_valid,
+      out_valid(11)           => vary_speed_miles_in_band_i_valid,
+      out_valid(12)           => sec_decel_i_valid,
+      out_valid(13)           => sec_accel_i_valid,
+      out_valid(14)           => braking_i_valid,
+      out_valid(15)           => accel_i_valid,
+      out_valid(16)           => small_speed_var_i_valid,
+      out_valid(17)           => large_speed_var_i_valid,
       out_valid(18)           => timestamp_i_valid,
 
 
       out_ready(0)            => timezone_i_ready,
       out_ready(1)            => vin_i_ready,
       out_ready(2)            => odometer_i_ready,
-      out_ready(3)            => avg_speed_i_ready,
-      out_ready(4)            => s_acc_dec_i_ready,
-      out_ready(5)            => e_spd_chg_i_ready,
-      out_ready(6)            => hyper_miling_i_ready,
+      out_ready(3)            => avgspeed_i_ready,
+      out_ready(4)            => accel_decel_i_ready,
+      out_ready(5)            => speed_changes_i_ready,
+      out_ready(6)            => hypermiling_i_ready,
       out_ready(7)            => orientation_i_ready,
-      out_ready(8)            => secs_in_b_i_ready,
-      out_ready(9)            => miles_in_time_i_ready,
-      out_ready(10)           => const_spd_m_in_b_i_ready,
-      out_ready(11)           => var_spd_m_in_b_i_ready,
-      out_ready(12)           => seconds_decel_i_ready,
-      out_ready(13)           => seconds_accel_i_ready,
-      out_ready(14)           => brk_m_t_10s_i_ready,
-      out_ready(15)           => accel_m_t_10s_i_ready,
-      out_ready(16)           => small_spd_v_m_i_ready,
-      out_ready(17)           => large_spd_v_m_i_ready,
+      out_ready(8)            => sec_in_band_i_ready,
+      out_ready(9)            => miles_in_time_range_i_ready,
+      out_ready(10)           => const_speed_miles_in_band_i_ready,
+      out_ready(11)           => vary_speed_miles_in_band_i_ready,
+      out_ready(12)           => sec_decel_i_ready,
+      out_ready(13)           => sec_accel_i_ready,
+      out_ready(14)           => braking_i_ready,
+      out_ready(15)           => accel_i_ready,
+      out_ready(16)           => small_speed_var_i_ready,
+      out_ready(17)           => large_speed_var_i_ready,
       out_ready(18)           => timestamp_i_ready
 
     );
@@ -498,76 +498,76 @@ begin
       out_last              => odometer_last
     );
 
-    avg_speed_f_i: avg_speed_f
+    avgspeed_f_i: avgspeed_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => AVG_SPEED_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => AVG_SPEED_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => AVG_SPEED_BUFFER_D
+      INT_WIDTH             => AVGSPEED_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => AVGSPEED_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => AVGSPEED_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => avg_speed_i_valid,
-      in_ready              => avg_speed_i_ready,
+      in_valid              => avgspeed_i_valid,
+      in_ready              => avgspeed_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => avg_speed_valid,
-      out_ready             => avg_speed_ready,
-      out_data              => avg_speed_data,
-      out_strb              => avg_speed_strb,
-      out_last              => avg_speed_last
+      out_valid             => avgspeed_valid,
+      out_ready             => avgspeed_ready,
+      out_data              => avgspeed_data,
+      out_strb              => avgspeed_strb,
+      out_last              => avgspeed_last
     );
 
-    s_acc_dec_f_i: s_acc_dec_f
+    accel_decel_f_i: accel_decel_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => S_ACC_DEC_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => S_ACC_DEC_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => S_ACC_DEC_BUFFER_D
+      INT_WIDTH             => ACCEL_DECEL_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => ACCEL_DECEL_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => ACCEL_DECEL_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => s_acc_dec_i_valid,
-      in_ready              => s_acc_dec_i_ready,
+      in_valid              => accel_decel_i_valid,
+      in_ready              => accel_decel_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => s_acc_dec_valid,
-      out_ready             => s_acc_dec_ready,
-      out_data              => s_acc_dec_data,
-      out_strb              => s_acc_dec_strb,
-      out_last              => s_acc_dec_last
+      out_valid             => accel_decel_valid,
+      out_ready             => accel_decel_ready,
+      out_data              => accel_decel_data,
+      out_strb              => accel_decel_strb,
+      out_last              => accel_decel_last
     );
 
-    e_spd_chg_f_i: e_spd_chg_f
+    speed_changes_f_i: speed_changes_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => E_SPD_CHG_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => E_SPD_CHG_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => E_SPD_CHG_BUFFER_D
+      INT_WIDTH             => SPEED_CHANGES_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => SPEED_CHANGES_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => SPEED_CHANGES_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => e_spd_chg_i_valid,
-      in_ready              => e_spd_chg_i_ready,
+      in_valid              => speed_changes_i_valid,
+      in_ready              => speed_changes_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => e_spd_chg_valid,
-      out_ready             => e_spd_chg_ready,
-      out_data              => e_spd_chg_data,
-      out_strb              => e_spd_chg_strb,
-      out_last              => e_spd_chg_last
+      out_valid             => speed_changes_valid,
+      out_ready             => speed_changes_ready,
+      out_data              => speed_changes_data,
+      out_strb              => speed_changes_strb,
+      out_last              => speed_changes_last
     );
 
-    hyper_miling_f_i: hyper_miling_f
+    hypermiling_f_i: hypermiling_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
@@ -576,16 +576,16 @@ begin
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => hyper_miling_i_valid,
-      in_ready              => hyper_miling_i_ready,
+      in_valid              => hypermiling_i_valid,
+      in_ready              => hypermiling_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => hyper_miling_valid,
-      out_ready             => hyper_miling_ready,
-      out_data              => hyper_miling_data,
-      out_strb              => hyper_miling_strb,
-      out_last              => hyper_miling_last
+      out_valid             => hypermiling_valid,
+      out_ready             => hypermiling_ready,
+      out_data              => hypermiling_data,
+      out_strb              => hypermiling_strb,
+      out_last              => hypermiling_last
     );
 
     orientation_f_i: orientation_f
@@ -609,234 +609,234 @@ begin
       out_last              => orientation_last
     );
 
-    secs_in_b_f_i: secs_in_b_f
+    sec_in_band_f_i: sec_in_band_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => SECS_IN_B_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => SECS_IN_B_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => SECS_IN_B_BUFFER_D
+      INT_WIDTH             => SEC_IN_BAND_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => SEC_IN_BAND_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => SEC_IN_BAND_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => secs_in_b_i_valid,
-      in_ready              => secs_in_b_i_ready,
+      in_valid              => sec_in_band_i_valid,
+      in_ready              => sec_in_band_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => secs_in_b_valid,
-      out_ready             => secs_in_b_ready,
-      out_data              => secs_in_b_data,
-      out_strb              => secs_in_b_strb,
-      out_last              => secs_in_b_last
+      out_valid             => sec_in_band_valid,
+      out_ready             => sec_in_band_ready,
+      out_data              => sec_in_band_data,
+      out_strb              => sec_in_band_strb,
+      out_last              => sec_in_band_last
     );
 
-    miles_in_time_i: miles_in_time_f
+    miles_in_time_range_i: miles_in_time_range_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => MILES_IN_TIME_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => MILES_IN_TIME_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => MILES_IN_TIME_BUFFER_D
+      INT_WIDTH             => MILES_IN_TIME_RANGE_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => MILES_IN_TIME_RANGE_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => MILES_IN_TIME_RANGE_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => miles_in_time_i_valid,
-      in_ready              => miles_in_time_i_ready,
+      in_valid              => miles_in_time_range_i_valid,
+      in_ready              => miles_in_time_range_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => miles_in_time_valid,
-      out_ready             => miles_in_time_ready,
-      out_data              => miles_in_time_data,
-      out_strb              => miles_in_time_strb,
-      out_last              => miles_in_time_last
+      out_valid             => miles_in_time_range_valid,
+      out_ready             => miles_in_time_range_ready,
+      out_data              => miles_in_time_range_data,
+      out_strb              => miles_in_time_range_strb,
+      out_last              => miles_in_time_range_last
     );
 
-    const_spd_m_in_b_i: const_spd_m_in_b_f
+    const_speed_miles_in_band_i: const_speed_miles_in_band_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => CONST_SPD_M_IN_B_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => CONST_SPD_M_IN_B_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => CONST_SPD_M_IN_B_BUFFER_D
+      INT_WIDTH             => CONST_SPEED_MILES_IN_BAND_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => CONST_SPEED_MILES_IN_BAND_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => CONST_SPEED_MILES_IN_BAND_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => const_spd_m_in_b_i_valid,
-      in_ready              => const_spd_m_in_b_i_ready,
+      in_valid              => const_speed_miles_in_band_i_valid,
+      in_ready              => const_speed_miles_in_band_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => const_spd_m_in_b_valid,
-      out_ready             => const_spd_m_in_b_ready,
-      out_data              => const_spd_m_in_b_data,
-      out_strb              => const_spd_m_in_b_strb,
-      out_last              => const_spd_m_in_b_last
+      out_valid             => const_speed_miles_in_band_valid,
+      out_ready             => const_speed_miles_in_band_ready,
+      out_data              => const_speed_miles_in_band_data,
+      out_strb              => const_speed_miles_in_band_strb,
+      out_last              => const_speed_miles_in_band_last
     );
 
-    var_spd_m_in_b_i: var_spd_m_in_b_f
+    vary_speed_miles_in_band_i: vary_speed_miles_in_band_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => VAR_SPD_M_IN_B_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => VAR_SPD_M_IN_B_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => VAR_SPD_M_IN_B_BUFFER_D
+      INT_WIDTH             => VARY_SPEED_MILES_IN_BAND_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => VARY_SPEED_MILES_IN_BAND_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => VARY_SPEED_MILES_IN_BAND_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => var_spd_m_in_b_i_valid,
-      in_ready              => var_spd_m_in_b_i_ready,
+      in_valid              => vary_speed_miles_in_band_i_valid,
+      in_ready              => vary_speed_miles_in_band_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => var_spd_m_in_b_valid,
-      out_ready             => var_spd_m_in_b_ready,
-      out_data              => var_spd_m_in_b_data,
-      out_strb              => var_spd_m_in_b_strb,
-      out_last              => var_spd_m_in_b_last
+      out_valid             => vary_speed_miles_in_band_valid,
+      out_ready             => vary_speed_miles_in_band_ready,
+      out_data              => vary_speed_miles_in_band_data,
+      out_strb              => vary_speed_miles_in_band_strb,
+      out_last              => vary_speed_miles_in_band_last
     );
 
-    seconds_decel_i: seconds_decel_f
+    sec_decel_i: sec_decel_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => SECONDS_DECEL_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => SECONDS_DECEL_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => SECONDS_DECEL_BUFFER_D
+      INT_WIDTH             => SEC_DECEL_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => SEC_DECEL_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => SEC_DECEL_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => seconds_decel_i_valid,
-      in_ready              => seconds_decel_i_ready,
+      in_valid              => sec_decel_i_valid,
+      in_ready              => sec_decel_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => seconds_decel_valid,
-      out_ready             => seconds_decel_ready,
-      out_data              => seconds_decel_data,
-      out_strb              => seconds_decel_strb,
-      out_last              => seconds_decel_last
+      out_valid             => sec_decel_valid,
+      out_ready             => sec_decel_ready,
+      out_data              => sec_decel_data,
+      out_strb              => sec_decel_strb,
+      out_last              => sec_decel_last
     );
 
-    seconds_accel_i: seconds_accel_f
+    sec_accel_i: sec_accel_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => SECONDS_ACCEL_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => SECONDS_ACCEL_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => SECONDS_ACCEL_BUFFER_D
+      INT_WIDTH             => SEC_ACCEL_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => SEC_ACCEL_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => SEC_ACCEL_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => seconds_accel_i_valid,
-      in_ready              => seconds_accel_i_ready,
+      in_valid              => sec_accel_i_valid,
+      in_ready              => sec_accel_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => seconds_accel_valid,
-      out_ready             => seconds_accel_ready,
-      out_data              => seconds_accel_data,
-      out_strb              => seconds_accel_strb,
-      out_last              => seconds_accel_last
+      out_valid             => sec_accel_valid,
+      out_ready             => sec_accel_ready,
+      out_data              => sec_accel_data,
+      out_strb              => sec_accel_strb,
+      out_last              => sec_accel_last
     );
 
-    brk_m_t_10s_i: brk_m_t_10s_f
+    braking_i: braking_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => BRK_M_T_10S_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => BRK_M_T_10S_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => BRK_M_T_10S_BUFFER_D
+      INT_WIDTH             => BRAKING_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => BRAKING_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => BRAKING_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => brk_m_t_10s_i_valid,
-      in_ready              => brk_m_t_10s_i_ready,
+      in_valid              => braking_i_valid,
+      in_ready              => braking_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => brk_m_t_10s_valid,
-      out_ready             => brk_m_t_10s_ready,
-      out_data              => brk_m_t_10s_data,
-      out_strb              => brk_m_t_10s_strb,
-      out_last              => brk_m_t_10s_last
+      out_valid             => braking_valid,
+      out_ready             => braking_ready,
+      out_data              => braking_data,
+      out_strb              => braking_strb,
+      out_last              => braking_last
     );
 
-    accel_m_t_10s_i: accel_m_t_10s_f
+    accel_i: accel_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => ACCEL_M_T_10S_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => ACCEL_M_T_10S_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => ACCEL_M_T_10S_BUFFER_D
+      INT_WIDTH             => ACCEL_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => ACCEL_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => ACCEL_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => accel_m_t_10s_i_valid,
-      in_ready              => accel_m_t_10s_i_ready,
+      in_valid              => accel_i_valid,
+      in_ready              => accel_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => accel_m_t_10s_valid,
-      out_ready             => accel_m_t_10s_ready,
-      out_data              => accel_m_t_10s_data,
-      out_strb              => accel_m_t_10s_strb,
-      out_last              => accel_m_t_10s_last
+      out_valid             => accel_valid,
+      out_ready             => accel_ready,
+      out_data              => accel_data,
+      out_strb              => accel_strb,
+      out_last              => accel_last
     );
 
-    small_spd_v_m_i: small_spd_v_m_f
+    small_speed_var_i: small_speed_var_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => SMALL_SPD_V_M_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => SMALL_SPD_V_M_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => SMALL_SPD_V_M_BUFFER_D
+      INT_WIDTH             => SMALL_SPEED_VAR_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => SMALL_SPEED_VAR_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => SMALL_SPEED_VAR_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => small_spd_v_m_i_valid,
-      in_ready              => small_spd_v_m_i_ready,
+      in_valid              => small_speed_var_i_valid,
+      in_ready              => small_speed_var_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => small_spd_v_m_valid,
-      out_ready             => small_spd_v_m_ready,
-      out_data              => small_spd_v_m_data,
-      out_strb              => small_spd_v_m_strb,
-      out_last              => small_spd_v_m_last
+      out_valid             => small_speed_var_valid,
+      out_ready             => small_speed_var_ready,
+      out_data              => small_speed_var_data,
+      out_strb              => small_speed_var_strb,
+      out_last              => small_speed_var_last
     );
 
-    large_spd_v_m_i: large_spd_v_m_f
+    large_speed_var_i: large_speed_var_f
     generic map (
       EPC                   => EPC,
       OUTER_NESTING_LEVEL   => 2,
-      INT_WIDTH             => LARGE_SPD_V_M_INT_WIDTH,
-      INT_P_PIPELINE_STAGES => LARGE_SPD_V_M_INT_P_PIPELINE_STAGES,
-      BUFER_DEPTH           => LARGE_SPD_V_M_BUFFER_D
+      INT_WIDTH             => LARGE_SPEED_VAR_INT_WIDTH,
+      INT_P_PIPELINE_STAGES => LARGE_SPEED_VAR_INT_P_PIPELINE_STAGES,
+      BUFER_DEPTH           => LARGE_SPEED_VAR_BUFFER_D
     )
     port map (
       clk                   => clk,
       reset                 => reset,
-      in_valid              => large_spd_v_m_i_valid,
-      in_ready              => large_spd_v_m_i_ready,
+      in_valid              => large_speed_var_i_valid,
+      in_ready              => large_speed_var_i_ready,
       in_data               => rec_data,
       in_last               => rec_last,
       in_strb               => rec_strb,
-      out_valid             => large_spd_v_m_valid,
-      out_ready             => large_spd_v_m_ready,
-      out_data              => large_spd_v_m_data,
-      out_strb              => large_spd_v_m_strb,
-      out_last              => large_spd_v_m_last
+      out_valid             => large_speed_var_valid,
+      out_ready             => large_speed_var_ready,
+      out_data              => large_speed_var_data,
+      out_strb              => large_speed_var_strb,
+      out_last              => large_speed_var_last
     );
 
     timestamp_f_i: timestamp_f

@@ -127,6 +127,7 @@ package Json_pkg is
   
         matcher_match_valid   : in  std_logic;
         matcher_match_ready   : out std_logic;
+        matcher_match_strb    : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
         matcher_match         : in  std_logic_vector(EPC-1 downto 0);
   
         out_valid             : out std_logic;

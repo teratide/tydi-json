@@ -178,6 +178,7 @@ begin
 
             case state is
               when STATE_IDLE =>
+                od(idx).strb    := '0';
                 case id(idx).data is
                   when X"7B" => -- '{'
                     state := STATE_RECORD;
@@ -186,6 +187,7 @@ begin
                 end case;
 
               when STATE_RECORD =>
+                od(idx).strb    := '0';
                 case id(idx).data is
                   when X"22" => -- '"'
                     state := STATE_KEY;
@@ -193,7 +195,6 @@ begin
                     state := STATE_VALUE;
                   when X"7D" => -- '}'
                     od(idx).last(1) := '1';
-                    od(idx).strb    := '0';
                     ov              := '1'; 
                     if end_req_i = '1' then
                       end_ack_i := '1';
@@ -206,7 +207,6 @@ begin
               when STATE_KEY =>
                 od(idx).tag := '0';
                 od(idx).strb := '1';
-                ov := '1';
                 case id(idx).data is
                   when X"22" => -- '"'
                     state := STATE_RECORD;
@@ -220,7 +220,6 @@ begin
               when STATE_VALUE =>
                 od(idx).tag := '1';
                 od(idx).strb := '1';
-                ov := '1';
                 case id(idx).data is
                   when X"2C" => -- ','
                     if nesting_origo = '1' then
@@ -254,13 +253,13 @@ begin
             end if;
           end if;
         end loop;
-      --  ov := '1';
+        ov := '1';
         iv := '0';
       end if;
 
       -- Handle reset.
       if to_x01(reset) /= '0' then
-        ir    := '0';
+        iv    := '0';
         ov    := '0';
         state := STATE_IDLE;
         nesting_level_th := (others => '0');

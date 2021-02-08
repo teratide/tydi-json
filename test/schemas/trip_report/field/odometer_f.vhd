@@ -57,6 +57,7 @@ architecture arch of odometer_f is
 
   signal matcher_match_valid   : std_logic;
   signal matcher_match_ready   : std_logic;
+  signal matcher_match_strb    : std_logic_vector(EPC-1 downto 0);
   signal matcher_match         : std_logic_vector(EPC-1 downto 0);
 
   signal filter_ready          : std_logic;
@@ -100,6 +101,7 @@ begin
     matcher_str_last          => matcher_str_last,
     matcher_match_valid       => matcher_match_valid,
     matcher_match_ready       => matcher_match_ready,
+    matcher_match_strb        => matcher_match_strb,
     matcher_match             => matcher_match,
     out_valid                 => filter_valid,
     out_ready                 => filter_ready,
@@ -122,6 +124,7 @@ begin
     in_xlast                  => matcher_str_last,
     out_valid                 => matcher_match_valid,
     out_ready                 => matcher_match_ready,
+    out_xmask                 => matcher_match_strb,
     out_xmatch                => matcher_match
   );
 
@@ -173,5 +176,4 @@ begin
     out_strb                  => out_strb
   );
   
-
 end arch;

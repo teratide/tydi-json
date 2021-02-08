@@ -208,11 +208,12 @@ architecture behavioral of IntParser is
           if to_x01(reset) /= '0' then
             iv            := '0';
             dd_in         := dd_stage_t_init;
+            dd_in_valid   := '0';
             in_shr        := (others => '0');
           end if;
     
           -- Assign input ready and forward data to the next stage.
-          ir        := not iv;
+          ir            := not iv;
           in_ready      <= ir;
           dd_in_s       <= dd_in;
           --bcd <=dd_in.bcd;

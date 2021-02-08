@@ -652,9 +652,9 @@ architecture Behavioral of vin_f_m is
 
     -- Pass through control signals and decode range signals by default.
     o.valid       := i.valid;
-    o.match(  0)  := i.b00001f56t56; -- n
-    o.match(  1)  := i.b00001f66t66; -- v
-    o.match(  2)  := i.b00001f51t51; -- i
+    o.match(  0)  := i.b00001f66t66; -- v
+    o.match(  1)  := i.b00001f51t51; -- i
+    o.match(  2)  := i.b00001f56t56; -- n
     o.last        := i.last;
     o.error       := i.error;
 
@@ -722,16 +722,16 @@ architecture Behavioral of vin_f_m is
     -- Transition to the next state if there is an incoming character.
     if i.valid = '1' then
       si := s;
-      s(  0) := (si(  3) and i.match(  0));
+      s(  0) := (si(  1) and i.match(  0));
       s(  1) := '0';
-      s(  2) := (si(  1) and i.match(  1));
+      s(  2) := (si(  0) and i.match(  1));
       s(  3) := (si(  2) and i.match(  2));
     end if;
 
     -- Save whether the next state will be a final state to determine whether
     -- a regex is matching or not. The timing of this corresponds to the last
     -- signal.
-    o.match(0) := s(  0);
+    o.match(0) := s(  3);
 
     -- Reset the state when we're resetting or receiving the last character.
     if reset = '1' or i.last = '1' then

@@ -60,50 +60,35 @@ architecture behavioral of IntParser is
     type dd_stage_t is record
       bcd   : std_logic_vector(BITWIDTH+(BITWIDTH-4)/3-1 downto 0);
       bin   : std_logic_vector(BITWIDTH-1 downto 0);
-      --ready : std_logic;
-      --valid : std_logic;
+      ready : std_logic;
+      valid : std_logic;
       empty : std_logic;
       last  : std_logic_vector(NESTING_LEVEL-1 downto 0);
     end record;
 
     constant BCD_WIDTH    : integer := BITWIDTH+(BITWIDTH-4)/3;
-    constant SLICE_WIDTH  : integer := BCD_WIDTH + BITWIDTH + NESTING_LEVEL + 1;
-
-    constant DD_BCD_STAI  : integer := 0;
-    constant DD_BCD_ENDI  : integer := BCD_WIDTH-1;
-    constant DD_BIN_STAI  : integer := BCD_WIDTH;
-    constant DD_BIN_ENDI  : integer := BITWIDTH + BCD_WIDTH-1;
-    constant DD_LAST_STAI : integer := BITWIDTH + BCD_WIDTH;
-    constant DD_LAST_ENDI : integer := BITWIDTH + BCD_WIDTH + NESTING_LEVEL -1;
-    CONSTANT DD_EMPTY_I   : integer := BITWIDTH + BCD_WIDTH + NESTING_LEVEL;
-
 
     constant dd_stage_t_init : dd_stage_t := (  bcd => (others => '0'),
                                                 bin => (others => '0'),
+                                                ready => '0',
+                                                valid => '0',
                                                 empty => '1',
                                                 last => (others => '0'));
 
     signal dd_in_s  : dd_stage_t := dd_stage_t_init;
     signal dd_out_s : dd_stage_t := dd_stage_t_init;
 
-    signal dd_in_valid_s : std_logic;
-    signal dd_in_ready   : std_logic;
 
-    type slice_handshake_t        is array (0 to PIPELINE_STAGES) of std_logic;
-    type slice_data_t             is array (0 to PIPELINE_STAGES) of std_logic_vector(SLICE_WIDTH-1 downto 0);
-
-
-    signal slice_data_in    : slice_data_t;
-    signal slice_data_out   : slice_data_t;
-    signal slice_ready      : slice_handshake_t;
-    signal slice_valid      : slice_handshake_t;
-
-    signal bcd    : std_logic_vector(BCD_WIDTH-1 downto 0);
+    type pipeline_reg_array_t is array (natural range <>) of dd_stage_t;
+    signal stage_in_array : pipeline_reg_array_t(0 to PIPELINE_STAGES-1) := (others=>(dd_stage_t_init));
+    signal stage_out_array : pipeline_reg_array_t(0 to PIPELINE_STAGES-1) := (others=>(dd_stage_t_init));
 
     type stage_data_t is array (0 to PIPELINE_STAGES) of dd_stage_t;
 
     signal dd_stage_data_in : stage_data_t := (others => dd_stage_t_init);
     signal dd_stage_data_out : stage_data_t := (others => dd_stage_t_init);
+
+    signal dd_ready : std_logic;
     
 
     procedure dd_stage (
@@ -131,6 +116,7 @@ architecture behavioral of IntParser is
       o.bin   <= bin_shr;
       o.last  <= i.last;
       o.empty <= i.empty;
+      o.valid <= i.valid;
     end procedure;
 
     begin
@@ -145,8 +131,6 @@ architecture behavioral of IntParser is
           variable in_shr  : std_logic_vector(BITWIDTH+(BITWIDTH-4)/3-1 downto 0) := (others => '0');
 
           variable dd_in  : dd_stage_t := dd_stage_t_init;
-
-          variable dd_in_valid   : std_logic;
 
       begin
 
@@ -175,17 +159,15 @@ architecture behavioral of IntParser is
           end if;
     
           -- Clear output holding register if transfer was accepted.
-          if to_x01(dd_in_ready) = '1' then
-            if dd_in_valid = '1' then
+          if to_x01(dd_ready) = '1' then
+            if dd_in.valid = '1' then
               dd_in := dd_stage_t_init;
             end if;
-            dd_in_valid := '0';
+            dd_in.valid := '0';
           end if;
 
-          
-
           for idx in 0 to EPC-1 loop
-            if to_x01(iv) = '1' and to_x01(dd_in_valid) = '0' then
+            if to_x01(iv) = '1' and to_x01(dd_in.valid) = '0' then
 
               dd_in.last := dd_in.last or id(idx).last(NESTING_LEVEL downto 1);
               id(idx).last(NESTING_LEVEL downto 1) := (others => '0');
@@ -201,7 +183,7 @@ architecture behavioral of IntParser is
                   dd_in.bcd       := in_shr;
                   in_shr          := (others => '0');
                   dd_in.empty     := '0';
-                  dd_in_valid     := '1';
+                  dd_in.valid     := '1';
                 end if;
               end if;
               id(idx).strb := '0';
@@ -219,14 +201,13 @@ architecture behavioral of IntParser is
 
 
           if or_reduce(dd_in.last) = '1' then
-            dd_in_valid := '1';
+            dd_in.valid := '1';
           end if;
 
           -- Handle reset.
           if to_x01(reset) /= '0' then
             iv            := '0';
             dd_in         := dd_stage_t_init;
-            dd_in_valid   := '0';
             in_shr        := (others => '0');
           end if;
     
@@ -234,63 +215,73 @@ architecture behavioral of IntParser is
           ir            := not iv;
           in_ready      <= ir;
           dd_in_s       <= dd_in;
-          dd_in_valid_s <= dd_in_valid;
-          bcd <= dd_in.bcd;
+          --bcd <=dd_in.bcd;
 
         end if;
       end process;
 
-      -- Interfacing
-      dd_stage_data_in(0) <= dd_in_s;
+      pipeline_reg_proc: process (clk) is
+        variable out_reg  : dd_stage_t := dd_stage_t_init;
+        variable skid_reg : dd_stage_t := dd_stage_t_init;
+        variable pr   : std_logic := '0';
+        variable skid : std_logic := '0';
+        begin
 
-      dd_in_ready <= slice_ready(0);
-      slice_valid(0) <= dd_in_valid_s;
+          if rising_edge(clk) then
 
+            if to_x01(reset) /= '0' then
+              pr := '0';
+              skid := '0';
+            end if;
+  
+            if out_ready = '1' then
+              out_reg.valid := '0';
+            end if;
+
+            pr := not out_reg.valid;
+
+            if pr = '0' then
+              if skid = '0' then
+                skid_reg := dd_in_s;
+                skid := '1';
+              end if;
+            end if;
+
+            if to_x01(reset) /= '0' then
+              stage_in_array(0).valid   <= '0';
+            elsif pr = '1' then
+              if skid = '0' then
+                stage_in_array(0) <= dd_in_s;
+              else
+                stage_in_array(0) <= skid_reg;
+                skid := '0';
+              end if;
+            end if;
+
+            pipeline_reg_gen: for i in 1 to PIPELINE_STAGES-1  loop
+              if to_x01(reset) /= '0' then
+                stage_in_array(i).valid   <= '0';
+              elsif pr = '1' then
+                stage_in_array(i)    <= stage_out_array(i-1);
+              end if;
+            end loop pipeline_reg_gen;
+            
+            if pr = '1' then
+              out_reg := stage_out_array(PIPELINE_STAGES-1);
+            end if;
+
+            -- Interfacing
+            dd_ready <= pr;
+
+            out_valid <= out_reg.valid;
+            out_data  <= out_reg.bin;
+            out_last  <= out_reg.last;
+            out_strb  <= not out_reg.empty;
+          end if;  
+        end process;
+  
       stage_gen: for i in 0 to PIPELINE_STAGES-1  generate
-        dd_stage(dd_stage_data_in(i),
-                dd_stage_data_out(i),
-                BITWIDTH,
-                BITWIDTH/PIPELINE_STAGES);
-
-        -- Pack slice data vector
-        slice_data_in(i)(DD_BCD_ENDI   downto DD_BCD_STAI)     <= dd_stage_data_out(i).bcd;
-        slice_data_in(i)(DD_BIN_ENDI   downto DD_BIN_STAI)     <= dd_stage_data_out(i).bin;
-        slice_data_in(i)(DD_LAST_ENDI  downto DD_LAST_STAI)    <= dd_stage_data_out(i).last;
-        slice_data_in(i)(DD_EMPTY_I)                           <= dd_stage_data_out(i).empty;
-
-        -- Unpack slice data vector
-        dd_stage_data_in(i+1).bcd   <= slice_data_out(i)(DD_BCD_ENDI   downto DD_BCD_STAI);
-        dd_stage_data_in(i+1).bin   <= slice_data_out(i)(DD_BIN_ENDI   downto DD_BIN_STAI);
-        dd_stage_data_in(i+1).last  <= slice_data_out(i)(DD_LAST_ENDI  downto DD_LAST_STAI);
-        dd_stage_data_in(i+1).empty <= slice_data_out(i)(DD_EMPTY_I);
+        dd_stage(stage_in_array(i), stage_out_array(i), BITWIDTH, BITWIDTH/PIPELINE_STAGES);
       end generate stage_gen;
-
-      gen_slices : for i in 0 to PIPELINE_STAGES-1 generate
-      slice : StreamSlice 
-        generic map (
-          DATA_WIDTH          => SLICE_WIDTH
-        )
-        port map(
-          clk          => clk,
-          reset        => reset,
-
-          in_valid     => slice_valid(i),
-          in_ready     => slice_ready(i),
-
-          in_data      => slice_data_in(i),
-          out_data     => slice_data_out(i),
-
-          out_valid    => slice_valid(i+1),
-          out_ready    => slice_ready(i+1)
-        );
-      end generate;
-
-      
-      -- Interfacing
-      slice_ready(PIPELINE_STAGES) <= out_ready;
-      out_valid <= slice_valid(PIPELINE_STAGES);
-      out_data  <= dd_stage_data_in(PIPELINE_STAGES).bin;
-      out_last  <= dd_stage_data_in(PIPELINE_STAGES).last;
-      out_strb  <= not dd_stage_data_in(PIPELINE_STAGES).empty;
       
     end architecture;

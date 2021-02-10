@@ -214,6 +214,47 @@ package Json_pkg is
           out_last              : out std_logic_vector(NESTING_LEVEL-1 downto 0)
       );
     end component;
+
+    component JsonStrValParser is
+      generic (
+          EPC                   : natural := 1;
+          NESTING_LEVEL         : natural := 1
+          );
+      port (
+          clk                   : in  std_logic;
+          reset                 : in  std_logic;
+    
+          -- Stream(
+          --     Bits(8),
+          --     t=EPC,
+          --     d=NESTING_LEVEL,
+          --     c=8
+          -- )
+          in_valid              : in  std_logic;
+          in_ready              : out std_logic;
+          in_data               : in  std_logic_vector(8*EPC-1 downto 0);
+          in_last               : in  std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
+          in_stai               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+          in_endi               : in  std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+          in_strb               : in  std_logic_vector(EPC-1 downto 0) := (others => '1');
+    
+          -- Stream(
+          --     Bits(8),
+          --     t=EPC,
+          --     d=NESTING_LEVEL,
+          --     c=8
+          -- )
+          --
+          out_valid             : out std_logic;
+          out_ready             : in  std_logic;
+          out_data              : out std_logic_vector(8*EPC-1 downto 0);
+          out_last              : out std_logic_vector((NESTING_LEVEL+1)*EPC-1 downto 0) := (others => '0');
+          out_stai              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '0');
+          out_endi              : out std_logic_vector(log2ceil(EPC)-1 downto 0) := (others => '1');
+          out_strb              : out std_logic_vector(EPC-1 downto 0) := (others => '1')
+    
+      );
+    end component;
 end Json_pkg;
 
 

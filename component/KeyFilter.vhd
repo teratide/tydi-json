@@ -141,7 +141,7 @@ architecture behavioral of KeyFilter is
         out_ready(1)            => matcher_str_ready
       );
 
-    input_interfacing: process (in_data, in_last, in_strb, buff_in_valid) is
+    input_interfacing: process (in_data, in_last, in_strb, buff_in_valid, in_stai, in_endi) is
       variable strb         :  std_logic_vector(EPC-1 downto 0);
       variable last         :  std_logic_vector(EPC-1 downto 0);
       variable in_data_f    :  std_logic_vector(EPC*8-1 downto 0);

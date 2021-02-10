@@ -73,6 +73,10 @@ architecture arch of timestamp_f is
   signal buff_out_valid        : std_logic;
   signal buff_out_ready        : std_logic;
   signal buff_out_data         : std_logic_vector(BUFF_WIDTH-1 downto 0);
+
+  signal parser_in_data        : std_logic_vector(EPC*8-1 downto 0);
+  signal parser_in_strb        : std_logic_vector(EPC-1 downto 0);
+  signal parser_in_last        : std_logic_vector(EPC*(OUTER_NESTING_LEVEL+1)-1 downto 0);
 begin
 
 
@@ -128,9 +132,9 @@ begin
   buff_in_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI)    <= filter_strb;
   buff_in_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI)    <= filter_last; 
 
-  out_data  <= buff_out_data(BUFF_DATA_ENDI downto BUFF_DATA_STAI);
-  out_strb  <= buff_out_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI);
-  out_last  <= buff_out_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI);
+  parser_in_data  <= buff_out_data(BUFF_DATA_ENDI downto BUFF_DATA_STAI);
+  parser_in_strb  <= buff_out_data(BUFF_STRB_ENDI downto BUFF_STRB_STAI);
+  parser_in_last  <= buff_out_data(BUFF_LAST_ENDI downto BUFF_LAST_STAI);
 
   out_stai  <= (others => '0');
   out_endi  <= (others => '1');
@@ -146,9 +150,29 @@ begin
     in_valid                  => filter_valid,
     in_ready                  => filter_ready,
     in_data                   => buff_in_data,
+    out_valid                 => buff_out_valid,
+    out_ready                 => buff_out_ready,
+    out_data                  => buff_out_data
+  );
+
+  string_parser_i: JsonStrValParser
+  generic map (
+    EPC                       => EPC,
+    NESTING_LEVEL             => 2
+  )
+  port map (
+    clk                       => clk,
+    reset                     => reset,
+    in_valid                  => buff_out_valid,
+    in_ready                  => buff_out_ready,
+    in_data                   => parser_in_data,
+    in_last                   => parser_in_last,
+    in_strb                   => parser_in_strb,
     out_valid                 => out_valid,
     out_ready                 => out_ready,
-    out_data                  => buff_out_data
+    out_data                  => out_data,
+    out_last                  => out_last,
+    out_strb                  => out_strb
   );
  
 

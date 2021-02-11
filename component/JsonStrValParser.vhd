@@ -138,7 +138,7 @@ begin
 
               when STATE_STRING =>
                 od(idx).strb := '1';
-                ov := '1';
+                ov           := '1';
                 case id(idx).data is
                   when X"22" => -- '"'
                     state := STATE_IDLE;
@@ -155,7 +155,11 @@ begin
             state := STATE_IDLE;
           end if;
         end loop;
-        ov := '1';
+        for idx in 0 to EPC-1 loop
+          if or_reduce(od(idx).last) = '1' then
+            ov := '1';
+          end if;
+        end loop;
         iv := '0';
       end if;
 

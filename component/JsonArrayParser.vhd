@@ -160,7 +160,7 @@ begin
 
               when STATE_ARRAY =>
                 od(idx).strb := '1';
-                ov := '1';
+                ov           := '1';
                 case id(idx).data is
                   when X"5D" => -- ']'
                     if or_reduce(nesting_inner) = '0' then
@@ -187,7 +187,13 @@ begin
             state := STATE_IDLE;
           end if;
         end loop;
-        ov := '1';
+
+        for idx in 0 to EPC-1 loop
+          if or_reduce(od(idx).last) = '1' then
+            ov := '1';
+          end if;
+        end loop;
+
         iv := '0';
       end if;
 

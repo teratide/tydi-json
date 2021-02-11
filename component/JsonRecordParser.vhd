@@ -157,8 +157,6 @@ begin
 
           -- Element-wise processing only when the lane is valid.
           if to_x01(id(idx).strb) = '1' then
-
-
             -- Keep track of nesting.
             case id(idx).data is
               when X"7B" => -- '{'
@@ -205,34 +203,35 @@ begin
                 end case;
                 
               when STATE_KEY =>
-                od(idx).tag := '0';
+                od(idx).tag  := '0';
                 od(idx).strb := '1';
+                ov           := '1';
                 case id(idx).data is
                   when X"22" => -- '"'
                     state := STATE_RECORD;
                     od(idx).last(0) := '1';
-                    od(idx).strb   := '0';
+                    od(idx).strb    := '0';
                   when others =>
-                    ov := '1';
                     state := STATE_KEY;
                 end case;
 
               when STATE_VALUE =>
-                od(idx).tag := '1';
+                od(idx).tag  := '1';
                 od(idx).strb := '1';
+                ov           := '1';
                 case id(idx).data is
                   when X"2C" => -- ','
                     if nesting_origo = '1' then
                       state := STATE_RECORD;
                       od(idx).last(0) := '1';
-                      od(idx).strb   := '0';
+                      od(idx).strb    := '0';
                     end if;
                   when X"7D" => -- '}'
                     if nesting_origo = '1' then
                       state := STATE_IDLE;   
                       od(idx).last(0) := '1';
                       od(idx).last(1) := '1';
-                      od(idx).strb   := '0';     
+                      od(idx).strb    := '0';     
                       if end_req_i = '1' then
                         end_ack_i := '1';
                         od(idx).last(2) := '1';
@@ -253,7 +252,13 @@ begin
             end if;
           end if;
         end loop;
-        ov := '1';
+        
+        for idx in 0 to EPC-1 loop
+          if or_reduce(od(idx).last) = '1' then
+            ov := '1';
+          end if;
+        end loop;
+
         iv := '0';
       end if;
 

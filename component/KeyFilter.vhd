@@ -250,7 +250,7 @@ architecture behavioral of KeyFilter is
         if to_x01(bv) = '1' and to_x01(ov) = '0' then
           outer_last := '0';
           match_last := '0';
-          bv := '0';
+          bv         := '0';
           for idx in 0 to EPC-1 loop
   
             -- Default behavior.
@@ -265,7 +265,7 @@ architecture behavioral of KeyFilter is
 
             case state is
               when STATE_IDLE =>
-                if outer_last = '1' then
+                if outer_last = '1' and bv = '0' then
                   ov := '1';
                 end if;
                 -- If we get an innermost last in a key, that's gonna trigger the matcher, so keep it.
@@ -275,15 +275,16 @@ architecture behavioral of KeyFilter is
                   if to_x01(mv) = '1' then
                     mv := '0';
                     ov := '0';
+                    bv := '0';
                     if outer_last = '1' or match_last = '1'then
                       ov := '1';
                     end if;
-                    if to_x01(id(idx).match) = '1' and to_x01(id(idx).match_strb) = '1' then
-                      bv := '0';
-                      state := STATE_MATCH;
-                    else
-                      bv := '0';
-                      state := STATE_DROP;
+                    if to_x01(id(idx).match_strb) = '1' then
+                      if to_x01(id(idx).match) = '1' then
+                        state := STATE_MATCH;
+                      else
+                        state := STATE_DROP;
+                      end if;
                     end if;
                   end if;
                 end if;

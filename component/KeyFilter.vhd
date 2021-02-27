@@ -243,20 +243,25 @@ architecture behavioral of KeyFilter is
   
         -- Clear output holding register if transfer was accepted.
         if to_x01(out_ready) = '1' then
-          ov := '0';
+          if ov = '1' then
+            match_last := '0';
+            for idx in 0 to EPC-1 loop
+              od(idx).last(0) := '0';
+              od(idx).strb    := '0';
+            end loop;
+          end if;
+          ov         := '0';
         end if;
         
         -- Do processing when both registers are ready.
         if to_x01(bv) = '1' and to_x01(ov) = '0' then
           outer_last := '0';
-          match_last := '0';
           bv         := '0';
           for idx in 0 to EPC-1 loop
   
             -- Default behavior.
             od(idx).data                                  := id(idx).data;
-            od(idx).last(OUTER_NESTING_LEVEL downto 0)    := id(idx).last(OUTER_NESTING_LEVEL downto 1)  & "0";
-            od(idx).strb                                  := '0';
+            od(idx).last(OUTER_NESTING_LEVEL downto 1)    := id(idx).last(OUTER_NESTING_LEVEL downto 1);
 
             -- Pass transfers that close out outer dimensions. 
             if or_reduce(id(idx).last(OUTER_NESTING_LEVEL downto 1)) = '1' then
@@ -277,7 +282,7 @@ architecture behavioral of KeyFilter is
                     ov := '0';
                     bv := '0';
                     if outer_last = '1' or match_last = '1'then
-                      ov := '1';
+                      ov         := '1';
                     end if;
                     if to_x01(id(idx).match_strb) = '1' then
                       if to_x01(id(idx).match) = '1' then
@@ -310,10 +315,15 @@ architecture behavioral of KeyFilter is
   
         -- Handle reset.
         if to_x01(reset) /= '0' then
-          bv    := '0';
-          mv    := '0';
-          ov    := '0';
-          state := STATE_IDLE;
+          bv         := '0';
+          mv         := '0';
+          ov         := '0';
+          state      := STATE_IDLE;
+          match_last := '0';
+          for idx in 0 to EPC-1 loop
+            od(idx).last(0) := '0';
+            od(idx).strb    := '0';
+          end loop;
         end if;
   
         -- Forward output holding register.

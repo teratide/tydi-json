@@ -1,9 +1,0 @@
-kind: pipeline
-name: default
-
-steps:
-  - name: test
-    image: abstudelft/vhdeps:latest
-    commands:
-      - git submodule update --init --recursive
-      - make test

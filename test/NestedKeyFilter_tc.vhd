@@ -12,6 +12,7 @@ use work.StreamSource_pkg.all;
 use work.StreamSink_pkg.all;
 use work.Json_pkg.all;
 use work.TestMisc_pkg.all;
+use work.tr_field_matcher_pkg.all;
 
 entity NestedKeyFilter_tc is
 end NestedKeyFilter_tc;
@@ -58,6 +59,17 @@ architecture test_case of NestedKeyFilter_tc is
   signal inner_rec_strb              : std_logic_vector(EPC-1 downto 0);
   signal inner_rec_last              : std_logic_vector(EPC*4-1 downto 0);
 
+  signal inner_rec2_ready             : std_logic;
+  signal inner_rec2_valid             : std_logic;
+  signal inner_rec2_vec               : std_logic_vector(EPC+EPC*8-1 downto 0);
+  signal inner_rec2_data              : std_logic_vector(EPC*8-1 downto 0);
+  signal inner_rec2_tag               : std_logic_vector(EPC-1 downto 0);
+  signal inner_rec2_empty             : std_logic_vector(EPC-1 downto 0);
+  signal inner_rec2_stai              : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal inner_rec2_endi              : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal inner_rec2_strb              : std_logic_vector(EPC-1 downto 0);
+  signal inner_rec2_last              : std_logic_vector(EPC*4-1 downto 0);
+
   signal outer_matcher_str_valid     : std_logic;
   signal outer_matcher_str_ready     : std_logic;
   signal outer_matcher_str_data      : std_logic_vector(EPC*8-1 downto 0);
@@ -77,7 +89,26 @@ architecture test_case of NestedKeyFilter_tc is
   signal outer_filter_endi           : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal outer_filter_strb           : std_logic_vector(EPC-1 downto 0);
   signal outer_filter_last           : std_logic_vector(EPC*3-1 downto 0);
-  signal outer_filter_last2           : std_logic_vector(EPC*3-1 downto 0);
+
+  signal outer_matcher2_str_valid     : std_logic;
+  signal outer_matcher2_str_ready     : std_logic;
+  signal outer_matcher2_str_data      : std_logic_vector(EPC*8-1 downto 0);
+  signal outer_matcher2_str_mask      : std_logic_vector(EPC-1 downto 0);
+  signal outer_matcher2_str_last      : std_logic_vector(EPC-1 downto 0);
+
+  signal outer_matcher2_match_valid   : std_logic;
+  signal outer_matcher2_match_ready   : std_logic;
+  signal outer_matcher2_match         : std_logic_vector(EPC-1 downto 0);
+
+  
+  signal outer_filter2_ready          : std_logic;
+  signal outer_filter2_valid          : std_logic;
+  signal outer_filter2_data           : std_logic_vector(EPC*8-1 downto 0);
+  signal outer_filter2_tag            : std_logic_vector(EPC-1 downto 0);
+  signal outer_filter2_stai           : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal outer_filter2_endi           : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal outer_filter2_strb           : std_logic_vector(EPC-1 downto 0);
+  signal outer_filter2_last           : std_logic_vector(EPC*3-1 downto 0);
 
   signal inner_matcher_str_valid     : std_logic;
   signal inner_matcher_str_ready     : std_logic;
@@ -98,7 +129,26 @@ architecture test_case of NestedKeyFilter_tc is
   signal inner_filter_endi           : std_logic_vector(log2ceil(EPC)-1 downto 0);
   signal inner_filter_strb           : std_logic_vector(EPC-1 downto 0);
   signal inner_filter_last           : std_logic_vector(EPC*4-1 downto 0);
-  signal inner_filter_last2           : std_logic_vector(EPC*4-1 downto 0);
+
+  signal inner_matcher2_str_valid     : std_logic;
+  signal inner_matcher2_str_ready     : std_logic;
+  signal inner_matcher2_str_data      : std_logic_vector(EPC*8-1 downto 0);
+  signal inner_matcher2_str_mask      : std_logic_vector(EPC-1 downto 0);
+  signal inner_matcher2_str_last      : std_logic_vector(EPC-1 downto 0);
+
+  signal inner_matcher2_match_valid   : std_logic;
+  signal inner_matcher2_match_ready   : std_logic;
+  signal inner_matcher2_match         : std_logic_vector(EPC-1 downto 0);
+
+  
+  signal inner_filter2_ready          : std_logic;
+  signal inner_filter2_valid          : std_logic;
+  signal inner_filter2_data           : std_logic_vector(EPC*8-1 downto 0);
+  signal inner_filter2_tag            : std_logic_vector(EPC-1 downto 0);
+  signal inner_filter2_stai           : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal inner_filter2_endi           : std_logic_vector(log2ceil(EPC)-1 downto 0);
+  signal inner_filter2_strb           : std_logic_vector(EPC-1 downto 0);
+  signal inner_filter2_last           : std_logic_vector(EPC*4-1 downto 0);
 
   signal out_ready             : std_logic;
   signal out_valid             : std_logic;
@@ -106,6 +156,13 @@ architecture test_case of NestedKeyFilter_tc is
   signal out_dvalid            : std_logic;
   signal out_data              : std_logic_vector(INTEGER_WIDTH-1 downto 0);
   signal out_last              : std_logic_vector(2 downto 0);
+
+  signal out2_ready             : std_logic;
+  signal out2_valid             : std_logic;
+  signal out2_strb              : std_logic;
+  signal out2_dvalid            : std_logic;
+  signal out2_data              : std_logic_vector(INTEGER_WIDTH-1 downto 0);
+  signal out2_last              : std_logic_vector(2 downto 0);
 
 begin
 
@@ -197,6 +254,36 @@ begin
       out_last                  => outer_filter_last
     );
 
+    outer_kf2: KeyFilter
+    generic map (
+      EPC                       => EPC,
+      OUTER_NESTING_LEVEL       => 2
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      in_valid                  => outer_rec_valid,
+      in_ready                  => outer_rec_ready,
+      in_data                   => outer_rec_vec,
+      in_strb                   => outer_rec_strb,
+      in_last                   => outer_rec_last,
+      matcher_str_valid         => outer_matcher2_str_valid,
+      matcher_str_ready         => outer_matcher2_str_ready,
+      matcher_str_data          => outer_matcher2_str_data,
+      matcher_str_mask          => outer_matcher2_str_mask,
+      matcher_str_last          => outer_matcher2_str_last,
+      matcher_match_valid       => outer_matcher2_match_valid,
+      matcher_match_ready       => outer_matcher2_match_ready,
+      matcher_match             => outer_matcher2_match,
+      out_valid                 => outer_filter2_valid,
+      out_ready                 => outer_filter2_ready,
+      out_data                  => outer_filter2_data,
+      out_strb                  => outer_filter2_strb,
+      out_stai                  => outer_filter2_stai,
+      out_endi                  => outer_filter2_endi,
+      out_last                  => outer_filter2_last
+    );
+
     outer_matcher: voltage_matcher
     generic map (
       BPC                       => EPC
@@ -212,6 +299,23 @@ begin
       out_valid                 => outer_matcher_match_valid,
       out_ready                 => outer_matcher_match_ready,
       out_xmatch                => outer_matcher_match
+    );
+
+    outer_matcher2: timezone_f_m
+    generic map (
+      BPC                       => EPC
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      in_valid                  => outer_matcher2_str_valid,
+      in_ready                  => outer_matcher2_str_ready,
+      in_mask                   => outer_matcher2_str_mask,
+      in_data                   => outer_matcher2_str_data,
+      in_xlast                  => outer_matcher2_str_last,
+      out_valid                 => outer_matcher2_match_valid,
+      out_ready                 => outer_matcher2_match_ready,
+      out_xmatch                => outer_matcher2_match
     );
 
     inner_record_parser: JsonRecordParser
@@ -236,6 +340,30 @@ begin
       out_last                  => inner_rec_last,
       out_stai                  => inner_rec_stai,
       out_endi                  => inner_rec_endi
+    );
+
+    inner_record_parser2: JsonRecordParser
+    generic map (
+      EPC     => EPC,
+      OUTER_NESTING_LEVEL       => 2,
+      INNER_NESTING_LEVEL       => 0
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      in_valid                  => outer_filter2_valid,
+      in_ready                  => outer_filter2_ready,
+      in_data                   => outer_filter2_data,
+      in_stai                   => outer_filter2_stai,
+      in_strb                   => outer_filter2_strb,
+      in_last                   => outer_filter2_last,
+      out_valid                 => inner_rec2_valid,
+      out_ready                 => inner_rec2_ready,
+      out_strb                  => inner_rec2_strb,
+      out_data                  => inner_rec2_vec,
+      out_last                  => inner_rec2_last,
+      out_stai                  => inner_rec2_stai,
+      out_endi                  => inner_rec2_endi
     );
 
     dut: KeyFilter
@@ -266,6 +394,36 @@ begin
       out_stai                  => inner_filter_stai,
       out_endi                  => inner_filter_endi,
       out_last                  => inner_filter_last
+    );
+
+    inner_kf2: KeyFilter
+    generic map (
+      EPC                       => EPC,
+      OUTER_NESTING_LEVEL       => 3
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      in_valid                  => inner_rec2_valid,
+      in_ready                  => inner_rec2_ready,
+      in_data                   => inner_rec2_vec,
+      in_strb                   => inner_rec2_strb,
+      in_last                   => inner_rec2_last,
+      matcher_str_valid         => inner_matcher2_str_valid,
+      matcher_str_ready         => inner_matcher2_str_ready,
+      matcher_str_data          => inner_matcher2_str_data,
+      matcher_str_mask          => inner_matcher2_str_mask,
+      matcher_str_last          => inner_matcher2_str_last,
+      matcher_match_valid       => inner_matcher2_match_valid,
+      matcher_match_ready       => inner_matcher2_match_ready,
+      matcher_match             => inner_matcher2_match,
+      out_valid                 => inner_filter2_valid,
+      out_ready                 => inner_filter2_ready,
+      out_data                  => inner_filter2_data,
+      out_strb                  => inner_filter2_strb,
+      out_stai                  => inner_filter2_stai,
+      out_endi                  => inner_filter2_endi,
+      out_last                  => inner_filter2_last
     );
 
     
@@ -310,6 +468,46 @@ begin
       out_strb                  => out_strb
     );
 
+    inner_matcher2: timezone_f_m
+    generic map (
+      BPC                       => EPC
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      in_valid                  => inner_matcher2_str_valid,
+      in_ready                  => inner_matcher2_str_ready,
+      in_mask                   => inner_matcher2_str_mask,
+      in_data                   => inner_matcher2_str_data,
+      in_xlast                  => inner_matcher2_str_last,
+      out_valid                 => inner_matcher2_match_valid,
+      out_ready                 => inner_matcher2_match_ready,
+      out_xmatch                => inner_matcher2_match
+    );
+
+
+    intparser_i2: IntParser
+    generic map (
+      EPC     => EPC,
+      NESTING_LEVEL             => 3,
+      BITWIDTH                  => INTEGER_WIDTH,
+      PIPELINE_STAGES           => INT_P_PIPELINE_STAGES
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      in_valid                  => inner_filter2_valid,
+      in_ready                  => inner_filter2_ready,
+      in_data                   => inner_filter2_data,
+      in_last                   => inner_filter2_last,
+      in_strb                   => inner_filter2_strb,
+      out_data                  => out2_data,
+      out_valid                 => out2_valid,
+      out_ready                 => out2_ready,
+      out_last                  => out2_last,
+      out_strb                  => out2_strb
+    );
+
     out_dvalid <= out_strb;
 
     out_sink: StreamSink_mdl
@@ -329,25 +527,54 @@ begin
       last                      => out_last(2)
     );
 
+    out_sink2: StreamSink_mdl
+    generic map (
+      NAME                      => "c",
+      ELEMENT_WIDTH             => INTEGER_WIDTH,
+      COUNT_MAX                 => 1,
+      COUNT_WIDTH               => 1
+    )
+    port map (
+      clk                       => clk,
+      reset                     => reset,
+      valid                     => out2_valid,
+      ready                     => out2_ready,
+      data                      => out2_data,
+      dvalid                    => out2_dvalid,
+      last                      => out2_last(2)
+    );
+
    
 
   random_tc: process is
     variable a        : streamsource_type;
     variable b        : streamsink_type;
+    variable c        : streamsink_type;
 
   begin
     tc_open("NestedKeyFilter_tc", "test");
     a.initialize("a");
     b.initialize("b");
+    c.initialize("c");
 
-    a.set_total_cyc(0, 10);
-    b.set_valid_cyc(0, 40);
-    b.set_total_cyc(0, 40);
+    a.set_total_cyc(0, 20);
+    b.set_valid_cyc(0, 50);
+    b.set_total_cyc(0, 50);
+    c.set_valid_cyc(0, 50);
+    c.set_total_cyc(0, 50);
 
     -- This should pass
     a.push_str("{ ");
-    a.push_str(" ""voltage"" : {");
-    a.push_str("   ""voltage"" : 11,");
+    a.push_str(" ""timezone"" : {");
+    a.push_str("   ""timezone"" : 13,");
+    a.push_str("  }");
+    a.push_str(",}");
+    a.push_str("{ ");
+    -- a.push_str(" ""voltage"" : {");
+    -- a.push_str("   ""voltage"" : 11,");
+    -- a.push_str("  },");
+    a.push_str(" ""timezone"" : {");
+    a.push_str("   ""timezone"" : 22,");
     a.push_str("  }");
     a.push_str(",}");
     -- This should fail (wrong outer key)
@@ -371,16 +598,31 @@ begin
 
     a.transmit;
     b.unblock;
+    c.unblock;
 
-    tc_wait_for(60 us);
+    tc_wait_for(70 us);
 
     tc_check(b.pq_ready, true);
-    tc_check(b.cq_get_d_nat, 11, "11");
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 11, "voltage: 11");
     b.cq_next;
     while not b.cq_get_dvalid loop
       b.cq_next;
     end loop;
-    tc_check(b.cq_get_d_nat, 44, "44");
+    tc_check(b.cq_get_d_nat, 44, "voltage: 44");
+
+    tc_check(c.pq_ready, true);
+    while not c.cq_get_dvalid loop
+      c.cq_next;
+    end loop;
+    tc_check(c.cq_get_d_nat, 13, "timezone: 13");
+    c.cq_next;
+    while not c.cq_get_dvalid loop
+      c.cq_next;
+    end loop;
+    tc_check(c.cq_get_d_nat, 22, "timezone: 22");
     
     -- if b.cq_get_last = '0' then
     --   b.cq_next;

@@ -570,6 +570,7 @@ begin
     a.push_str("  }");
     a.push_str(",}");
     a.push_str("{ ");
+    -- Uncommenting this causes timezone to fail instead.
     -- a.push_str(" ""voltage"" : {");
     -- a.push_str("   ""voltage"" : 11,");
     -- a.push_str("  },");

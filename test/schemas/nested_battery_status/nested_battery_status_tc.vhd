@@ -128,16 +128,59 @@ begin
     a.initialize("a");
     b.initialize("b");
 
-    a.push_str("{""outer"":[{""voltage"":1128},{""voltage"":1213},{""voltage"":1850},{""voltage"":429},{""voltage"":1770},{""voltage"":1683},{""voltage"":1483},{""voltage"":478},{""voltage"":545},{""voltage"":1555},{""voltage"":867},{""voltage"":1495},{""voltage"":1398},{""voltage"":1380},{""voltage"":1753},{""voltage"":43811111111}]}\n");
+    -- a.push_str("{""outer"":[{""voltage"":1128},{""voltage"":1213},{""voltage"":1850},{""voltage"":429},{""voltage"":1770},{""voltage"":1683},{""voltage"":1483},{""voltage"":478},{""voltage"":545},{""voltage"":1555},{""voltage"":867},{""voltage"":1495},{""voltage"":1398},{""voltage"":1380},{""voltage"":1753},{""voltage"":43811111111}]}\n");
 
-    a.set_total_cyc(0, 20);
-    b.set_valid_cyc(0, 20);
-    b.set_total_cyc(0, 20);
+    a.push_str("{""voltage"": [");
+    a.push_str("  {");
+    a.push_str("     ""voltage"": 1128,");
+    a.push_str("  },");
+    a.push_str("  {");
+    a.push_str("     ""voltage"": 1213,");
+    a.push_str("  },");
+    a.push_str("  {");
+    a.push_str("     ""voltage2"": 999,");
+    a.push_str("  },");
+    a.push_str("  {");
+    a.push_str("     ""voltage"": 1850,");
+    a.push_str("  },");
+    a.push_str("], }\n");
+    a.push_str("{""voltage2"": [");
+    a.push_str("  {");
+    a.push_str("     ""voltage"": 1128,");
+    a.push_str("  },");
+    a.push_str("  {");
+    a.push_str("     ""voltage"": 1213,");
+    a.push_str("  },");
+    a.push_str("  {");
+    a.push_str("     ""voltage2"": 999,");
+    a.push_str("  },");
+    a.push_str("  {");
+    a.push_str("     ""voltage"": 1850,");
+    a.push_str("  },");
+    a.push_str("], }\n");
+    a.push_str("{""voltage"": [");
+    a.push_str("  {");
+    a.push_str("     ""voltage"": 128,");
+    a.push_str("  },");
+    a.push_str("  {");
+    a.push_str("     ""voltage"": 213,");
+    a.push_str("  },");
+    a.push_str("  {");
+    a.push_str("     ""voltage2"": 99,");
+    a.push_str("  },");
+    a.push_str("  {");
+    a.push_str("     ""voltage"": 850,");
+    a.push_str("  },");
+    a.push_str("], }\n");
+
+    a.set_total_cyc(0, 40);
+    b.set_valid_cyc(0, 40);
+    b.set_total_cyc(0, 40);
 
     a.transmit;
     b.unblock;
 
-    tc_wait_for(10 us);
+    tc_wait_for(60 us);
 
     tc_check(b.pq_ready, true);
     tc_check(b.cq_get_d_nat, 1128, "1128");
@@ -155,67 +198,17 @@ begin
     while not b.cq_get_dvalid loop
       b.cq_next;
     end loop;
-    tc_check(b.cq_get_d_nat, 429, "429");
+    tc_check(b.cq_get_d_nat, 128, "128");
     b.cq_next;
     while not b.cq_get_dvalid loop
       b.cq_next;
     end loop;
-    tc_check(b.cq_get_d_nat, 1770, "1770");
+    tc_check(b.cq_get_d_nat, 213, "213");
     b.cq_next;
     while not b.cq_get_dvalid loop
       b.cq_next;
     end loop;
-    tc_check(b.cq_get_d_nat, 1683, "1683");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    tc_check(b.cq_get_d_nat, 1483, "1483");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    tc_check(b.cq_get_d_nat, 478, "478");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    tc_check(b.cq_get_d_nat, 545, "545");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    tc_check(b.cq_get_d_nat, 1555, "1555");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    tc_check(b.cq_get_d_nat, 867, "867");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    tc_check(b.cq_get_d_nat, 1495, "1495");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    tc_check(b.cq_get_d_nat, 1398, "1398");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    tc_check(b.cq_get_d_nat, 1380, "1380");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    tc_check(b.cq_get_d_nat, 1753, "1753");
-    b.cq_next;
-    while not b.cq_get_dvalid loop
-      b.cq_next;
-    end loop;
-    --tc_check(b.cq_get_d_nat, 43811111111, "43811111111");
+    tc_check(b.cq_get_d_nat, 850, "850");
 
     tc_pass;
     wait;

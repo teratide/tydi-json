@@ -344,11 +344,31 @@ begin
     b.set_valid_cyc(0, 40);
     b.set_total_cyc(0, 40);
 
+    -- This should pass
     a.push_str("{ ");
     a.push_str(" ""voltage"" : {");
     a.push_str("   ""voltage"" : 11,");
     a.push_str("  }");
     a.push_str(",}");
+    -- This should fail (wrong outer key)
+    a.push_str("{ ");
+    a.push_str(" ""voltage2"" : {");
+    a.push_str("   ""voltage"" : 20,");
+    a.push_str("  }");
+    a.push_str(",}");
+    -- This should fail (wrong inner key)
+    a.push_str("{ ");
+    a.push_str(" ""voltage"" : {");
+    a.push_str("   ""voltage2"" : 30,");
+    a.push_str("  }");
+    a.push_str(",}");
+    -- This should pass
+    a.push_str("{ ");
+    a.push_str(" ""voltage"" : {");
+    a.push_str("   ""voltage"" : 44,");
+    a.push_str("  }");
+    a.push_str(",}");
+
     a.transmit;
     b.unblock;
 
@@ -356,6 +376,11 @@ begin
 
     tc_check(b.pq_ready, true);
     tc_check(b.cq_get_d_nat, 11, "11");
+    b.cq_next;
+    while not b.cq_get_dvalid loop
+      b.cq_next;
+    end loop;
+    tc_check(b.cq_get_d_nat, 44, "44");
     
     -- if b.cq_get_last = '0' then
     --   b.cq_next;

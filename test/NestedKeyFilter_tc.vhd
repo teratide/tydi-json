@@ -48,6 +48,9 @@ architecture test_case of NestedKeyFilter_tc is
   signal outer_rec_strb              : std_logic_vector(EPC-1 downto 0);
   signal outer_rec_last              : std_logic_vector(EPC*3-1 downto 0);
 
+  signal timezone_ready, timezone_valid : std_logic;
+  signal voltage_ready, voltage_valid : std_logic;
+
   signal inner_rec_ready             : std_logic;
   signal inner_rec_valid             : std_logic;
   signal inner_rec_vec               : std_logic_vector(EPC+EPC*8-1 downto 0);
@@ -224,6 +227,26 @@ begin
     outer_rec_data <= outer_rec_vec(EPC*8-1 downto 0);
     outer_rec_tag <= outer_rec_vec(EPC+EPC*8-1 downto EPC*8);
 
+    sync_i: StreamSync
+    generic map (
+      NUM_INPUTS              => 1,
+      NUM_OUTPUTS             => 2
+    )
+    port map (
+      clk                     => clk,
+      reset                   => reset,
+      in_valid(0)             => outer_rec_valid,
+      in_ready(0)             => outer_rec_ready,
+
+      out_valid(0)            => voltage_valid,
+      out_valid(1)            => timezone_valid,
+
+
+      out_ready(0)            => voltage_ready,
+      out_ready(1)            => timezone_ready
+
+    );
+
     outer_kf: KeyFilter
     generic map (
       EPC                       => EPC,
@@ -232,8 +255,8 @@ begin
     port map (
       clk                       => clk,
       reset                     => reset,
-      in_valid                  => outer_rec_valid,
-      in_ready                  => outer_rec_ready,
+      in_valid                  => voltage_valid,
+      in_ready                  => voltage_ready,
       in_data                   => outer_rec_vec,
       in_strb                   => outer_rec_strb,
       in_last                   => outer_rec_last,
@@ -262,8 +285,8 @@ begin
     port map (
       clk                       => clk,
       reset                     => reset,
-      in_valid                  => outer_rec_valid,
-      in_ready                  => outer_rec_ready,
+      in_valid                  => timezone_valid,
+      in_ready                  => timezone_ready,
       in_data                   => outer_rec_vec,
       in_strb                   => outer_rec_strb,
       in_last                   => outer_rec_last,
@@ -565,15 +588,18 @@ begin
 
     -- This should pass
     a.push_str("{ ");
+    a.push_str(" ""unrelated"": 123,");
+    -- Even just including an empty record breaks subsequent records?
+    a.push_str(" ""other_rec"": { },");
     a.push_str(" ""timezone"" : {");
     a.push_str("   ""timezone"" : 13,");
     a.push_str("  }");
     a.push_str(",}");
     a.push_str("{ ");
     -- Uncommenting this causes timezone to fail instead.
-    -- a.push_str(" ""voltage"" : {");
-    -- a.push_str("   ""voltage"" : 11,");
-    -- a.push_str("  },");
+    a.push_str(" ""voltage"" : {");
+    a.push_str("   ""voltage"" : 11,");
+    a.push_str("  },");
     a.push_str(" ""timezone"" : {");
     a.push_str("   ""timezone"" : 22,");
     a.push_str("  }");

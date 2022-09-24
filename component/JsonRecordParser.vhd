@@ -106,6 +106,7 @@ begin
     variable nesting_inner    : std_logic_vector(INNER_NESTING_LEVEL downto 1) := (others => '0');
 
     variable nesting_origo    : std_logic;
+    variable is_top_record    : std_logic;
 
   begin
 
@@ -173,6 +174,7 @@ begin
 
             nesting_inner := nesting_level_th(nesting_level_th'high downto 1);
             nesting_origo := not or_reduce(nesting_inner);
+            is_top_record := nesting_level_th(0);
 
             case state is
               when STATE_IDLE =>
@@ -228,13 +230,17 @@ begin
                     end if;
                   when X"7D" => -- '}'
                     if nesting_origo = '1' then
-                      state := STATE_IDLE;   
-                      od(idx).last(0) := '1';
-                      od(idx).last(1) := '1';
-                      od(idx).strb    := '0';     
-                      if end_req_i = '1' then
-                        end_ack_i := '1';
-                        od(idx).last(2) := '1';
+                      if is_top_record = '1' then
+                        state := STATE_VALUE;
+                      else
+                        state := STATE_IDLE;   
+                        od(idx).last(0) := '1';
+                        od(idx).last(1) := '1';
+                        od(idx).strb    := '0';     
+                        if end_req_i = '1' then
+                          end_ack_i := '1';
+                          od(idx).last(2) := '1';
+                        end if;
                       end if;
                     end if;
                   when others =>

@@ -205,7 +205,7 @@ begin
     generic map (
       EPC     => EPC,
       OUTER_NESTING_LEVEL       => 1,
-      INNER_NESTING_LEVEL       => 1
+      INNER_NESTING_LEVEL       => 2
     )
     port map (
       clk                       => clk,
@@ -247,7 +247,7 @@ begin
 
     );
 
-    outer_kf: KeyFilter
+    outer_voltage_kf: KeyFilter
     generic map (
       EPC                       => EPC,
       OUTER_NESTING_LEVEL       => 2
@@ -277,7 +277,7 @@ begin
       out_last                  => outer_voltage_filter_last
     );
 
-    outer_kf2: KeyFilter
+    outer_timezone_kf: KeyFilter
     generic map (
       EPC                       => EPC,
       OUTER_NESTING_LEVEL       => 2
@@ -365,11 +365,11 @@ begin
       out_endi                  => voltage_rec_endi
     );
 
-    voltage_record_parser2: JsonRecordParser
+    timezone_record_parser: JsonRecordParser
     generic map (
       EPC     => EPC,
       OUTER_NESTING_LEVEL       => 2,
-      INNER_NESTING_LEVEL       => 0
+      INNER_NESTING_LEVEL       => 1
     )
     port map (
       clk                       => clk,
@@ -389,7 +389,7 @@ begin
       out_endi                  => timezone_rec_endi
     );
 
-    dut: KeyFilter
+    voltage_kf: KeyFilter
     generic map (
       EPC                       => EPC,
       OUTER_NESTING_LEVEL       => 3
@@ -419,7 +419,7 @@ begin
       out_last                  => inner_voltage_filter_last
     );
 
-    inner_kf2: KeyFilter
+    timezone_kf: KeyFilter
     generic map (
       EPC                       => EPC,
       OUTER_NESTING_LEVEL       => 3
@@ -469,7 +469,7 @@ begin
     );
 
 
-    intparser_i: IntParser
+    voltage_int_parser: IntParser
     generic map (
       EPC     => EPC,
       NESTING_LEVEL             => 3,
@@ -509,7 +509,7 @@ begin
     );
 
 
-    intparser_i2: IntParser
+    timezone_int_parser: IntParser
     generic map (
       EPC     => EPC,
       NESTING_LEVEL             => 3,
@@ -601,11 +601,14 @@ begin
     a.push_str("   ""voltage"" : 11,");
     a.push_str("  },");
     a.push_str(" ""timezone"" : {");
+    a.push_str("   ""unrelated"": { },");
     a.push_str("   ""timezone"" : 22,");
+    a.push_str("   ""unrelated2"": { },");
     a.push_str("  }");
     a.push_str(",}");
     a.push_str("{ ");
     a.push_str(" ""timezone"" : {");
+    a.push_str("   ""unrelated"": { },");
     a.push_str("   ""timezone"" : 55,");
     a.push_str("  }");
     a.push_str(",}");
@@ -625,6 +628,7 @@ begin
     a.push_str("{ ");
     a.push_str(" ""timezone"" : {");
     a.push_str("   ""timezone"" : 66,");
+    a.push_str("   ""unrelated"": { },");
     a.push_str("  },");
     a.push_str(" ""voltage"" : {");
     a.push_str("   ""voltage"" : 44,");

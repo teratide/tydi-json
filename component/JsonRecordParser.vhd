@@ -230,8 +230,16 @@ begin
                     end if;
                   when X"7D" => -- '}'
                     if nesting_origo = '1' then
+                      -- If this is still within the top record
+                      -- E.g. { "key": { ... } }
+                      --                     ^
+                      -- This will simply be treated as part of the value
                       if is_top_record = '1' then
                         state := STATE_VALUE;
+                      -- Otherwise:
+                      -- E.g. { "key": { ... } }
+                      --                       ^
+                      -- This signals the end of the record.
                       else
                         state := STATE_IDLE;   
                         od(idx).last(0) := '1';
